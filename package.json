@@ -1,7 +1,7 @@
 {
   "name": "sirdique-storage",
-  "version": "3.0.0",
-  "description": "Sirdique Storage & Multi-Project Backend",
+  "version": "4.0.0",
+  "description": "Sirdique Storage & Multi-Project Backend with EmailJS Integration",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
@@ -10,7 +10,6 @@
     "express": "^4.18.2",
     "multer": "^1.4.5-lts.1",
     "sharp": "^0.33.2",
-    "nodemailer": "^6.9.1",
     "sqlite3": "^5.1.7"
   }
 }
