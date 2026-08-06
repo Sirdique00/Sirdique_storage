@@ -6,125 +6,148 @@
     <title>Sirdique Storage Supabase Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
+<body class="bg-white text-slate-900 min-h-screen flex flex-col font-sans">
 
-    <!-- AUTH VIEW -->
-    <div id="auth-view" class="flex-1 flex items-center justify-center p-6">
-        <div class="max-w-md w-full bg-slate-900 p-8 rounded-2xl border border-slate-800 space-y-6 shadow-2xl">
+    <!-- AUTH VIEW (Login / Sign Up / Forgot Password) -->
+    <div id="auth-view" class="flex-1 flex items-center justify-center p-6 bg-slate-50">
+        <div class="max-w-md w-full bg-white p-8 rounded-2xl border border-slate-200 space-y-6 shadow-xl">
             <div class="text-center space-y-2">
-                <h1 class="text-3xl font-bold text-indigo-400">Sirdique Database</h1>
-                <p class="text-xs text-slate-400">Professional Backend & Storage Cloud</p>
+                <h1 class="text-3xl font-bold text-indigo-600">Sirdique Database</h1>
+                <p class="text-xs text-slate-500">Professional Backend & Storage Cloud</p>
             </div>
-            <div class="flex border-b border-slate-800 pb-2 space-x-4">
-                <button onclick="switchAuthMode('login')" id="btnLoginTab" class="flex-1 font-bold text-indigo-400 border-b-2 border-indigo-500 pb-1">Login</button>
+            
+            <div id="authTabsContainer" class="flex border-b border-slate-200 pb-2 space-x-4">
+                <button onclick="switchAuthMode('login')" id="btnLoginTab" class="flex-1 font-bold text-indigo-600 border-b-2 border-indigo-600 pb-1">Login</button>
                 <button onclick="switchAuthMode('signup')" id="btnSignupTab" class="flex-1 text-slate-400 pb-1">Sign Up</button>
             </div>
-            <div class="space-y-4">
-                <input type="email" id="authEmail" placeholder="Email Address" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl focus:outline-none focus:border-indigo-500">
-                <input type="password" id="authPassword" placeholder="Password" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl focus:outline-none focus:border-indigo-500">
-                <button onclick="handleAuthSubmit()" id="authSubmitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 p-3 rounded-xl font-medium transition">Login</button>
+
+            <!-- LOGIN & SIGNUP FORM -->
+            <div id="standardAuthForm" class="space-y-4">
+                <input type="email" id="authEmail" placeholder="Email Address" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-xl focus:outline-none focus:border-indigo-600 text-slate-900">
+                <input type="password" id="authPassword" placeholder="Password" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-xl focus:outline-none focus:border-indigo-600 text-slate-900">
+                <button onclick="handleAuthSubmit()" id="authSubmitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-xl font-medium transition">Login</button>
+                
+                <div id="forgotPasswordLinkBox" class="text-right">
+                    <button onclick="showForgotForm()" class="text-xs text-indigo-600 hover:underline">Forgot Password?</button>
+                </div>
+            </div>
+
+            <!-- FORGOT PASSWORD FORM -->
+            <div id="forgotPasswordForm" class="hidden space-y-4">
+                <p class="text-xs text-slate-600">Sanya email dinka domin karbar code na canza password.</p>
+                <input type="email" id="forgotEmail" placeholder="Your Email Address" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-xl text-slate-900">
+                <button onclick="requestForgotPassword()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-xl font-medium">Aiko da Reset Code</button>
+                <button onclick="hideForgotForm()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 p-2 rounded-xl text-xs font-medium">Komawa Login</button>
+            </div>
+
+            <!-- RESET PASSWORD FORM -->
+            <div id="resetPasswordForm" class="hidden space-y-4">
+                <p class="text-xs text-slate-600">Sanya code din da aka baka da kuma sabon password dinka.</p>
+                <input type="text" id="resetCodeInput" placeholder="Enter 6-digit Code" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-xl text-slate-900">
+                <input type="password" id="newPasswordInput" placeholder="New Password" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-xl text-slate-900">
+                <button onclick="submitNewPassword()" class="w-full bg-green-600 hover:bg-green-700 text-white p-3 rounded-xl font-medium">Canza Password Kuma Kashi Gaba</button>
             </div>
         </div>
     </div>
 
-    <!-- MAIN DASHBOARD VIEW -->
-    <div id="dashboard-view" class="hidden flex-1 flex flex-col md:flex-row">
+    <!-- MAIN DASHBOARD FULL PAGE VIEW -->
+    <div id="dashboard-view" class="hidden flex-1 flex flex-col md:flex-row bg-white">
         <!-- Sidebar -->
-        <aside class="w-full md:w-64 bg-slate-900 border-r border-slate-800 p-6 flex flex-col justify-between">
+        <aside class="w-full md:w-64 bg-slate-50 border-r border-slate-200 p-6 flex flex-col justify-between">
             <div class="space-y-6">
-                <h2 class="text-xl font-bold text-indigo-400 cursor-pointer" onclick="showHome()">Sirdique Hub</h2>
+                <h2 class="text-xl font-bold text-indigo-600 cursor-pointer" onclick="showTab('tab-home')">Sirdique Hub</h2>
                 <nav class="space-y-2 text-sm">
-                    <button onclick="showHome()" class="w-full text-left p-3 rounded-xl hover:bg-slate-800 font-medium transition text-indigo-300">All Projects</button>
-                    <button onclick="openNewProjectModal()" class="w-full text-left p-3 rounded-xl hover:bg-slate-800 font-medium transition">+ New Project</button>
-                    <button onclick="showSettings()" class="w-full text-left p-3 rounded-xl hover:bg-slate-800 font-medium transition">Settings</button>
-                    <button onclick="showRules()" class="w-full text-left p-3 rounded-xl hover:bg-slate-800 font-medium transition">Rules & Security</button>
-                    <button onclick="showAbout()" class="w-full text-left p-3 rounded-xl hover:bg-slate-800 font-medium transition">About Us</button>
+                    <button onclick="showTab('tab-home')" class="w-full text-left p-3 rounded-xl hover:bg-slate-200 font-medium transition text-indigo-600">All Projects</button>
+                    <button onclick="showTab('tab-new-project')" class="w-full text-left p-3 rounded-xl hover:bg-slate-200 font-medium transition text-slate-700">+ New Project</button>
+                    <button onclick="showTab('tab-settings')" class="w-full text-left p-3 rounded-xl hover:bg-slate-200 font-medium transition text-slate-700">Settings</button>
+                    <button onclick="showTab('tab-rules')" class="w-full text-left p-3 rounded-xl hover:bg-slate-200 font-medium transition text-slate-700">Rules & Security</button>
+                    <button onclick="showTab('tab-about')" class="w-full text-left p-3 rounded-xl hover:bg-slate-200 font-medium transition text-slate-700">About Us</button>
                 </nav>
             </div>
-            <button onclick="logout()" class="text-red-400 text-sm p-3 hover:bg-slate-800 rounded-xl text-left">Log Out</button>
+            <button onclick="logout()" class="text-red-600 text-sm p-3 hover:bg-red-50 rounded-xl text-left font-medium">Log Out</button>
         </aside>
 
-        <!-- Content Area -->
-        <main class="flex-1 p-6 md:p-10 max-w-6xl mx-auto w-full">
+        <!-- Full Page Content Container -->
+        <main class="flex-1 p-6 md:p-10 max-w-6xl mx-auto w-full bg-white">
 
-            <!-- HOME / ALL PROJECTS -->
-            <div id="tab-home" class="space-y-6">
+            <!-- 1. ALL PROJECTS FULL PAGE -->
+            <div id="tab-home" class="page-section space-y-6">
                 <div class="flex justify-between items-center">
                     <div>
-                        <h2 class="text-2xl font-bold">All Projects</h2>
-                        <p class="text-xs text-slate-400">Manage your cloud databases & storage buckets.</p>
+                        <h2 class="text-2xl font-bold text-slate-900">All Projects</h2>
+                        <p class="text-xs text-slate-500">Manage your cloud databases & storage buckets.</p>
                     </div>
-                    <button onclick="openNewProjectModal()" class="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-xl text-sm font-medium">+ New Project</button>
+                    <button onclick="showTab('tab-new-project')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium">+ New Project</button>
                 </div>
                 <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4"></div>
             </div>
 
-            <!-- NEW PROJECT MODAL -->
-            <div id="tab-new-project" class="hidden space-y-6 bg-slate-900 p-6 rounded-2xl border border-slate-800 max-w-lg mx-auto">
+            <!-- 2. NEW PROJECT FULL PAGE -->
+            <div id="tab-new-project" class="page-section hidden space-y-6 bg-slate-50 p-8 rounded-2xl border border-slate-200 max-w-xl mx-auto shadow-sm">
                 <div class="flex justify-between items-center">
-                    <h2 class="text-xl font-bold text-indigo-400">Create New Project</h2>
-                    <button onclick="showHome()" class="text-xs bg-slate-800 px-3 py-1 rounded-lg">Back</button>
+                    <h2 class="text-xl font-bold text-indigo-600">Create New Project</h2>
+                    <button onclick="showTab('tab-home')" class="text-xs bg-slate-200 px-3 py-1 rounded-lg text-slate-700">&larr; Back</button>
                 </div>
-                <input type="text" id="newProjectName" placeholder="Project Name (e.g. ecommerce-db)" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl">
-                <button onclick="createProject()" class="w-full bg-green-600 hover:bg-green-700 p-3 rounded-xl font-medium">Create Project</button>
+                <input type="text" id="newProjectName" placeholder="Project Name (e.g. ecommerce-db)" class="w-full bg-white border border-slate-300 p-3 rounded-xl text-slate-900">
+                <button onclick="createProject()" class="w-full bg-green-600 hover:bg-green-700 text-white p-3 rounded-xl font-medium">Create Project</button>
             </div>
 
-            <!-- SETTINGS -->
-            <div id="tab-settings" class="hidden space-y-6 bg-slate-900 p-6 rounded-2xl border border-slate-800 max-w-xl mx-auto">
+            <!-- 3. SETTINGS FULL PAGE -->
+            <div id="tab-settings" class="page-section hidden space-y-6 bg-slate-50 p-8 rounded-2xl border border-slate-200 max-w-xl mx-auto shadow-sm">
                 <div class="flex justify-between items-center">
-                    <h2 class="text-xl font-bold text-indigo-400">Account Settings</h2>
-                    <button onclick="showHome()" class="text-xs bg-slate-800 px-3 py-1 rounded-lg">Back</button>
+                    <h2 class="text-xl font-bold text-indigo-600">Account Settings</h2>
+                    <button onclick="showTab('tab-home')" class="text-xs bg-slate-200 px-3 py-1 rounded-lg text-slate-700">&larr; Back</button>
                 </div>
-                <div class="space-y-2 text-sm text-slate-300">
-                    <p><b>Email:</b> <span id="settingsEmail" class="text-indigo-300"></span></p>
+                <div class="space-y-3 text-sm text-slate-700">
+                    <p><b>Email:</b> <span id="settingsEmail" class="text-indigo-600 font-semibold"></span></p>
                     <p><b>Platform:</b> Sirdique Cloud Storage (Supabase-like)</p>
                 </div>
             </div>
 
-            <!-- RULES -->
-            <div id="tab-rules" class="hidden space-y-6 bg-slate-900 p-6 rounded-2xl border border-slate-800 max-w-xl mx-auto">
+            <!-- 4. RULES FULL PAGE -->
+            <div id="tab-rules" class="page-section hidden space-y-6 bg-slate-50 p-8 rounded-2xl border border-slate-200 max-w-xl mx-auto shadow-sm">
                 <div class="flex justify-between items-center">
-                    <h2 class="text-xl font-bold text-indigo-400">Rules & Security</h2>
-                    <button onclick="showHome()" class="text-xs bg-slate-800 px-3 py-1 rounded-lg">Back</button>
+                    <h2 class="text-xl font-bold text-indigo-600">Rules & Security</h2>
+                    <button onclick="showTab('tab-home')" class="text-xs bg-slate-200 px-3 py-1 rounded-lg text-slate-700">&larr; Back</button>
                 </div>
-                <div class="space-y-3 text-xs text-slate-300 leading-relaxed">
+                <div class="space-y-3 text-xs text-slate-600 leading-relaxed">
                     <p>1. Keep your API Keys secret. Never expose them in public frontend client repositories.</p>
                     <p>2. Each project has a strict storage limit of 800MB.</p>
-                    <p>3. API keys start with <code class="text-indigo-400">sd-</code> prefix.</p>
+                    <p>3. API keys start with <code class="text-indigo-600 font-bold">sd-</code> prefix.</p>
                 </div>
             </div>
 
-            <!-- ABOUT US -->
-            <div id="tab-about" class="hidden space-y-6 bg-slate-900 p-6 rounded-2xl border border-slate-800 max-w-xl mx-auto">
+            <!-- 5. ABOUT US FULL PAGE -->
+            <div id="tab-about" class="page-section hidden space-y-6 bg-slate-50 p-8 rounded-2xl border border-slate-200 max-w-xl mx-auto shadow-sm">
                 <div class="flex justify-between items-center">
-                    <h2 class="text-xl font-bold text-indigo-400">About Us</h2>
-                    <button onclick="showHome()" class="text-xs bg-slate-800 px-3 py-1 rounded-lg">Back</button>
+                    <h2 class="text-xl font-bold text-indigo-600">About Us</h2>
+                    <button onclick="showTab('tab-home')" class="text-xs bg-slate-200 px-3 py-1 rounded-lg text-slate-700">&larr; Back</button>
                 </div>
-                <p class="text-xs text-slate-300 leading-relaxed">Sirdique Storage is a high-performance backend infrastructure provider offering database tables, bucket storage, and secure keys management.</p>
+                <p class="text-xs text-slate-600 leading-relaxed">Sirdique Storage is a high-performance backend infrastructure provider offering database tables, bucket storage, and secure keys management.</p>
             </div>
 
-            <!-- SINGLE PROJECT DASHBOARD (Supabase Style) -->
-            <div id="tab-single-project" class="hidden space-y-6">
-                <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+            <!-- 6. SINGLE PROJECT FULL PAGE (Supabase Style) -->
+            <div id="tab-single-project" class="page-section hidden space-y-6">
+                <div class="flex justify-between items-center border-b border-slate-200 pb-4">
                     <div class="flex items-center space-x-3">
-                        <button onclick="showHome()" class="text-xs bg-slate-800 px-3 py-1.5 rounded-lg">&larr; Back</button>
-                        <h2 id="spTitle" class="text-2xl font-bold text-indigo-400"></h2>
+                        <button onclick="showTab('tab-home')" class="text-xs bg-slate-100 hover:bg-slate-200 border border-slate-300 px-3 py-1.5 rounded-lg text-slate-700">&larr; Back</button>
+                        <h2 id="spTitle" class="text-2xl font-bold text-indigo-600"></h2>
                     </div>
                     <div class="space-x-2 text-xs">
-                        <button onclick="switchSpTab('tables')" id="btnSpTables" class="bg-indigo-600 px-3 py-1.5 rounded-lg font-medium">Table Editor</button>
-                        <button onclick="switchSpTab('bucket')" id="btnSpBucket" class="bg-slate-800 px-3 py-1.5 rounded-lg font-medium">Storage Bucket</button>
-                        <button onclick="switchSpTab('apikeys')" id="btnSpKeys" class="bg-slate-800 px-3 py-1.5 rounded-lg font-medium">API & Settings</button>
+                        <button onclick="switchSpTab('tables')" id="btnSpTables" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-medium">Table Editor</button>
+                        <button onclick="switchSpTab('bucket')" id="btnSpBucket" class="bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg font-medium">Storage Bucket</button>
+                        <button onclick="switchSpTab('apikeys')" id="btnSpKeys" class="bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg font-medium">API & Settings</button>
                     </div>
                 </div>
 
-                <!-- TABLES / TEMPLATES VIEW -->
+                <!-- TABLES VIEW -->
                 <div id="sp-tables" class="space-y-6">
-                    <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-4">
-                        <h3 class="font-semibold text-sm">Create New Table (Template)</h3>
+                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4 shadow-sm">
+                        <h3 class="font-semibold text-sm text-slate-800">Create New Table (Template)</h3>
                         <div class="flex space-x-2">
-                            <input type="text" id="newTableName" placeholder="Table Name (e.g. users)" class="flex-1 bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-xs">
-                            <input type="text" id="newTableCols" placeholder="Columns (comma separated: name,email)" class="flex-1 bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-xs">
-                            <button onclick="createTable()" class="bg-indigo-600 px-4 py-2 rounded-xl text-xs font-medium">Create Table</button>
+                            <input type="text" id="newTableName" placeholder="Table Name (e.g. users)" class="flex-1 bg-white border border-slate-300 p-2.5 rounded-xl text-xs text-slate-900">
+                            <input type="text" id="newTableCols" placeholder="Columns (name,email)" class="flex-1 bg-white border border-slate-300 p-2.5 rounded-xl text-xs text-slate-900">
+                            <button onclick="createTable()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-medium">Create Table</button>
                         </div>
                     </div>
                     <div id="tablesContainer" class="space-y-6"></div>
@@ -132,26 +155,26 @@
 
                 <!-- BUCKET VIEW -->
                 <div id="sp-bucket" class="hidden space-y-6">
-                    <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-4">
-                        <h3 class="font-semibold text-sm">Storage Bucket (Image Compression Enabled)</h3>
-                        <input type="file" id="bucketFile" class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white">
-                        <button onclick="uploadBucketFile()" class="w-full bg-indigo-600 p-2.5 rounded-xl text-xs font-medium">Upload to Bucket</button>
+                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4 shadow-sm">
+                        <h3 class="font-semibold text-sm text-slate-800">Storage Bucket (Image Compression Enabled)</h3>
+                        <input type="file" id="bucketFile" class="w-full text-xs text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white">
+                        <button onclick="uploadBucketFile()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white p-2.5 rounded-xl text-xs font-medium">Upload to Bucket</button>
                     </div>
                     <div id="bucketFilesGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
                 </div>
 
-                <!-- API & SETTINGS VIEW -->
-                <div id="sp-apikeys" class="hidden space-y-6 bg-slate-900 p-6 rounded-2xl border border-slate-800">
-                    <h3 class="text-lg font-bold text-indigo-400">Project API & Settings</h3>
-                    <div class="space-y-3 text-xs">
-                        <p><b>Project ID:</b> <span id="infoProjId" class="text-green-400"></span></p>
-                        <p><b>API Key:</b> <span id="infoApiKey" class="text-green-400"></span></p>
+                <!-- API & SETTINGS FULL PAGE VIEW -->
+                <div id="sp-apikeys" class="hidden space-y-6 bg-slate-50 p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="text-lg font-bold text-indigo-600">Project API & Settings</h3>
+                    <div class="space-y-3 text-xs text-slate-700">
+                        <p><b>Project ID:</b> <span id="infoProjId" class="text-green-600 font-semibold"></span></p>
+                        <p><b>API Key:</b> <span id="infoApiKey" class="text-green-600 font-semibold"></span></p>
                         <p><b>Base URL:</b> https://sirdique-storage.onrender.com</p>
-                        <hr class="border-slate-800 my-4">
-                        <p class="font-bold">Edit Project Name:</p>
+                        <hr class="border-slate-200 my-4">
+                        <p class="font-bold text-slate-900">Edit Project Name:</p>
                         <div class="flex space-x-2">
-                            <input type="text" id="editProjNameInput" class="flex-1 bg-slate-950 border border-slate-800 p-2 rounded-xl">
-                            <button onclick="updateProjectName()" class="bg-indigo-600 px-4 py-2 rounded-xl font-medium">Save Changes</button>
+                            <input type="text" id="editProjNameInput" class="flex-1 bg-white border border-slate-300 p-2 rounded-xl text-slate-900">
+                            <button onclick="updateProjectName()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl font-medium">Save Changes</button>
                         </div>
                     </div>
                 </div>
@@ -164,19 +187,76 @@
         let currentAuthMode = 'login';
         let loggedInEmail = localStorage.getItem('sirdique_email') || null;
         let activeProject = null;
+        let tempForgotEmail = '';
 
         if (loggedInEmail) showDashboard();
 
         function switchAuthMode(mode) {
             currentAuthMode = mode;
             if(mode === 'login') {
-                document.getElementById('btnLoginTab').className = 'flex-1 font-bold text-indigo-400 border-b-2 border-indigo-500 pb-1';
+                document.getElementById('btnLoginTab').className = 'flex-1 font-bold text-indigo-600 border-b-2 border-indigo-600 pb-1';
                 document.getElementById('btnSignupTab').className = 'flex-1 text-slate-400 pb-1';
                 document.getElementById('authSubmitBtn').innerText = 'Login';
+                document.getElementById('forgotPasswordLinkBox').classList.remove('hidden');
             } else {
-                document.getElementById('btnSignupTab').className = 'flex-1 font-bold text-indigo-400 border-b-2 border-indigo-500 pb-1';
+                document.getElementById('btnSignupTab').className = 'flex-1 font-bold text-indigo-600 border-b-2 border-indigo-600 pb-1';
                 document.getElementById('btnLoginTab').className = 'flex-1 text-slate-400 pb-1';
                 document.getElementById('authSubmitBtn').innerText = 'Sign Up';
+                document.getElementById('forgotPasswordLinkBox').classList.add('hidden');
+            }
+        }
+
+        function showForgotForm() {
+            document.getElementById('standardAuthForm').classList.add('hidden');
+            document.getElementById('authTabsContainer').classList.add('hidden');
+            document.getElementById('forgotPasswordForm').classList.remove('hidden');
+        }
+
+        function hideForgotForm() {
+            document.getElementById('forgotPasswordForm').classList.add('hidden');
+            document.getElementById('standardAuthForm').classList.remove('hidden');
+            document.getElementById('authTabsContainer').classList.remove('hidden');
+        }
+
+        async function requestForgotPassword() {
+            const email = document.getElementById('forgotEmail').value;
+            if(!email) return alert('Sanya email dinka!');
+            
+            const res = await fetch('/api/hub/forgot-password', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email })
+            });
+            const data = await res.json();
+            if(data.success) {
+                tempForgotEmail = email;
+                alert(`${data.message}\n(Gwaji Code dinka shine: ${data.resetCode})`);
+                document.getElementById('forgotPasswordForm').classList.add('hidden');
+                document.getElementById('resetPasswordForm').classList.remove('hidden');
+            } else {
+                alert(data.error);
+            }
+        }
+
+        async function submitNewPassword() {
+            const code = document.getElementById('resetCodeInput').value;
+            const newPassword = document.getElementById('newPasswordInput').value;
+            if(!code || !newPassword) return alert('Cika duk wuraren da ake bukata!');
+
+            const res = await fetch('/api/hub/reset-password', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email: tempForgotEmail, code, newPassword })
+            });
+            const data = await res.json();
+            if(data.success) {
+                alert(data.message);
+                document.getElementById('resetPasswordForm').classList.add('hidden');
+                document.getElementById('standardAuthForm').classList.remove('hidden');
+                document.getElementById('authTabsContainer').classList.remove('hidden');
+                switchAuthMode('login');
+            } else {
+                alert(data.error);
             }
         }
 
@@ -197,7 +277,12 @@
                 localStorage.setItem('sirdique_email', email);
                 showDashboard();
             } else {
-                alert(data.error);
+                if(currentAuthMode === 'signup') {
+                    alert('An riga an yi register da wannan email din! Don Allah kayi login kawai.');
+                    switchAuthMode('login');
+                } else {
+                    alert(data.error);
+                }
             }
         }
 
@@ -205,7 +290,7 @@
             document.getElementById('auth-view').classList.add('hidden');
             document.getElementById('dashboard-view').classList.remove('hidden');
             document.getElementById('settingsEmail').innerText = loggedInEmail;
-            showHome();
+            showTab('tab-home');
         }
 
         function logout() {
@@ -213,36 +298,17 @@
             location.reload();
         }
 
-        function hideAllTabs() {
-            ['tab-home', 'tab-new-project', 'tab-settings', 'tab-rules', 'tab-about', 'tab-single-project'].forEach(t => {
-                document.getElementById(t).classList.add('hidden');
-            });
-        }
-
-        function showHome() {
-            hideAllTabs();
-            document.getElementById('tab-home').classList.remove('hidden');
-            loadMyProjects();
-        }
-
-        function openNewProjectModal() {
-            hideAllTabs();
-            document.getElementById('tab-new-project').classList.remove('hidden');
-        }
-
-        function showSettings() {
-            hideAllTabs();
-            document.getElementById('tab-settings').classList.remove('hidden');
-        }
-
-        function showRules() {
-            hideAllTabs();
-            document.getElementById('tab-rules').classList.remove('hidden');
-        }
-
-        function showAbout() {
-            hideAllTabs();
-            document.getElementById('tab-about').classList.remove('hidden');
+        // Cikakken Full Page Switcher (Yana fitar da mutum daga tsohon shafin gaba daya)
+        function showTab(tabId) {
+            const sections = document.querySelectorAll('.page-section');
+            sections.forEach(sec => sec.classList.add('hidden'));
+            
+            const target = document.getElementById(tabId);
+            if(target) {
+                target.classList.remove('hidden');
+                window.scrollTo(0, 0);
+            }
+            if(tabId === 'tab-home') loadMyProjects();
         }
 
         async function createProject() {
@@ -256,7 +322,7 @@
             const data = await res.json();
             if(data.success) {
                 document.getElementById('newProjectName').value = '';
-                showHome();
+                showTab('tab-home');
             } else {
                 alert(data.error);
             }
@@ -276,10 +342,10 @@
             if(window.myProjectsData.length > 0) {
                 window.myProjectsData.forEach(p => {
                     grid.innerHTML += `
-                        <div onclick="openProject('${p.project_id}')" class="bg-slate-900 p-5 rounded-2xl border border-slate-800 hover:border-indigo-500 cursor-pointer transition space-y-2">
-                            <h3 class="font-bold text-lg text-indigo-400">${p.name}</h3>
-                            <p class="text-xs text-slate-400">Project ID: ${p.project_id}</p>
-                            <p class="text-xs text-slate-500">Storage Used: ${Math.round(p.used_storage / 1024)} KB / 800MB</p>
+                        <div onclick="openProject('${p.project_id}')" class="bg-slate-50 p-5 rounded-2xl border border-slate-200 hover:border-indigo-600 cursor-pointer transition space-y-2 shadow-sm">
+                            <h3 class="font-bold text-lg text-indigo-600">${p.name}</h3>
+                            <p class="text-xs text-slate-500">Project ID: ${p.project_id}</p>
+                            <p class="text-xs text-slate-400">Storage Used: ${Math.round(p.used_storage / 1024)} KB / 800MB</p>
                         </div>`;
                 });
             } else {
@@ -291,8 +357,7 @@
             activeProject = window.myProjectsData.find(p => p.project_id === projectId);
             if(!activeProject) return;
 
-            hideAllTabs();
-            document.getElementById('tab-single-project').classList.remove('hidden');
+            showTab('tab-single-project');
             document.getElementById('spTitle').innerText = activeProject.name;
             document.getElementById('infoProjId').innerText = activeProject.project_id;
             document.getElementById('infoApiKey').innerText = activeProject.api_key;
@@ -302,19 +367,19 @@
 
         function switchSpTab(tab) {
             ['sp-tables', 'sp-bucket', 'sp-apikeys'].forEach(t => document.getElementById(t).classList.add('hidden'));
-            ['btnSpTables', 'btnSpBucket', 'btnSpKeys'].forEach(b => document.getElementById(b).className = 'bg-slate-800 px-3 py-1.5 rounded-lg font-medium');
+            ['btnSpTables', 'btnSpBucket', 'btnSpKeys'].forEach(b => document.getElementById(b).className = 'bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg font-medium');
 
             if(tab === 'tables') {
                 document.getElementById('sp-tables').classList.remove('hidden');
-                document.getElementById('btnSpTables').className = 'bg-indigo-600 px-3 py-1.5 rounded-lg font-medium';
+                document.getElementById('btnSpTables').className = 'bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-medium';
                 loadTables();
             } else if(tab === 'bucket') {
                 document.getElementById('sp-bucket').classList.remove('hidden');
-                document.getElementById('btnSpBucket').className = 'bg-indigo-600 px-3 py-1.5 rounded-lg font-medium';
+                document.getElementById('btnSpBucket').className = 'bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-medium';
                 loadBucketFiles();
             } else if(tab === 'apikeys') {
                 document.getElementById('sp-apikeys').classList.remove('hidden');
-                document.getElementById('btnSpKeys').className = 'bg-indigo-600 px-3 py-1.5 rounded-lg font-medium';
+                document.getElementById('btnSpKeys').className = 'bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-medium';
             }
         }
 
@@ -350,7 +415,6 @@
             if(data.success && data.tables.length > 0) {
                 for(let t of data.tables) {
                     const cols = JSON.parse(t.columns);
-                    // fetch rows
                     const rowRes = await fetch(`/api/database/rows/${t.table_name}`, {
                         headers: {'x-api-key': activeProject.api_key}
                     });
@@ -358,12 +422,12 @@
                     const rows = rowData.rows || [];
 
                     let html = `
-                        <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-4">
-                            <h4 class="font-bold text-indigo-400 text-sm">Table: ${t.table_name}</h4>
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4 shadow-sm">
+                            <h4 class="font-bold text-indigo-600 text-sm">Table: ${t.table_name}</h4>
                             <div class="overflow-x-auto">
-                                <table class="w-full text-left text-xs">
+                                <table class="w-full text-left text-xs text-slate-700">
                                     <thead>
-                                        <tr class="border-b border-slate-800">
+                                        <tr class="border-b border-slate-200">
                                             ${cols.map(c => `<th class="p-2">${c}</th>`).join('')}
                                         </tr>
                                     </thead>
@@ -371,21 +435,21 @@
                     
                     rows.forEach(r => {
                         const parsed = JSON.parse(r.row_data);
-                        html += `<tr class="border-b border-slate-800/50">${cols.map(c => `<td class="p-2">${parsed[c] || ''}</td>`).join('')}</tr>`;
+                        html += `<tr class="border-b border-slate-200/50">${cols.map(c => `<td class="p-2">${parsed[c] || ''}</td>`).join('')}</tr>`;
                     });
 
                     html += `       </tbody>
                                 </table>
                             </div>
                             <div class="flex space-x-2 pt-2">
-                                <input type="text" id="row-${t.table_name}" placeholder="JSON or value for first col" class="flex-1 bg-slate-950 border border-slate-800 p-2 rounded-xl text-xs">
-                                <button onclick="addRow('${t.table_name}', '${cols[0]}')" class="bg-indigo-600 px-3 py-1.5 rounded-xl text-xs">Add Row</button>
+                                <input type="text" id="row-${t.table_name}" placeholder="Value for ${cols[0]}" class="flex-1 bg-white border border-slate-300 p-2 rounded-xl text-xs text-slate-900">
+                                <button onclick="addRow('${t.table_name}', '${cols[0]}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-xs font-medium">Add Row</button>
                             </div>
                         </div>`;
                     container.innerHTML += html;
                 }
             } else {
-                container.innerHTML = '<p class="text-xs text-slate-500">No tables created yet.</p>';
+                container.innerHTML = '<p class="text-xs text-slate-400">No tables created yet.</p>';
             }
         }
 
@@ -439,14 +503,14 @@
             if(data.success && data.files.length > 0) {
                 data.files.forEach(f => {
                     grid.innerHTML += `
-                        <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2 text-xs shadow-sm">
                             <img src="${f.file_url}" class="w-full h-24 object-cover rounded-lg">
-                            <p class="truncate text-slate-300">${f.file_name}</p>
-                            <a href="${f.file_url}" target="_blank" class="text-indigo-400 underline block">View File</a>
+                            <p class="truncate text-slate-700">${f.file_name}</p>
+                            <a href="${f.file_url}" target="_blank" class="text-indigo-600 underline block font-medium">View File</a>
                         </div>`;
                 });
             } else {
-                grid.innerHTML = '<p class="text-xs text-slate-500 col-span-4">Bucket is empty.</p>';
+                grid.innerHTML = '<p class="text-xs text-slate-400 col-span-4">Bucket is empty.</p>';
             }
         }
 
@@ -454,7 +518,7 @@
             const newName = document.getElementById('editProjNameInput').value;
             if(!newName) return alert('Enter new name');
             const res = await fetch('/api/projects/update', {
-                method: 'PUT',
+                method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ project_id: activeProject.project_id, newName })
             });
