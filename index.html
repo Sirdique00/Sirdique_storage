@@ -3,30 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sirdique Storage Hub</title>
+    <title>Sirdique Storage Supabase Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <script type="text/javascript">
-        (function() {
-            emailjs.init("cyG3rOixg3oOuJ2eL");
-        })();
-    </script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
 
-    <!-- 1. WELCOME / AUTH VIEW (Farko kafin shiga dash) -->
+    <!-- AUTH VIEW -->
     <div id="auth-view" class="flex-1 flex items-center justify-center p-6">
-        <div class="max-w-md w-full bg-slate-900 p-8 rounded-2xl border border-slate-800 space-y-6 shadow-xl">
+        <div class="max-w-md w-full bg-slate-900 p-8 rounded-2xl border border-slate-800 space-y-6 shadow-2xl">
             <div class="text-center space-y-2">
-                <h1 class="text-3xl font-bold text-indigo-400">Sirdique Storage</h1>
-                <p class="text-xs text-slate-400">Da fatan za a yi Sign Up ko Login kafin shiga dashboard ɗinka.</p>
+                <h1 class="text-3xl font-bold text-indigo-400">Sirdique Database</h1>
+                <p class="text-xs text-slate-400">Professional Backend & Storage Cloud</p>
             </div>
-
             <div class="flex border-b border-slate-800 pb-2 space-x-4">
                 <button onclick="switchAuthMode('login')" id="btnLoginTab" class="flex-1 font-bold text-indigo-400 border-b-2 border-indigo-500 pb-1">Login</button>
                 <button onclick="switchAuthMode('signup')" id="btnSignupTab" class="flex-1 text-slate-400 pb-1">Sign Up</button>
             </div>
-
             <div class="space-y-4">
                 <input type="email" id="authEmail" placeholder="Email Address" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl focus:outline-none focus:border-indigo-500">
                 <input type="password" id="authPassword" placeholder="Password" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl focus:outline-none focus:border-indigo-500">
@@ -35,81 +27,134 @@
         </div>
     </div>
 
-    <!-- 2. DASHBOARD VIEW (Bayan an shiga) -->
+    <!-- MAIN DASHBOARD VIEW -->
     <div id="dashboard-view" class="hidden flex-1 flex flex-col md:flex-row">
         <!-- Sidebar -->
         <aside class="w-full md:w-64 bg-slate-900 border-r border-slate-800 p-6 flex flex-col justify-between">
             <div class="space-y-6">
-                <h2 class="text-xl font-bold text-indigo-400">Sirdique Hub</h2>
+                <h2 class="text-xl font-bold text-indigo-400 cursor-pointer" onclick="showHome()">Sirdique Hub</h2>
                 <nav class="space-y-2 text-sm">
-                    <button onclick="switchDashTab('home')" class="w-full text-left p-3 rounded-xl hover:bg-slate-800 font-medium transition text-indigo-300">My Home</button>
-                    <button onclick="switchDashTab('apikey')" class="w-full text-left p-3 rounded-xl hover:bg-slate-800 font-medium transition">API Key & Sirri</button>
-                    <button onclick="switchDashTab('mykeys')" class="w-full text-left p-3 rounded-xl hover:bg-slate-800 font-medium transition">My Keys & URL</button>
+                    <button onclick="showHome()" class="w-full text-left p-3 rounded-xl hover:bg-slate-800 font-medium transition text-indigo-300">All Projects</button>
+                    <button onclick="openNewProjectModal()" class="w-full text-left p-3 rounded-xl hover:bg-slate-800 font-medium transition">+ New Project</button>
+                    <button onclick="showSettings()" class="w-full text-left p-3 rounded-xl hover:bg-slate-800 font-medium transition">Settings</button>
+                    <button onclick="showRules()" class="w-full text-left p-3 rounded-xl hover:bg-slate-800 font-medium transition">Rules & Security</button>
+                    <button onclick="showAbout()" class="w-full text-left p-3 rounded-xl hover:bg-slate-800 font-medium transition">About Us</button>
                 </nav>
             </div>
-            <button onclick="logout()" class="text-red-400 text-sm p-3 hover:bg-slate-800 rounded-xl text-left">Fita (Logout)</button>
+            <button onclick="logout()" class="text-red-400 text-sm p-3 hover:bg-slate-800 rounded-xl text-left">Log Out</button>
         </aside>
 
-        <!-- Main Content Area -->
-        <main class="flex-1 p-6 md:p-10 max-w-5xl mx-w-full w-full">
+        <!-- Content Area -->
+        <main class="flex-1 p-6 md:p-10 max-w-6xl mx-auto w-full">
 
-            <!-- HOME TAB: Project List & New Project Trigger -->
-            <div id="dash-home" class="space-y-6">
+            <!-- HOME / ALL PROJECTS -->
+            <div id="tab-home" class="space-y-6">
                 <div class="flex justify-between items-center">
                     <div>
-                        <h2 class="text-2xl font-bold">Jerin Project Ɗinka</h2>
-                        <p class="text-xs text-slate-400">Zaɓi project ko ka ƙirƙiri sabo (Iyaka biyu kowane email).</p>
+                        <h2 class="text-2xl font-bold">All Projects</h2>
+                        <p class="text-xs text-slate-400">Manage your cloud databases & storage buckets.</p>
                     </div>
                     <button onclick="openNewProjectModal()" class="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-xl text-sm font-medium">+ New Project</button>
                 </div>
+                <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4"></div>
+            </div>
 
-                <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-                    <!-- Projects loaded here -->
+            <!-- NEW PROJECT MODAL -->
+            <div id="tab-new-project" class="hidden space-y-6 bg-slate-900 p-6 rounded-2xl border border-slate-800 max-w-lg mx-auto">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-indigo-400">Create New Project</h2>
+                    <button onclick="showHome()" class="text-xs bg-slate-800 px-3 py-1 rounded-lg">Back</button>
+                </div>
+                <input type="text" id="newProjectName" placeholder="Project Name (e.g. ecommerce-db)" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl">
+                <button onclick="createProject()" class="w-full bg-green-600 hover:bg-green-700 p-3 rounded-xl font-medium">Create Project</button>
+            </div>
+
+            <!-- SETTINGS -->
+            <div id="tab-settings" class="hidden space-y-6 bg-slate-900 p-6 rounded-2xl border border-slate-800 max-w-xl mx-auto">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-indigo-400">Account Settings</h2>
+                    <button onclick="showHome()" class="text-xs bg-slate-800 px-3 py-1 rounded-lg">Back</button>
+                </div>
+                <div class="space-y-2 text-sm text-slate-300">
+                    <p><b>Email:</b> <span id="settingsEmail" class="text-indigo-300"></span></p>
+                    <p><b>Platform:</b> Sirdique Cloud Storage (Supabase-like)</p>
                 </div>
             </div>
 
-            <!-- NEW PROJECT MODAL SECTION -->
-            <div id="dash-new-project" class="hidden space-y-6 bg-slate-900 p-6 rounded-2xl border border-slate-800 max-w-lg mx-auto">
-                <h2 class="text-xl font-bold text-indigo-400">Ƙirƙiri Sabon Project</h2>
-                <p class="text-xs text-slate-400">Ka sanya sunan project wanda ba a taba amfani da shi ba.</p>
-                <input type="text" id="newProjectName" placeholder="Sunan Project (misali: MyBlog)" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl">
-                <div class="flex space-x-3">
-                    <button onclick="createProject()" class="flex-1 bg-green-600 hover:bg-green-700 p-3 rounded-xl font-medium">Ƙirƙira</button>
-                    <button onclick="switchDashTab('home')" class="flex-1 bg-slate-800 hover:bg-slate-700 p-3 rounded-xl font-medium">Soke</button>
+            <!-- RULES -->
+            <div id="tab-rules" class="hidden space-y-6 bg-slate-900 p-6 rounded-2xl border border-slate-800 max-w-xl mx-auto">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-indigo-400">Rules & Security</h2>
+                    <button onclick="showHome()" class="text-xs bg-slate-800 px-3 py-1 rounded-lg">Back</button>
+                </div>
+                <div class="space-y-3 text-xs text-slate-300 leading-relaxed">
+                    <p>1. Keep your API Keys secret. Never expose them in public frontend client repositories.</p>
+                    <p>2. Each project has a strict storage limit of 800MB.</p>
+                    <p>3. API keys start with <code class="text-indigo-400">sd-</code> prefix.</p>
                 </div>
             </div>
 
-            <!-- SINGLE PROJECT VIEW (Idan ka taɓa sunan project) -->
-            <div id="dash-single-project" class="hidden space-y-6">
-                <div class="flex items-center space-x-4">
-                    <button onclick="switchDashTab('home')" class="text-xs bg-slate-800 px-3 py-1.5 rounded-lg">&larr; Baya</button>
-                    <h2 id="singleProjectTitle" class="text-2xl font-bold text-indigo-400"></h2>
+            <!-- ABOUT US -->
+            <div id="tab-about" class="hidden space-y-6 bg-slate-900 p-6 rounded-2xl border border-slate-800 max-w-xl mx-auto">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-indigo-400">About Us</h2>
+                    <button onclick="showHome()" class="text-xs bg-slate-800 px-3 py-1 rounded-lg">Back</button>
                 </div>
-                <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
-                    <h3 class="font-semibold text-sm">Ajiye Sabon Bayani a Project Ɗinka</h3>
-                    <input type="text" id="saveTitle" placeholder="Take (Title)" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl">
-                    <textarea id="saveContent" placeholder="Bayani (Content)" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl"></textarea>
-                    <input type="file" id="saveFile" class="w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white">
-                    <button onclick="saveProjectData()" class="w-full bg-indigo-600 p-3 rounded-xl font-medium">Ajiye a Sirdique</button>
-                </div>
-                <div id="projectEntriesList" class="space-y-3"></div>
+                <p class="text-xs text-slate-300 leading-relaxed">Sirdique Storage is a high-performance backend infrastructure provider offering database tables, bucket storage, and secure keys management.</p>
             </div>
 
-            <!-- API KEY TAB -->
-            <div id="dash-apikey" class="hidden space-y-6 bg-slate-900 p-6 rounded-2xl border border-slate-800">
-                <h2 class="text-2xl font-bold text-indigo-400">API Key, Dokoki da Sirrin Amfani</h2>
-                <div class="space-y-4 text-sm text-slate-300">
-                    <p><b>API Key Format:</b> Key ɗinka yana farawa da <code class="text-indigo-400">sd-</code> domin nuna cewa ya fito daga Sirdique Storage.</p>
-                    <p><b>Dokoki da Sirri:</b> Kar ka taɓa bayyana API Key ɗinka a fili a cikin public repositories. Ka riƙe shi a matsayin sirri (Secret Environment Variable).</p>
-                    <p><b>Yadda ake amfani da shi:</b> Ka tura shi a Header na request ɗinka ta hanyar <code class="text-indigo-400">x-api-key: sd-...</code></p>
+            <!-- SINGLE PROJECT DASHBOARD (Supabase Style) -->
+            <div id="tab-single-project" class="hidden space-y-6">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+                    <div class="flex items-center space-x-3">
+                        <button onclick="showHome()" class="text-xs bg-slate-800 px-3 py-1.5 rounded-lg">&larr; Back</button>
+                        <h2 id="spTitle" class="text-2xl font-bold text-indigo-400"></h2>
+                    </div>
+                    <div class="space-x-2 text-xs">
+                        <button onclick="switchSpTab('tables')" id="btnSpTables" class="bg-indigo-600 px-3 py-1.5 rounded-lg font-medium">Table Editor</button>
+                        <button onclick="switchSpTab('bucket')" id="btnSpBucket" class="bg-slate-800 px-3 py-1.5 rounded-lg font-medium">Storage Bucket</button>
+                        <button onclick="switchSpTab('apikeys')" id="btnSpKeys" class="bg-slate-800 px-3 py-1.5 rounded-lg font-medium">API & Settings</button>
+                    </div>
                 </div>
-            </div>
 
-            <!-- MY KEYS TAB -->
-            <div id="dash-mykeys" class="hidden space-y-6 bg-slate-900 p-6 rounded-2xl border border-slate-800">
-                <h2 class="text-2xl font-bold text-indigo-400">Project IDs da URL Ɗinka</h2>
-                <p class="text-sm text-slate-300">Anan zaka ga bayanan mahimman adiresoshin sabarka:</p>
-                <div id="myKeysContent" class="space-y-3 pt-2"></div>
+                <!-- TABLES / TEMPLATES VIEW -->
+                <div id="sp-tables" class="space-y-6">
+                    <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-4">
+                        <h3 class="font-semibold text-sm">Create New Table (Template)</h3>
+                        <div class="flex space-x-2">
+                            <input type="text" id="newTableName" placeholder="Table Name (e.g. users)" class="flex-1 bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-xs">
+                            <input type="text" id="newTableCols" placeholder="Columns (comma separated: name,email)" class="flex-1 bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-xs">
+                            <button onclick="createTable()" class="bg-indigo-600 px-4 py-2 rounded-xl text-xs font-medium">Create Table</button>
+                        </div>
+                    </div>
+                    <div id="tablesContainer" class="space-y-6"></div>
+                </div>
+
+                <!-- BUCKET VIEW -->
+                <div id="sp-bucket" class="hidden space-y-6">
+                    <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-4">
+                        <h3 class="font-semibold text-sm">Storage Bucket (Image Compression Enabled)</h3>
+                        <input type="file" id="bucketFile" class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white">
+                        <button onclick="uploadBucketFile()" class="w-full bg-indigo-600 p-2.5 rounded-xl text-xs font-medium">Upload to Bucket</button>
+                    </div>
+                    <div id="bucketFilesGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+                </div>
+
+                <!-- API & SETTINGS VIEW -->
+                <div id="sp-apikeys" class="hidden space-y-6 bg-slate-900 p-6 rounded-2xl border border-slate-800">
+                    <h3 class="text-lg font-bold text-indigo-400">Project API & Settings</h3>
+                    <div class="space-y-3 text-xs">
+                        <p><b>Project ID:</b> <span id="infoProjId" class="text-green-400"></span></p>
+                        <p><b>API Key:</b> <span id="infoApiKey" class="text-green-400"></span></p>
+                        <p><b>Base URL:</b> https://sirdique-storage.onrender.com</p>
+                        <hr class="border-slate-800 my-4">
+                        <p class="font-bold">Edit Project Name:</p>
+                        <div class="flex space-x-2">
+                            <input type="text" id="editProjNameInput" class="flex-1 bg-slate-950 border border-slate-800 p-2 rounded-xl">
+                            <button onclick="updateProjectName()" class="bg-indigo-600 px-4 py-2 rounded-xl font-medium">Save Changes</button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
         </main>
@@ -120,9 +165,7 @@
         let loggedInEmail = localStorage.getItem('sirdique_email') || null;
         let activeProject = null;
 
-        if (loggedInEmail) {
-            showDashboard();
-        }
+        if (loggedInEmail) showDashboard();
 
         function switchAuthMode(mode) {
             currentAuthMode = mode;
@@ -140,7 +183,7 @@
         async function handleAuthSubmit() {
             const email = document.getElementById('authEmail').value;
             const password = document.getElementById('authPassword').value;
-            if(!email || !password) return alert('Cika duk wuraren da ake bukata!');
+            if(!email || !password) return alert('Fill all fields!');
 
             const endpoint = currentAuthMode === 'login' ? '/api/hub/login' : '/api/hub/signup';
             const res = await fetch(endpoint, {
@@ -161,7 +204,8 @@
         function showDashboard() {
             document.getElementById('auth-view').classList.add('hidden');
             document.getElementById('dashboard-view').classList.remove('hidden');
-            loadMyProjects();
+            document.getElementById('settingsEmail').innerText = loggedInEmail;
+            showHome();
         }
 
         function logout() {
@@ -169,27 +213,41 @@
             location.reload();
         }
 
-        function switchDashTab(tab) {
-            ['dash-home', 'dash-new-project', 'dash-single-project', 'dash-apikey', 'dash-mykeys'].forEach(t => {
+        function hideAllTabs() {
+            ['tab-home', 'tab-new-project', 'tab-settings', 'tab-rules', 'tab-about', 'tab-single-project'].forEach(t => {
                 document.getElementById(t).classList.add('hidden');
             });
-            if(tab === 'home') document.getElementById('dash-home').classList.remove('hidden');
-            if(tab === 'apikey') document.getElementById('dash-apikey').classList.remove('hidden');
-            if(tab === 'mykeys') {
-                document.getElementById('dash-mykeys').classList.remove('hidden');
-                renderMyKeysTab();
-            }
+        }
+
+        function showHome() {
+            hideAllTabs();
+            document.getElementById('tab-home').classList.remove('hidden');
+            loadMyProjects();
         }
 
         function openNewProjectModal() {
-            ['dash-home', 'dash-single-project', 'dash-apikey', 'dash-mykeys'].forEach(t => document.getElementById(t).classList.add('hidden'));
-            document.getElementById('dash-new-project').classList.remove('hidden');
+            hideAllTabs();
+            document.getElementById('tab-new-project').classList.remove('hidden');
+        }
+
+        function showSettings() {
+            hideAllTabs();
+            document.getElementById('tab-settings').classList.remove('hidden');
+        }
+
+        function showRules() {
+            hideAllTabs();
+            document.getElementById('tab-rules').classList.remove('hidden');
+        }
+
+        function showAbout() {
+            hideAllTabs();
+            document.getElementById('tab-about').classList.remove('hidden');
         }
 
         async function createProject() {
             const projectName = document.getElementById('newProjectName').value;
-            if(!projectName) return alert('Sanya sunan project!');
-
+            if(!projectName) return alert('Enter project name!');
             const res = await fetch('/api/projects/create', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -197,10 +255,8 @@
             });
             const data = await res.json();
             if(data.success) {
-                alert(`An ƙirƙira project ɗinka (${data.name}) da nasara! Ba a nuna key anan ba, zaka iya duba shi a Sidebar ta My Keys ko API Key.`);
                 document.getElementById('newProjectName').value = '';
-                switchDashTab('home');
-                loadMyProjects();
+                showHome();
             } else {
                 alert(data.error);
             }
@@ -220,90 +276,195 @@
             if(window.myProjectsData.length > 0) {
                 window.myProjectsData.forEach(p => {
                     grid.innerHTML += `
-                        <div onclick="openProjectHome('${p.project_id}')" class="bg-slate-900 p-5 rounded-2xl border border-slate-800 hover:border-indigo-500 cursor-pointer transition space-y-2">
+                        <div onclick="openProject('${p.project_id}')" class="bg-slate-900 p-5 rounded-2xl border border-slate-800 hover:border-indigo-500 cursor-pointer transition space-y-2">
                             <h3 class="font-bold text-lg text-indigo-400">${p.name}</h3>
                             <p class="text-xs text-slate-400">Project ID: ${p.project_id}</p>
                             <p class="text-xs text-slate-500">Storage Used: ${Math.round(p.used_storage / 1024)} KB / 800MB</p>
                         </div>`;
                 });
             } else {
-                grid.innerHTML = '<p class="text-slate-500 text-xs">Babu wani project da ka kirkira tukuna.</p>';
+                grid.innerHTML = '<p class="text-slate-500 text-xs">No projects found.</p>';
             }
         }
 
-        function openProjectHome(projectId) {
+        function openProject(projectId) {
             activeProject = window.myProjectsData.find(p => p.project_id === projectId);
             if(!activeProject) return;
 
-            ['dash-home', 'dash-new-project', 'dash-apikey', 'dash-mykeys'].forEach(t => document.getElementById(t).classList.add('hidden'));
-            document.getElementById('dash-single-project').classList.remove('hidden');
-            document.getElementById('singleProjectTitle').innerText = `Project: ${activeProject.name}`;
-            loadProjectDataEntries();
+            hideAllTabs();
+            document.getElementById('tab-single-project').classList.remove('hidden');
+            document.getElementById('spTitle').innerText = activeProject.name;
+            document.getElementById('infoProjId').innerText = activeProject.project_id;
+            document.getElementById('infoApiKey').innerText = activeProject.api_key;
+            document.getElementById('editProjNameInput').value = activeProject.name;
+            switchSpTab('tables');
         }
 
-        async function loadProjectDataEntries() {
-            const res = await fetch('/api/data', {
-                headers: {'x-api-key': activeProject.api_key}
-            });
-            const data = await res.json();
-            const list = document.getElementById('projectEntriesList');
-            list.innerHTML = '<h4 class="font-bold text-sm mt-4">Abubuwan da ke cikin Storage:</h4>';
-            if(data.success && data.data.length > 0) {
-                data.data.forEach(item => {
-                    list.innerHTML += `
-                        <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 text-xs space-y-1">
-                            <p class="font-bold text-indigo-300 text-sm">${item.title}</p>
-                            <p>${item.content}</p>
-                            ${item.file_url ? `<a href="${item.file_url}" target="_blank" class="text-indigo-400 underline block">Duba Fayil / Hoto</a>` : ''}
-                        </div>`;
-                });
-            } else {
-                list.innerHTML += '<p class="text-xs text-slate-500">Babu bayani a cikin wannan project din tukuna.</p>';
+        function switchSpTab(tab) {
+            ['sp-tables', 'sp-bucket', 'sp-apikeys'].forEach(t => document.getElementById(t).classList.add('hidden'));
+            ['btnSpTables', 'btnSpBucket', 'btnSpKeys'].forEach(b => document.getElementById(b).className = 'bg-slate-800 px-3 py-1.5 rounded-lg font-medium');
+
+            if(tab === 'tables') {
+                document.getElementById('sp-tables').classList.remove('hidden');
+                document.getElementById('btnSpTables').className = 'bg-indigo-600 px-3 py-1.5 rounded-lg font-medium';
+                loadTables();
+            } else if(tab === 'bucket') {
+                document.getElementById('sp-bucket').classList.remove('hidden');
+                document.getElementById('btnSpBucket').className = 'bg-indigo-600 px-3 py-1.5 rounded-lg font-medium';
+                loadBucketFiles();
+            } else if(tab === 'apikeys') {
+                document.getElementById('sp-apikeys').classList.remove('hidden');
+                document.getElementById('btnSpKeys').className = 'bg-indigo-600 px-3 py-1.5 rounded-lg font-medium';
             }
         }
 
-        async function saveProjectData() {
-            const title = document.getElementById('saveTitle').value;
-            const content = document.getElementById('saveContent').value;
-            const fileInput = document.getElementById('saveFile').files[0];
+        async function createTable() {
+            const tableName = document.getElementById('newTableName').value;
+            const colsStr = document.getElementById('newTableCols').value;
+            if(!tableName || !colsStr) return alert('Fill table name and columns!');
+
+            const columns = colsStr.split(',').map(c => c.trim());
+            const res = await fetch('/api/database/tables', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'x-api-key': activeProject.api_key},
+                body: JSON.stringify({ tableName, columns })
+            });
+            const data = await res.json();
+            if(data.success) {
+                document.getElementById('newTableName').value = '';
+                document.getElementById('newTableCols').value = '';
+                loadTables();
+            } else {
+                alert(data.error);
+            }
+        }
+
+        async function loadTables() {
+            const res = await fetch('/api/database/tables', {
+                headers: {'x-api-key': activeProject.api_key}
+            });
+            const data = await res.json();
+            const container = document.getElementById('tablesContainer');
+            container.innerHTML = '';
+
+            if(data.success && data.tables.length > 0) {
+                for(let t of data.tables) {
+                    const cols = JSON.parse(t.columns);
+                    // fetch rows
+                    const rowRes = await fetch(`/api/database/rows/${t.table_name}`, {
+                        headers: {'x-api-key': activeProject.api_key}
+                    });
+                    const rowData = await rowRes.json();
+                    const rows = rowData.rows || [];
+
+                    let html = `
+                        <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-4">
+                            <h4 class="font-bold text-indigo-400 text-sm">Table: ${t.table_name}</h4>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs">
+                                    <thead>
+                                        <tr class="border-b border-slate-800">
+                                            ${cols.map(c => `<th class="p-2">${c}</th>`).join('')}
+                                        </tr>
+                                    </thead>
+                                    <tbody>`;
+                    
+                    rows.forEach(r => {
+                        const parsed = JSON.parse(r.row_data);
+                        html += `<tr class="border-b border-slate-800/50">${cols.map(c => `<td class="p-2">${parsed[c] || ''}</td>`).join('')}</tr>`;
+                    });
+
+                    html += `       </tbody>
+                                </table>
+                            </div>
+                            <div class="flex space-x-2 pt-2">
+                                <input type="text" id="row-${t.table_name}" placeholder="JSON or value for first col" class="flex-1 bg-slate-950 border border-slate-800 p-2 rounded-xl text-xs">
+                                <button onclick="addRow('${t.table_name}', '${cols[0]}')" class="bg-indigo-600 px-3 py-1.5 rounded-xl text-xs">Add Row</button>
+                            </div>
+                        </div>`;
+                    container.innerHTML += html;
+                }
+            } else {
+                container.innerHTML = '<p class="text-xs text-slate-500">No tables created yet.</p>';
+            }
+        }
+
+        async function addRow(tableName, firstCol) {
+            const val = document.getElementById(`row-${tableName}`).value;
+            if(!val) return;
+            const rowData = {};
+            rowData[firstCol] = val;
+
+            const res = await fetch('/api/database/rows', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'x-api-key': activeProject.api_key},
+                body: JSON.stringify({ tableName, rowData })
+            });
+            const data = await res.json();
+            if(data.success) {
+                loadTables();
+            } else {
+                alert(data.error);
+            }
+        }
+
+        async function uploadBucketFile() {
+            const fileInput = document.getElementById('bucketFile').files[0];
+            if(!fileInput) return alert('Select a file!');
 
             const formData = new FormData();
-            formData.append('title', title);
-            formData.append('content', content);
-            if(fileInput) formData.append('file', fileInput);
+            formData.append('file', fileInput);
 
-            const res = await fetch('/api/save', {
+            const res = await fetch('/api/bucket/upload', {
                 method: 'POST',
                 headers: {'x-api-key': activeProject.api_key},
                 body: formData
             });
             const data = await res.json();
             if(data.success) {
-                alert('An ajiye bayani da nasara!');
-                document.getElementById('saveTitle').value = '';
-                document.getElementById('saveContent').value = '';
-                document.getElementById('saveFile').value = '';
-                loadProjectDataEntries();
+                document.getElementById('bucketFile').value = '';
+                loadBucketFiles();
             } else {
                 alert(data.error);
             }
         }
 
-        function renderMyKeysTab() {
-            const container = document.getElementById('myKeysContent');
-            container.innerHTML = '';
-            if(window.myProjectsData && window.myProjectsData.length > 0) {
-                window.myProjectsData.forEach(p => {
-                    container.innerHTML += `
-                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs space-y-1">
-                            <p class="font-bold text-indigo-400 text-sm">${p.name}</p>
-                            <p><b>Project ID:</b> ${p.project_id}</p>
-                            <p><b>API Key:</b> <span class="text-green-400">${p.api_key}</span></p>
-                            <p><b>Base URL:</b> https://sirdique-storage.onrender.com</p>
+        async function loadBucketFiles() {
+            const res = await fetch('/api/bucket/files', {
+                headers: {'x-api-key': activeProject.api_key}
+            });
+            const data = await res.json();
+            const grid = document.getElementById('bucketFilesGrid');
+            grid.innerHTML = '';
+            if(data.success && data.files.length > 0) {
+                data.files.forEach(f => {
+                    grid.innerHTML += `
+                        <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
+                            <img src="${f.file_url}" class="w-full h-24 object-cover rounded-lg">
+                            <p class="truncate text-slate-300">${f.file_name}</p>
+                            <a href="${f.file_url}" target="_blank" class="text-indigo-400 underline block">View File</a>
                         </div>`;
                 });
             } else {
-                container.innerHTML = '<p class="text-xs text-slate-500">Babu project da aka samu.</p>';
+                grid.innerHTML = '<p class="text-xs text-slate-500 col-span-4">Bucket is empty.</p>';
+            }
+        }
+
+        async function updateProjectName() {
+            const newName = document.getElementById('editProjNameInput').value;
+            if(!newName) return alert('Enter new name');
+            const res = await fetch('/api/projects/update', {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ project_id: activeProject.project_id, newName })
+            });
+            const data = await res.json();
+            if(data.success) {
+                activeProject.name = newName;
+                document.getElementById('spTitle').innerText = newName;
+                alert('Updated successfully!');
+            } else {
+                alert(data.error);
             }
         }
     </script>
