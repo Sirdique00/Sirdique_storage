@@ -1,7 +1,7 @@
 {
   "name": "sirdique-storage",
-  "version": "2.0.0",
-  "description": "Cikakken Backend Server na Sirdique Storage da Auth",
+  "version": "3.0.0",
+  "description": "Sirdique Storage & Multi-Project Backend",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
