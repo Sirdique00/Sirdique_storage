@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sirdique Dashboard — Studio</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function() {
+            emailjs.init("cyG3rOixg3oOuJ2eL");
+        })();
+    </script>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col font-sans">
 
@@ -25,40 +31,52 @@
             <div id="standardAuthForm" class="space-y-4">
                 <div class="space-y-1">
                     <label class="text-xs text-slate-600">Email address</label>
-                    <input type="email" id="authEmail" placeholder="you@example.com" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg focus:outline-none focus:border-emerald-600 text-sm text-slate-900 placeholder-slate-400 transition">
+                    <input type="email" id="authEmail" placeholder="you@example.com" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg focus:outline-none focus:border-emerald-600 text-sm text-slate-900">
                 </div>
                 <div class="space-y-1">
                     <label class="text-xs text-slate-600">Password</label>
-                    <input type="password" id="authPassword" placeholder="••••••••" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg focus:outline-none focus:border-emerald-600 text-sm text-slate-900 placeholder-slate-400 transition">
+                    <input type="password" id="authPassword" placeholder="••••••••" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg focus:outline-none focus:border-emerald-600 text-sm text-slate-900">
                 </div>
-                <button onclick="handleAuthSubmit()" id="authSubmitBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium p-3 rounded-lg text-sm transition shadow-lg shadow-emerald-600/10">Sign In</button>
+                <button onclick="handleAuthSubmit()" id="authSubmitBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium p-3 rounded-lg text-sm transition shadow-lg">Sign In</button>
                 
                 <div id="forgotPasswordLinkBox" class="text-right">
                     <button onclick="showForgotPasswordView()" class="text-xs text-emerald-600 hover:underline">Forgot your password?</button>
                 </div>
             </div>
 
+            <!-- OTP Verification Form -->
+            <div id="otpVerifyForm" class="hidden space-y-4">
+                <p class="text-xs text-slate-600 text-center">An tura confirmation code zuwa email ɗinka. Yana aiki na minti 2 kacal:</p>
+                <input type="text" id="otpCodeInput" placeholder="Sanya lamba 6" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-center tracking-widest text-lg font-bold text-slate-900">
+                <button onclick="verifyAndCompleteSignup()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-lg text-sm font-semibold">Tabbatar da Code</button>
+                <button onclick="cancelOtpView()" class="w-full bg-slate-200 text-slate-700 p-2 rounded-lg text-xs">Komawa</button>
+            </div>
+
+            <!-- Forgot Password Request -->
             <div id="forgotPasswordForm" class="hidden space-y-4">
-                <p class="text-xs text-slate-600">Enter your email and new password to reset account access.</p>
+                <p class="text-xs text-slate-600">Sanya email ɗinka domin a tura maka code na sauya password.</p>
                 <input type="email" id="forgotEmail" placeholder="you@example.com" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-sm text-slate-900">
-                <input type="password" id="forgotNewPassword" placeholder="New Password" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-sm text-slate-900">
-                <button onclick="submitForgotPassword()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-lg text-sm font-medium transition">Update Password</button>
-                <button onclick="cancelForgotPassword()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 p-2.5 rounded-lg text-xs font-medium transition">Back to Sign In</button>
+                <button onclick="requestForgotCode()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-lg text-sm font-medium">Tura Code</button>
+                <button onclick="cancelForgotPassword()" class="w-full bg-slate-200 text-slate-700 p-2.5 rounded-lg text-xs font-medium">Komawa Sign In</button>
+            </div>
+
+            <!-- Reset Password Form -->
+            <div id="resetPasswordForm" class="hidden space-y-4">
+                <p class="text-xs text-slate-600">Sanya code da sabon password:</p>
+                <input type="text" id="resetCodeInput" placeholder="Sanya Code lamba 6" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-center tracking-widest font-bold text-slate-900">
+                <input type="password" id="resetNewPassword" placeholder="Sabon Password" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-sm text-slate-900">
+                <button onclick="verifyAndResetPassword()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-lg text-sm font-semibold">Sabunta Password</button>
+                <button onclick="cancelForgotPassword()" class="w-full bg-slate-200 text-slate-700 p-2 rounded-lg text-xs">Komawa</button>
             </div>
         </div>
     </div>
 
     <!-- MAIN APP VIEW -->
     <div id="app-container" class="hidden flex-1 flex flex-col bg-slate-100">
-        
-        <!-- TOP BAR WITH HAMBURGER SIDEBAR TOGGLE -->
         <header class="bg-white border-b border-slate-200 px-6 py-3.5 flex justify-between items-center shadow-sm z-20">
             <div class="flex items-center space-x-4">
-                <!-- Hamburger Menu Button (Layiru Uku) -->
                 <button onclick="toggleSidebar()" class="p-2 rounded-lg hover:bg-slate-100 text-slate-700 focus:outline-none">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                    </svg>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
                 <div class="flex items-center space-x-2 cursor-pointer" onclick="openFullPage('home')">
                     <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-xs border border-emerald-200">S</div>
@@ -72,51 +90,44 @@
             </div>
         </header>
 
-        <!-- SIDEBAR CONTAINER -->
+        <!-- SIDEBAR -->
         <div id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-white border-r border-slate-200 shadow-2xl transform -translate-x-full transition-transform duration-300 z-30 flex flex-col">
             <div class="p-5 border-b border-slate-200 flex justify-between items-center">
                 <span class="font-bold text-sm text-slate-900">Navigation Menu</span>
                 <button onclick="toggleSidebar()" class="text-slate-400 hover:text-slate-600">&times;</button>
             </div>
             <div class="flex-1 p-4 space-y-2 text-xs font-medium">
-                <button onclick="openFullPage('home'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-100 text-slate-700 transition">📂 Projects</button>
-                <button onclick="openFullPage('new-project'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-100 text-slate-700 transition">➕ Create Project</button>
-                <button onclick="openFullPage('rules'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-100 text-slate-700 transition">📖 API Docs & Rules</button>
-                <button onclick="openFullPage('settings'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-100 text-slate-700 transition">⚙️ Account Settings</button>
-            </div>
-            <div class="p-4 border-t border-slate-200 text-[11px] text-slate-400">
-                Sirdique Cloud Storage v6.0
+                <button onclick="openFullPage('home'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-100 text-slate-700">📂 Projects</button>
+                <button onclick="openFullPage('new-project'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-100 text-slate-700">➕ Create Project</button>
+                <button onclick="openFullPage('rules'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-100 text-slate-700">📖 API Docs & RLS</button>
+                <button onclick="openFullPage('settings'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-100 text-slate-700">⚙️ Account Settings</button>
             </div>
         </div>
-
-        <!-- OVERLAY FOR SIDEBAR -->
         <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/30 hidden z-20"></div>
 
-        <!-- FULL PAGE 1: HOME -->
+        <!-- FULL PAGES -->
         <div id="page-home" class="full-page flex-1 p-6 md:p-10 max-w-6xl mx-auto w-full space-y-6">
             <div class="flex justify-between items-center border-b border-slate-200 pb-4">
                 <div>
-                    <h2 class="text-xl font-bold text-slate-900 tracking-tight">Your Projects</h2>
-                    <p class="text-xs text-slate-500">Manage your serverless databases, tables, and file buckets.</p>
+                    <h2 class="text-xl font-bold text-slate-900">Your Projects</h2>
+                    <p class="text-xs text-slate-500">Manage your serverless databases, buckets, and RLS.</p>
                 </div>
-                <button onclick="openFullPage('new-project')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-medium transition">+ New Project</button>
+                <button onclick="openFullPage('new-project')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-medium">+ New Project</button>
             </div>
             <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2"></div>
         </div>
 
-        <!-- FULL PAGE 2: NEW PROJECT -->
         <div id="page-new-project" class="full-page hidden flex-1 p-6 md:p-12 max-w-md mx-auto w-full space-y-6 flex items-center justify-center">
             <div class="bg-white p-8 rounded-xl border border-slate-200 space-y-5 w-full shadow-xl">
                 <div class="flex justify-between items-center">
                     <h2 class="text-lg font-bold text-slate-900">Create a new project</h2>
                     <button onclick="openFullPage('home')" class="text-xs bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-slate-700">&larr; Back</button>
                 </div>
-                <input type="text" id="newProjectName" placeholder="production-db" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-emerald-600">
-                <button onclick="createProject()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-lg text-xs font-semibold transition">Create new project</button>
+                <input type="text" id="newProjectName" placeholder="production-db" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-sm text-slate-900">
+                <button onclick="createProject()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-lg text-xs font-semibold">Create new project</button>
             </div>
         </div>
 
-        <!-- FULL PAGE 3: SETTINGS -->
         <div id="page-settings" class="full-page hidden flex-1 p-6 md:p-12 max-w-xl mx-auto w-full space-y-6">
             <div class="bg-white p-8 rounded-xl border border-slate-200 space-y-4 shadow-xl">
                 <div class="flex justify-between items-center border-b border-slate-200 pb-3">
@@ -129,61 +140,81 @@
             </div>
         </div>
 
-        <!-- FULL PAGE 4: RULES -->
         <div id="page-rules" class="full-page hidden flex-1 p-6 md:p-12 max-w-2xl mx-auto w-full space-y-6">
             <div class="bg-white p-8 rounded-xl border border-slate-200 space-y-4 shadow-xl">
                 <div class="flex justify-between items-center border-b border-slate-200 pb-3">
-                    <h2 class="text-lg font-bold text-slate-900">API Documentation</h2>
+                    <h2 class="text-lg font-bold text-slate-900">API Documentation & RLS</h2>
                     <button onclick="openFullPage('home')" class="text-xs bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-slate-700">&larr; Back</button>
                 </div>
                 <div class="space-y-3 text-xs text-slate-600 leading-relaxed pt-2">
                     <p>1. Always include your project API key using <code class="text-emerald-600 font-mono">x-api-key: sd-...</code></p>
-                    <p>2. Maximum storage allocation per database bucket is <code class="text-slate-900 font-semibold">800MB</code>.</p>
+                    <p>2. Automatic RLS secures your tables and buckets when enabled inside project settings.</p>
                 </div>
             </div>
         </div>
 
-        <!-- FULL PAGE 5: SINGLE PROJECT DASHBOARD -->
         <div id="page-single-project" class="full-page hidden flex-1 p-6 md:p-10 max-w-7xl mx-auto w-full space-y-6">
             <div class="flex justify-between items-center border-b border-slate-200 pb-4">
                 <div class="flex items-center space-x-3">
-                    <button onclick="openFullPage('home')" class="text-xs bg-white border border-slate-200 px-3 py-2 rounded-lg text-slate-700 shadow-sm">&larr; Projects</button>
+                    <button onclick="openFullPage('home')" class="text-xs bg-white border border-slate-200 px-3 py-2 rounded-lg text-slate-700">&larr; Projects</button>
                     <h2 id="spTitle" class="text-xl font-bold text-slate-900 tracking-tight"></h2>
                 </div>
                 <div class="space-x-1 bg-white p-1 rounded-lg border border-slate-200 text-xs shadow-sm">
                     <button onclick="switchSpTab('tables')" id="btnSpTables" class="px-3 py-1.5 rounded-md font-medium bg-emerald-600 text-white transition">Table Editor</button>
-                    <button onclick="switchSpTab('bucket')" id="btnSpBucket" class="px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-slate-900 transition">Storage</button>
-                    <button onclick="switchSpTab('apikeys')" id="btnSpKeys" class="px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-slate-900 transition">API Settings</button>
+                    <button onclick="switchSpTab('bucket')" id="btnSpBucket" class="px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-slate-900 transition">Buckets & Storage</button>
+                    <button onclick="switchSpTab('apikeys')" id="btnSpKeys" class="px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-slate-900 transition">API & RLS Settings</button>
                 </div>
             </div>
 
+            <!-- TABLES VIEW -->
             <div id="sp-tables" class="space-y-6">
                 <div class="bg-white p-5 rounded-xl border border-slate-200 space-y-4 shadow-sm">
-                    <h3 class="font-semibold text-xs text-slate-700 uppercase tracking-wider">Create New Table</h3>
+                    <h3 class="font-semibold text-xs text-slate-700 uppercase">Create New Table</h3>
                     <div class="flex space-x-2">
-                        <input type="text" id="newTableName" placeholder="table_name (e.g. watches)" class="flex-1 bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-emerald-600">
-                        <input type="text" id="newTableCols" placeholder="Columns (name,price,image)" class="flex-1 bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-emerald-600">
-                        <button onclick="createTable()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition">Save Table</button>
+                        <input type="text" id="newTableName" placeholder="table_name (e.g. watches)" class="flex-1 bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-xs text-slate-900">
+                        <input type="text" id="newTableCols" placeholder="Columns (name,price,image)" class="flex-1 bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-xs text-slate-900">
+                        <button onclick="createTable()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-semibold">Save Table</button>
                     </div>
                 </div>
                 <div id="tablesContainer" class="space-y-6"></div>
             </div>
 
+            <!-- BUCKETS & STORAGE VIEW -->
             <div id="sp-bucket" class="hidden space-y-6">
                 <div class="bg-white p-5 rounded-xl border border-slate-200 space-y-4 shadow-sm">
-                    <h3 class="font-semibold text-xs text-slate-700 uppercase tracking-wider">Storage Bucket (Auto WebP Compression)</h3>
-                    <input type="file" id="bucketFile" class="w-full text-xs text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white cursor-pointer">
-                    <button onclick="uploadBucketFile()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-2.5 rounded-lg text-xs font-semibold transition">Upload Asset</button>
+                    <h3 class="font-semibold text-xs text-slate-700 uppercase">Create New Storage Bucket</h3>
+                    <div class="flex space-x-2">
+                        <input type="text" id="newBucketNameInput" placeholder="Bucket Name (e.g. watch-images)" class="flex-1 bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-xs text-slate-900">
+                        <button onclick="createBucket()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-semibold">Create Bucket</button>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl border border-slate-200 space-y-4 shadow-sm">
+                    <h3 class="font-semibold text-xs text-slate-700 uppercase">Upload Asset to Bucket</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <select id="bucketSelectTarget" class="bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-xs text-slate-900"></select>
+                        <input type="file" id="bucketFile" class="text-xs text-slate-600 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white cursor-pointer">
+                    </div>
+                    <button onclick="uploadBucketFile()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-2.5 rounded-lg text-xs font-semibold">Upload Asset (Auto WebP)</button>
                 </div>
                 <div id="bucketFilesGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
             </div>
 
+            <!-- API & RLS SETTINGS VIEW -->
             <div id="sp-apikeys" class="hidden space-y-6 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                <h3 class="text-base font-bold text-slate-900">Project API Configuration</h3>
+                <h3 class="text-base font-bold text-slate-900">Project API & Automatic RLS Settings</h3>
                 <div class="space-y-3 text-xs text-slate-700">
                     <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex justify-between items-center"><span>Project ID:</span> <span id="infoProjId" class="text-emerald-600 font-mono font-bold"></span></p>
                     <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex justify-between items-center"><span>API Key:</span> <span id="infoApiKey" class="text-emerald-600 font-mono font-bold"></span></p>
                     <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex justify-between items-center"><span>Base URL:</span> <span class="text-slate-500 font-mono">https://sirdique-storage.onrender.com</span></p>
+                    
+                    <div class="p-4 bg-slate-50 rounded-lg border border-slate-200 flex justify-between items-center mt-4">
+                        <div>
+                            <p class="font-bold text-slate-900">Automatic Row Level Security (RLS)</p>
+                            <p class="text-[11px] text-slate-500">Secure all database queries and bucket uploads using API keys enforcement.</p>
+                        </div>
+                        <button id="rlsToggleBtn" onclick="toggleRls()" class="px-4 py-2 rounded-lg font-semibold text-white bg-emerald-600 transition">Enabled</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -194,14 +225,13 @@
         let loggedInEmail = localStorage.getItem('sirdique_email') || null;
         let activeProject = null;
         let liveSyncInterval = null;
+        let tempSignupData = {};
 
         if (loggedInEmail) showMainApp();
 
         function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            sidebar.classList.toggle('-translate-x-full');
-            overlay.classList.toggle('hidden');
+            document.getElementById('sidebar').classList.toggle('-translate-x-full');
+            document.getElementById('sidebarOverlay').classList.toggle('hidden');
         }
 
         function switchAuthMode(mode) {
@@ -214,7 +244,7 @@
             } else {
                 document.getElementById('btnSignupTab').className = 'flex-1 font-medium text-emerald-600 border-b-2 border-emerald-600 pb-2 text-sm transition';
                 document.getElementById('btnLoginTab').className = 'flex-1 text-slate-400 hover:text-slate-600 pb-2 text-sm transition';
-                document.getElementById('authSubmitBtn').innerText = 'Sign Up';
+                document.getElementById('authSubmitBtn').innerText = 'Sign Up (Send Code)';
                 document.getElementById('forgotPasswordLinkBox').classList.add('hidden');
             }
         }
@@ -227,19 +257,116 @@
 
         function cancelForgotPassword() {
             document.getElementById('forgotPasswordForm').classList.add('hidden');
+            document.getElementById('resetPasswordForm').classList.add('hidden');
             document.getElementById('authTabsContainer').classList.remove('hidden');
             document.getElementById('standardAuthForm').classList.remove('hidden');
         }
 
-        async function submitForgotPassword() {
-            const email = document.getElementById('forgotEmail').value;
-            const newPassword = document.getElementById('forgotNewPassword').value;
-            if(!email || !newPassword) return alert('Cika duk wuraren da ake bukata!');
+        function cancelOtpView() {
+            document.getElementById('otpVerifyForm').classList.add('hidden');
+            document.getElementById('authTabsContainer').classList.remove('hidden');
+            document.getElementById('standardAuthForm').classList.remove('hidden');
+        }
 
-            const res = await fetch('/api/hub/forgot-password', {
+        async function handleAuthSubmit() {
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+            if(!email || !password) return alert('Fill all fields!');
+
+            if(currentAuthMode === 'signup') {
+                const res = await fetch('/api/hub/send-code', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ email, type: 'signup' })
+                });
+                const data = await res.json();
+                if(data.success) {
+                    tempSignupData = { email, password };
+                    emailjs.send('service_49wqltg', 'template_dqofkf8', {
+                        to_email: email,
+                        passcode: data.code,
+                        message: `Your Sirdique Verification Code is: ${data.code}. It expires in 2 minutes.`
+                    }).then(() => {
+                        alert('An tura confirmation code zuwa email ɗinka!');
+                        document.getElementById('standardAuthForm').classList.add('hidden');
+                        document.getElementById('authTabsContainer').classList.add('hidden');
+                        document.getElementById('otpVerifyForm').classList.remove('hidden');
+                    }).catch(err => alert('Error sending email: ' + JSON.stringify(err)));
+                } else {
+                    alert(data.error);
+                }
+            } else {
+                const res = await fetch('/api/hub/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if(data.success) {
+                    loggedInEmail = email;
+                    localStorage.setItem('sirdique_email', email);
+                    showMainApp();
+                } else {
+                    alert(data.error);
+                }
+            }
+        }
+
+        async function verifyAndCompleteSignup() {
+            const code = document.getElementById('otpCodeInput').value;
+            if(!code) return alert('Sanya code din!');
+
+            const res = await fetch('/api/hub/verify-and-register', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ email, newPassword })
+                body: JSON.stringify({ email: tempSignupData.email, password: tempSignupData.password, code })
+            });
+            const data = await res.json();
+            if(data.success) {
+                alert('An kirkiri account din da nasara!');
+                loggedInEmail = tempSignupData.email;
+                localStorage.setItem('sirdique_email', loggedInEmail);
+                showMainApp();
+            } else {
+                alert(data.error);
+            }
+        }
+
+        async function requestForgotCode() {
+            const email = document.getElementById('forgotEmail').value;
+            if(!email) return alert('Sanya email din ka!');
+
+            const res = await fetch('/api/hub/send-code', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email, type: 'forgot' })
+            });
+            const data = await res.json();
+            if(data.success) {
+                emailjs.send('service_49wqltg', 'template_dqofkf8', {
+                    to_email: email,
+                    passcode: data.code,
+                    message: `Your Sirdique Password Reset Code is: ${data.code}. It expires in 2 minutes.`
+                }).then(() => {
+                    alert('An tura code na sauya password zuwa email ɗinka!');
+                    document.getElementById('forgotPasswordForm').classList.add('hidden');
+                    document.getElementById('resetPasswordForm').classList.remove('hidden');
+                }).catch(err => alert('Error: ' + JSON.stringify(err)));
+            } else {
+                alert(data.error);
+            }
+        }
+
+        async function verifyAndResetPassword() {
+            const email = document.getElementById('forgotEmail').value;
+            const code = document.getElementById('resetCodeInput').value;
+            const newPassword = document.getElementById('resetNewPassword').value;
+            if(!code || !newPassword) return alert('Cika duk wuraren da ake bukata!');
+
+            const res = await fetch('/api/hub/verify-and-reset', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email, newPassword, code })
             });
             const data = await res.json();
             if(data.success) {
@@ -248,32 +375,6 @@
                 switchAuthMode('login');
             } else {
                 alert(data.error);
-            }
-        }
-
-        async function handleAuthSubmit() {
-            const email = document.getElementById('authEmail').value;
-            const password = document.getElementById('authPassword').value;
-            if(!email || !password) return alert('Fill all fields!');
-
-            const endpoint = currentAuthMode === 'login' ? '/api/hub/login' : '/api/hub/signup';
-            const res = await fetch(endpoint, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ email, password })
-            });
-            const data = await res.json();
-            if(data.success) {
-                loggedInEmail = email;
-                localStorage.setItem('sirdique_email', email);
-                showMainApp();
-            } else {
-                if(currentAuthMode === 'signup') {
-                    alert('An riga an yi register da wannan email din! Don Allah kayi login kawai.');
-                    switchAuthMode('login');
-                } else {
-                    alert(data.error);
-                }
             }
         }
 
@@ -357,8 +458,36 @@
             document.getElementById('activeProjectBreadcrumb').innerText = `/ ${activeProject.name}`;
             document.getElementById('infoProjId').innerText = activeProject.project_id;
             document.getElementById('infoApiKey').innerText = activeProject.api_key;
+            
+            updateRlsButtonUI(activeProject.rls_enabled);
             switchSpTab('tables');
             startLiveSync(activeProject.project_id);
+        }
+
+        function updateRlsButtonUI(status) {
+            const btn = document.getElementById('rlsToggleBtn');
+            if(status === 1 || status === true) {
+                btn.innerText = 'Enabled';
+                btn.className = 'px-4 py-2 rounded-lg font-semibold text-white bg-emerald-600 transition';
+            } else {
+                btn.innerText = 'Disabled';
+                btn.className = 'px-4 py-2 rounded-lg font-semibold text-white bg-slate-400 transition';
+            }
+        }
+
+        async function toggleRls() {
+            const newStatus = activeProject.rls_enabled ? 0 : 1;
+            const res = await fetch('/api/projects/toggle-rls', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ project_id: activeProject.project_id, rls_enabled: newStatus })
+            });
+            const data = await res.json();
+            if(data.success) {
+                activeProject.rls_enabled = newStatus;
+                updateRlsButtonUI(newStatus);
+                alert('RLS status updated successfully!');
+            }
         }
 
         function switchSpTab(tab) {
@@ -372,7 +501,7 @@
             } else if(tab === 'bucket') {
                 document.getElementById('sp-bucket').classList.remove('hidden');
                 document.getElementById('btnSpBucket').className = 'px-3 py-1.5 rounded-md font-medium bg-emerald-600 text-white transition';
-                loadBucketFiles();
+                loadBuckets();
             } else if(tab === 'apikeys') {
                 document.getElementById('sp-apikeys').classList.remove('hidden');
                 document.getElementById('btnSpKeys').className = 'px-3 py-1.5 rounded-md font-medium bg-emerald-600 text-white transition';
@@ -451,8 +580,8 @@
                                 </table>
                             </div>
                             <div class="flex space-x-2 pt-2">
-                                <input type="text" id="row-${t.table_name}" placeholder="Value for ${cols[0]}" class="flex-1 bg-slate-50 border border-slate-300 p-2 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-emerald-600">
-                                <button onclick="addRow('${t.table_name}', '${cols[0]}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">Insert Row</button>
+                                <input type="text" id="row-${t.table_name}" placeholder="Value for ${cols[0]}" class="flex-1 bg-slate-50 border border-slate-300 p-2 rounded-lg text-xs text-slate-900">
+                                <button onclick="addRow('${t.table_name}', '${cols[0]}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold">Insert Row</button>
                             </div>
                         </div>`;
                     container.innerHTML += html;
@@ -493,12 +622,46 @@
             }
         }
 
+        async function createBucket() {
+            const bucketName = document.getElementById('newBucketNameInput').value;
+            if(!bucketName) return alert('Sanya sunan bucket!');
+            const res = await fetch('/api/buckets/create', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'x-api-key': activeProject.api_key},
+                body: JSON.stringify({ bucketName })
+            });
+            const data = await res.json();
+            if(data.success) {
+                document.getElementById('newBucketNameInput').value = '';
+                loadBuckets();
+            } else {
+                alert(data.error);
+            }
+        }
+
+        async function loadBuckets() {
+            const res = await fetch('/api/buckets/list', {
+                headers: {'x-api-key': activeProject.api_key}
+            });
+            const data = await res.json();
+            const selectTarget = document.getElementById('bucketSelectTarget');
+            selectTarget.innerHTML = '';
+            if(data.success && data.buckets.length > 0) {
+                data.buckets.forEach(b => {
+                    selectTarget.innerHTML += `<option value="${b.bucket_name}">${b.bucket_name}</option>`;
+                });
+                loadBucketFiles(data.buckets[0].bucket_name);
+            }
+        }
+
         async function uploadBucketFile() {
             const fileInput = document.getElementById('bucketFile').files[0];
-            if(!fileInput) return alert('Select a file!');
+            const bucketName = document.getElementById('bucketSelectTarget').value;
+            if(!fileInput || !bucketName) return alert('Select file and bucket!');
 
             const formData = new FormData();
             formData.append('file', fileInput);
+            formData.append('bucketName', bucketName);
 
             const res = await fetch('/api/bucket/upload', {
                 method: 'POST',
@@ -508,14 +671,15 @@
             const data = await res.json();
             if(data.success) {
                 document.getElementById('bucketFile').value = '';
-                loadBucketFiles();
+                loadBucketFiles(bucketName);
             } else {
                 alert(data.error);
             }
         }
 
-        async function loadBucketFiles() {
-            const res = await fetch('/api/bucket/files', {
+        async function loadBucketFiles(bucketName) {
+            if(!bucketName) return;
+            const res = await fetch(`/api/bucket/files/${bucketName}`, {
                 headers: {'x-api-key': activeProject.api_key}
             });
             const data = await res.json();
@@ -531,20 +695,13 @@
                         </div>`;
                 });
             } else {
-                grid.innerHTML = '<p class="text-xs text-slate-500 col-span-4">Storage bucket is empty.</p>';
+                grid.innerHTML = '<p class="text-xs text-slate-500 col-span-4">Bucket is empty.</p>';
             }
         }
 
         async function loadBucketFilesSilent() {
-            if(!activeProject) return;
-            const res = await fetch('/api/bucket/files', {
-                headers: {'x-api-key': activeProject.api_key}
-            });
-            const data = await res.json();
-            const grid = document.getElementById('bucketFilesGrid');
-            if(data.success && data.files.length > 0 && grid.innerHTML.includes('Storage bucket is empty')) {
-                loadBucketFiles();
-            }
+            const bucketName = document.getElementById('bucketSelectTarget').value;
+            if(bucketName) loadBucketFiles(bucketName);
         }
     </script>
 </body>
