@@ -1,204 +1,201 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sirdique Storage Supabase Hub</title>
+    <title>Sirdique Dashboard — Studio</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        supabase: {
+                            50: '#f4f4f5',
+                            900: '#1c1c1e',
+                            950: '#121214',
+                            border: '#27272a',
+                            green: '#3ecf8e',
+                            darkgreen: '#2fb876'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body class="bg-white text-slate-900 min-h-screen flex flex-col font-sans">
+<body class="bg-supabase-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-supabase-green selection:text-black">
 
-    <!-- AUTH VIEW (Login / Sign Up / Forgot Password) -->
-    <div id="auth-view" class="flex-1 flex items-center justify-center p-6 bg-white">
-        <div class="max-w-md w-full bg-slate-50 p-8 rounded-2xl border border-slate-200 space-y-6 shadow-xl">
+    <!-- AUTH VIEW -->
+    <div id="auth-view" class="flex-1 flex items-center justify-center p-6 bg-supabase-950">
+        <div class="max-w-md w-full bg-supabase-900 p-8 rounded-xl border border-supabase-border space-y-6 shadow-2xl">
             <div class="text-center space-y-2">
-                <h1 class="text-3xl font-bold text-indigo-600">Sirdique Database</h1>
-                <p class="text-xs text-slate-500">Professional Backend & Storage Cloud</p>
+                <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-supabase-green/10 text-supabase-green mb-2 font-bold text-xl border border-supabase-green/20">S</div>
+                <h1 class="text-2xl font-bold tracking-tight text-white">Sirdique Studio</h1>
+                <p class="text-xs text-slate-400">Secure Backend Infrastructure & Cloud Storage</p>
             </div>
             
-            <div id="authTabsContainer" class="flex border-b border-slate-200 pb-2 space-x-4">
-                <button onclick="switchAuthMode('login')" id="btnLoginTab" class="flex-1 font-bold text-indigo-600 border-b-2 border-indigo-600 pb-1">Login</button>
-                <button onclick="switchAuthMode('signup')" id="btnSignupTab" class="flex-1 text-slate-400 pb-1">Sign Up</button>
+            <div id="authTabsContainer" class="flex border-b border-supabase-border pb-2 space-x-4">
+                <button onclick="switchAuthMode('login')" id="btnLoginTab" class="flex-1 font-medium text-supabase-green border-b-2 border-supabase-green pb-2 text-sm transition">Sign In</button>
+                <button onclick="switchAuthMode('signup')" id="btnSignupTab" class="flex-1 text-slate-400 hover:text-slate-200 pb-2 text-sm transition">Sign Up</button>
             </div>
 
-            <!-- Login / Signup Form -->
             <div id="standardAuthForm" class="space-y-4">
-                <input type="email" id="authEmail" placeholder="Email Address" class="w-full bg-white border border-slate-300 p-3 rounded-xl focus:outline-none focus:border-indigo-600 text-slate-900">
-                <input type="password" id="authPassword" placeholder="Password" class="w-full bg-white border border-slate-300 p-3 rounded-xl focus:outline-none focus:border-indigo-600 text-slate-900">
-                <button onclick="handleAuthSubmit()" id="authSubmitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-xl font-medium transition">Login</button>
+                <div class="space-y-1">
+                    <label class="text-xs text-slate-400">Email address</label>
+                    <input type="email" id="authEmail" placeholder="you@example.com" class="w-full bg-supabase-950 border border-supabase-border p-3 rounded-lg focus:outline-none focus:border-supabase-green text-sm text-white placeholder-slate-600 transition">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-xs text-slate-400">Password</label>
+                    <input type="password" id="authPassword" placeholder="••••••••" class="w-full bg-supabase-950 border border-supabase-border p-3 rounded-lg focus:outline-none focus:border-supabase-green text-sm text-white placeholder-slate-600 transition">
+                </div>
+                <button onclick="handleAuthSubmit()" id="authSubmitBtn" class="w-full bg-supabase-green hover:bg-supabase-darkgreen text-black font-medium p-3 rounded-lg text-sm transition shadow-lg shadow-supabase-green/10">Sign In</button>
                 
                 <div id="forgotPasswordLinkBox" class="text-right">
-                    <button onclick="showForgotPasswordView()" class="text-xs text-indigo-600 hover:underline">Forgot Password?</button>
+                    <button onclick="showForgotPasswordView()" class="text-xs text-supabase-green hover:underline">Forgot your password?</button>
                 </div>
             </div>
 
-            <!-- Forgot Password Form (Full Transition) -->
             <div id="forgotPasswordForm" class="hidden space-y-4">
-                <p class="text-xs text-slate-600">Sanya email ɗinka da sabon password domin sabunta shiga.</p>
-                <input type="email" id="forgotEmail" placeholder="Your Email Address" class="w-full bg-white border border-slate-300 p-3 rounded-xl text-slate-900">
-                <input type="password" id="forgotNewPassword" placeholder="Create New Password" class="w-full bg-white border border-slate-300 p-3 rounded-xl text-slate-900">
-                <button onclick="submitForgotPassword()" class="w-full bg-green-600 hover:bg-green-700 text-white p-3 rounded-xl font-medium">Update Password</button>
-                <button onclick="cancelForgotPassword()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 p-2.5 rounded-xl text-xs font-medium">Back to Login</button>
+                <p class="text-xs text-slate-400">Enter your email and new password to reset account access.</p>
+                <input type="email" id="forgotEmail" placeholder="you@example.com" class="w-full bg-supabase-950 border border-supabase-border p-3 rounded-lg text-sm text-white">
+                <input type="password" id="forgotNewPassword" placeholder="New Password" class="w-full bg-supabase-950 border border-supabase-border p-3 rounded-lg text-sm text-white">
+                <button onclick="submitForgotPassword()" class="w-full bg-supabase-green hover:bg-supabase-darkgreen text-black p-3 rounded-lg text-sm font-medium transition">Update Password</button>
+                <button onclick="cancelForgotPassword()" class="w-full bg-supabase-800 hover:bg-supabase-700 text-slate-300 p-2.5 rounded-lg text-xs font-medium transition">Back to Sign In</button>
             </div>
         </div>
     </div>
 
-    <!-- MAIN APP FULL PAGES VIEW -->
-    <div id="app-container" class="hidden flex-1 flex flex-col">
-
-        <!-- TOP BAR FOR FULL PAGE NAVIGATION -->
-        <header class="bg-slate-50 border-b border-slate-200 px-6 py-4 flex justify-between items-center">
+    <!-- MAIN APP VIEW -->
+    <div id="app-container" class="hidden flex-1 flex flex-col bg-supabase-950">
+        <header class="bg-supabase-900 border-b border-supabase-border px-6 py-3.5 flex justify-between items-center">
             <div class="flex items-center space-x-4">
-                <h1 class="text-xl font-bold text-indigo-600 cursor-pointer" onclick="openFullPage('home')">Sirdique Hub</h1>
-                <div id="activeProjectBreadcrumb" class="text-xs text-slate-500 font-medium"></div>
+                <div class="flex items-center space-x-2 cursor-pointer" onclick="openFullPage('home')">
+                    <div class="w-7 h-7 rounded-lg bg-supabase-green/10 text-supabase-green flex items-center justify-center font-bold text-xs border border-supabase-green/20">S</div>
+                    <span class="font-bold text-sm tracking-wide text-white">Sirdique Hub</span>
+                </div>
+                <div id="activeProjectBreadcrumb" class="text-xs text-slate-400 font-medium"></div>
             </div>
-            <div class="space-x-3 text-xs font-medium">
-                <button onclick="openFullPage('home')" class="text-slate-700 hover:text-indigo-600">All Projects</button>
-                <button onclick="openFullPage('new-project')" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg">+ New Project</button>
-                <button onclick="openFullPage('settings')" class="text-slate-700 hover:text-indigo-600">Settings</button>
-                <button onclick="openFullPage('rules')" class="text-slate-700 hover:text-indigo-600">Rules</button>
-                <button onclick="openFullPage('about')" class="text-slate-700 hover:text-indigo-600">About Us</button>
-                <button onclick="logout()" class="text-red-600 hover:bg-red-50 px-2 py-1 rounded">Log Out</button>
+            <div class="flex items-center space-x-4 text-xs font-medium">
+                <button onclick="openFullPage('home')" class="text-slate-300 hover:text-supabase-green transition">Projects</button>
+                <button onclick="openFullPage('new-project')" class="bg-supabase-green hover:bg-supabase-darkgreen text-black px-3 py-1.5 rounded-lg font-medium transition shadow-sm">+ New Project</button>
+                <button onclick="openFullPage('rules')" class="text-slate-300 hover:text-supabase-green transition">API Docs</button>
+                <button onclick="openFullPage('settings')" class="text-slate-300 hover:text-supabase-green transition">Account</button>
+                <button onclick="logout()" class="text-red-400 hover:bg-red-500/10 px-2.5 py-1.5 rounded-lg transition">Sign Out</button>
             </div>
         </header>
 
-        <!-- FULL PAGE 1: HOME / ALL PROJECTS -->
-        <div id="page-home" class="full-page flex-1 p-6 md:p-12 max-w-5xl mx-auto w-full space-y-6">
-            <div class="flex justify-between items-center">
+        <div id="page-home" class="full-page flex-1 p-6 md:p-10 max-w-6xl mx-auto w-full space-y-6">
+            <div class="flex justify-between items-center border-b border-supabase-border pb-4">
                 <div>
-                    <h2 class="text-2xl font-bold text-slate-900">All Projects</h2>
-                    <p class="text-xs text-slate-500">Manage your cloud databases & storage buckets.</p>
+                    <h2 class="text-xl font-bold text-white tracking-tight">Your Projects</h2>
+                    <p class="text-xs text-slate-400">Manage your serverless databases, tables, and file buckets.</p>
                 </div>
-                <button onclick="openFullPage('new-project')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium">+ New Project</button>
+                <button onclick="openFullPage('new-project')" class="bg-supabase-green hover:bg-supabase-darkgreen text-black px-4 py-2 rounded-lg text-xs font-medium transition">+ New Project</button>
             </div>
-            <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4"></div>
+            <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2"></div>
         </div>
 
-        <!-- FULL PAGE 2: NEW PROJECT -->
-        <div id="page-new-project" class="full-page hidden flex-1 p-6 md:p-12 max-w-lg mx-auto w-full space-y-6">
-            <div class="bg-slate-50 p-8 rounded-2xl border border-slate-200 space-y-4 shadow-sm">
+        <div id="page-new-project" class="full-page hidden flex-1 p-6 md:p-12 max-w-md mx-auto w-full space-y-6 flex items-center justify-center">
+            <div class="bg-supabase-900 p-8 rounded-xl border border-supabase-border space-y-5 w-full shadow-xl">
                 <div class="flex justify-between items-center">
-                    <h2 class="text-xl font-bold text-indigo-600">Create New Project</h2>
-                    <button onclick="openFullPage('home')" class="text-xs bg-slate-200 px-3 py-1 rounded-lg text-slate-700">&larr; Back</button>
+                    <h2 class="text-lg font-bold text-white">Create a new project</h2>
+                    <button onclick="openFullPage('home')" class="text-xs bg-supabase-950 border border-supabase-border px-3 py-1.5 rounded-lg text-slate-300">&larr; Back</button>
                 </div>
-                <input type="text" id="newProjectName" placeholder="Project Name (e.g. ecommerce-db)" class="w-full bg-white border border-slate-300 p-3 rounded-xl text-slate-900">
-                <button onclick="createProject()" class="w-full bg-green-600 hover:bg-green-700 text-white p-3 rounded-xl font-medium">Create Project</button>
+                <input type="text" id="newProjectName" placeholder="production-db" class="w-full bg-supabase-950 border border-supabase-border p-3 rounded-lg text-sm text-white focus:outline-none focus:border-supabase-green">
+                <button onclick="createProject()" class="w-full bg-supabase-green hover:bg-supabase-darkgreen text-black p-3 rounded-lg text-xs font-semibold transition">Create new project</button>
             </div>
         </div>
 
-        <!-- FULL PAGE 3: SETTINGS -->
         <div id="page-settings" class="full-page hidden flex-1 p-6 md:p-12 max-w-xl mx-auto w-full space-y-6">
-            <div class="bg-slate-50 p-8 rounded-2xl border border-slate-200 space-y-4 shadow-sm">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-xl font-bold text-indigo-600">Account Settings</h2>
-                    <button onclick="openFullPage('home')" class="text-xs bg-slate-200 px-3 py-1 rounded-lg text-slate-700">&larr; Back</button>
+            <div class="bg-supabase-900 p-8 rounded-xl border border-supabase-border space-y-4 shadow-xl">
+                <div class="flex justify-between items-center border-b border-supabase-border pb-3">
+                    <h2 class="text-lg font-bold text-white">Account Settings</h2>
+                    <button onclick="openFullPage('home')" class="text-xs bg-supabase-950 border border-supabase-border px-3 py-1.5 rounded-lg text-slate-300">&larr; Back</button>
                 </div>
-                <div class="space-y-2 text-sm text-slate-700">
-                    <p><b>Email:</b> <span id="settingsEmail" class="text-indigo-600 font-semibold"></span></p>
-                    <p><b>Platform:</b> Sirdique Cloud Storage (Supabase-like)</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- FULL PAGE 4: RULES -->
-        <div id="page-rules" class="full-page hidden flex-1 p-6 md:p-12 max-w-xl mx-auto w-full space-y-6">
-            <div class="bg-slate-50 p-8 rounded-2xl border border-slate-200 space-y-4 shadow-sm">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-xl font-bold text-indigo-600">Rules & Security</h2>
-                    <button onclick="openFullPage('home')" class="text-xs bg-slate-200 px-3 py-1 rounded-lg text-slate-700">&larr; Back</button>
-                </div>
-                <div class="space-y-3 text-xs text-slate-600 leading-relaxed">
-                    <p>1. Keep your API Keys secret. Never expose them in public frontend client repositories.</p>
-                    <p>2. Each project has a strict storage limit of 800MB.</p>
-                    <p>3. API keys start with <code class="text-indigo-600 font-bold">sd-</code> prefix.</p>
+                <div class="space-y-3 text-xs text-slate-300 pt-2">
+                    <p class="flex justify-between items-center p-3 bg-supabase-950 rounded-lg border border-supabase-border"><span>Email:</span> <span id="settingsEmail" class="text-supabase-green font-semibold"></span></p>
                 </div>
             </div>
         </div>
 
-        <!-- FULL PAGE 5: ABOUT US -->
-        <div id="page-about" class="full-page hidden flex-1 p-6 md:p-12 max-w-xl mx-auto w-full space-y-6">
-            <div class="bg-slate-50 p-8 rounded-2xl border border-slate-200 space-y-4 shadow-sm">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-xl font-bold text-indigo-600">About Us</h2>
-                    <button onclick="openFullPage('home')" class="text-xs bg-slate-200 px-3 py-1 rounded-lg text-slate-700">&larr; Back</button>
+        <div id="page-rules" class="full-page hidden flex-1 p-6 md:p-12 max-w-2xl mx-auto w-full space-y-6">
+            <div class="bg-supabase-900 p-8 rounded-xl border border-supabase-border space-y-4 shadow-xl">
+                <div class="flex justify-between items-center border-b border-supabase-border pb-3">
+                    <h2 class="text-lg font-bold text-white">API Documentation</h2>
+                    <button onclick="openFullPage('home')" class="text-xs bg-supabase-950 border border-supabase-border px-3 py-1.5 rounded-lg text-slate-300">&larr; Back</button>
                 </div>
-                <p class="text-xs text-slate-600 leading-relaxed">Sirdique Storage is a high-performance backend infrastructure provider offering database tables, bucket storage, and secure keys management.</p>
+                <div class="space-y-3 text-xs text-slate-400 leading-relaxed pt-2">
+                    <p>1. Always include your project API key using <code class="text-supabase-green font-mono">x-api-key: sd-...</code></p>
+                    <p>2. Maximum storage allocation per database bucket is <code class="text-white font-semibold">800MB</code>.</p>
+                </div>
             </div>
         </div>
 
-        <!-- FULL PAGE 6: SINGLE PROJECT DASHBOARD (Supabase Style) -->
-        <div id="page-single-project" class="full-page hidden flex-1 p-6 md:p-12 max-w-6xl mx-auto w-full space-y-6">
-            <div class="flex justify-between items-center border-b border-slate-200 pb-4">
+        <div id="page-single-project" class="full-page hidden flex-1 p-6 md:p-10 max-w-7xl mx-auto w-full space-y-6">
+            <div class="flex justify-between items-center border-b border-supabase-border pb-4">
                 <div class="flex items-center space-x-3">
-                    <button onclick="openFullPage('home')" class="text-xs bg-slate-100 hover:bg-slate-200 border border-slate-300 px-3 py-1.5 rounded-lg text-slate-700">&larr; Back to All Projects</button>
-                    <h2 id="spTitle" class="text-2xl font-bold text-indigo-600"></h2>
+                    <button onclick="openFullPage('home')" class="text-xs bg-supabase-900 border border-supabase-border px-3 py-2 rounded-lg text-slate-300">&larr; Projects</button>
+                    <h2 id="spTitle" class="text-xl font-bold text-white tracking-tight"></h2>
                 </div>
-                <div class="space-x-2 text-xs">
-                    <button onclick="switchSpTab('tables')" id="btnSpTables" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-medium">Table Editor</button>
-                    <button onclick="switchSpTab('bucket')" id="btnSpBucket" class="bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg font-medium">Storage Bucket</button>
-                    <button onclick="switchSpTab('apikeys')" id="btnSpKeys" class="bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg font-medium">API & Settings</button>
+                <div class="space-x-1 bg-supabase-900 p-1 rounded-lg border border-supabase-border text-xs">
+                    <button onclick="switchSpTab('tables')" id="btnSpTables" class="px-3 py-1.5 rounded-md font-medium bg-supabase-green text-black transition">Table Editor</button>
+                    <button onclick="switchSpTab('bucket')" id="btnSpBucket" class="px-3 py-1.5 rounded-md font-medium text-slate-400 hover:text-white transition">Storage</button>
+                    <button onclick="switchSpTab('apikeys')" id="btnSpKeys" class="px-3 py-1.5 rounded-md font-medium text-slate-400 hover:text-white transition">API Settings</button>
                 </div>
             </div>
 
-            <!-- TABLES VIEW -->
             <div id="sp-tables" class="space-y-6">
-                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4 shadow-sm">
-                    <h3 class="font-semibold text-sm text-slate-800">Create New Table (Template)</h3>
+                <div class="bg-supabase-900 p-5 rounded-xl border border-supabase-border space-y-4 shadow-lg">
+                    <h3 class="font-semibold text-xs text-white uppercase tracking-wider">Create New Table</h3>
                     <div class="flex space-x-2">
-                        <input type="text" id="newTableName" placeholder="Table Name (e.g. users)" class="flex-1 bg-white border border-slate-300 p-2.5 rounded-xl text-xs text-slate-900">
-                        <input type="text" id="newTableCols" placeholder="Columns (name,email)" class="flex-1 bg-white border border-slate-300 p-2.5 rounded-xl text-xs text-slate-900">
-                        <button onclick="createTable()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-medium">Create Table</button>
+                        <input type="text" id="newTableName" placeholder="table_name (e.g. watches)" class="flex-1 bg-supabase-950 border border-supabase-border p-2.5 rounded-lg text-xs text-white focus:outline-none focus:border-supabase-green">
+                        <input type="text" id="newTableCols" placeholder="Columns (name,price,image)" class="flex-1 bg-supabase-950 border border-supabase-border p-2.5 rounded-lg text-xs text-white focus:outline-none focus:border-supabase-green">
+                        <button onclick="createTable()" class="bg-supabase-green hover:bg-supabase-darkgreen text-black px-4 py-2 rounded-lg text-xs font-semibold transition">Save Table</button>
                     </div>
                 </div>
                 <div id="tablesContainer" class="space-y-6"></div>
             </div>
 
-            <!-- BUCKET VIEW -->
             <div id="sp-bucket" class="hidden space-y-6">
-                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4 shadow-sm">
-                    <h3 class="font-semibold text-sm text-slate-800">Storage Bucket (Image Compression Enabled)</h3>
-                    <input type="file" id="bucketFile" class="w-full text-xs text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white">
-                    <button onclick="uploadBucketFile()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white p-2.5 rounded-xl text-xs font-medium">Upload to Bucket</button>
+                <div class="bg-supabase-900 p-5 rounded-xl border border-supabase-border space-y-4 shadow-lg">
+                    <h3 class="font-semibold text-xs text-white uppercase tracking-wider">Storage Bucket (Auto WebP Compression)</h3>
+                    <input type="file" id="bucketFile" class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-supabase-green file:text-black cursor-pointer">
+                    <button onclick="uploadBucketFile()" class="w-full bg-supabase-green hover:bg-supabase-darkgreen text-black p-2.5 rounded-lg text-xs font-semibold transition">Upload Asset</button>
                 </div>
                 <div id="bucketFilesGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
             </div>
 
-            <!-- API & SETTINGS VIEW -->
-            <div id="sp-apikeys" class="hidden space-y-6 bg-slate-50 p-6 rounded-2xl border border-slate-200 shadow-sm">
-                <h3 class="text-lg font-bold text-indigo-600">Project API & Settings</h3>
-                <div class="space-y-3 text-xs text-slate-700">
-                    <p><b>Project ID:</b> <span id="infoProjId" class="text-green-600 font-semibold"></span></p>
-                    <p><b>API Key:</b> <span id="infoApiKey" class="text-green-600 font-semibold"></span></p>
-                    <p><b>Base URL:</b> https://sirdique-storage.onrender.com</p>
-                    <hr class="border-slate-200 my-4">
-                    <p class="font-bold text-slate-900">Edit Project Name:</p>
-                    <div class="flex space-x-2">
-                        <input type="text" id="editProjNameInput" class="flex-1 bg-white border border-slate-300 p-2 rounded-xl text-slate-900">
-                        <button onclick="updateProjectName()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl font-medium">Save Changes</button>
-                    </div>
+            <div id="sp-apikeys" class="hidden space-y-6 bg-supabase-900 p-6 rounded-xl border border-supabase-border shadow-lg">
+                <h3 class="text-base font-bold text-white">Project API Configuration</h3>
+                <div class="space-y-3 text-xs text-slate-300">
+                    <p class="p-3 bg-supabase-950 rounded-lg border border-supabase-border flex justify-between items-center"><span>Project ID:</span> <span id="infoProjId" class="text-supabase-green font-mono"></span></p>
+                    <p class="p-3 bg-supabase-950 rounded-lg border border-supabase-border flex justify-between items-center"><span>API Key:</span> <span id="infoApiKey" class="text-supabase-green font-mono"></span></p>
+                    <p class="p-3 bg-supabase-950 rounded-lg border border-supabase-border flex justify-between items-center"><span>Base URL:</span> <span class="text-slate-400 font-mono">https://sirdique-storage.onrender.com</span></p>
                 </div>
             </div>
         </div>
-
     </div>
 
     <script>
         let currentAuthMode = 'login';
         let loggedInEmail = localStorage.getItem('sirdique_email') || null;
         let activeProject = null;
+        let liveSyncInterval = null;
 
         if (loggedInEmail) showMainApp();
 
         function switchAuthMode(mode) {
             currentAuthMode = mode;
             if(mode === 'login') {
-                document.getElementById('btnLoginTab').className = 'flex-1 font-bold text-indigo-600 border-b-2 border-indigo-600 pb-1';
-                document.getElementById('btnSignupTab').className = 'flex-1 text-slate-400 pb-1';
-                document.getElementById('authSubmitBtn').innerText = 'Login';
+                document.getElementById('btnLoginTab').className = 'flex-1 font-medium text-supabase-green border-b-2 border-supabase-green pb-2 text-sm transition';
+                document.getElementById('btnSignupTab').className = 'flex-1 text-slate-400 hover:text-slate-200 pb-2 text-sm transition';
+                document.getElementById('authSubmitBtn').innerText = 'Sign In';
                 document.getElementById('forgotPasswordLinkBox').classList.remove('hidden');
             } else {
-                document.getElementById('btnSignupTab').className = 'flex-1 font-bold text-indigo-600 border-b-2 border-indigo-600 pb-1';
-                document.getElementById('btnLoginTab').className = 'flex-1 text-slate-400 pb-1';
+                document.getElementById('btnSignupTab').className = 'flex-1 font-medium text-supabase-green border-b-2 border-supabase-green pb-2 text-sm transition';
+                document.getElementById('btnLoginTab').className = 'flex-1 text-slate-400 hover:text-slate-200 pb-2 text-sm transition';
                 document.getElementById('authSubmitBtn').innerText = 'Sign Up';
                 document.getElementById('forgotPasswordLinkBox').classList.add('hidden');
             }
@@ -271,12 +268,12 @@
 
         function logout() {
             localStorage.removeItem('sirdique_email');
+            if (liveSyncInterval) clearInterval(liveSyncInterval);
             location.reload();
         }
 
-        // Full Page Transition Manager
         function openFullPage(pageName) {
-            const pages = ['home', 'new-project', 'settings', 'rules', 'about', 'single-project'];
+            const pages = ['home', 'new-project', 'settings', 'rules', 'single-project'];
             pages.forEach(p => {
                 const el = document.getElementById(`page-${p}`);
                 if(el) el.classList.add('hidden');
@@ -285,7 +282,10 @@
             const target = document.getElementById(`page-${pageName}`);
             if(target) target.classList.remove('hidden');
 
-            if(pageName === 'home') loadMyProjects();
+            if(pageName === 'home') {
+                if (liveSyncInterval) clearInterval(liveSyncInterval);
+                loadMyProjects();
+            }
         }
 
         async function createProject() {
@@ -319,14 +319,14 @@
             if(window.myProjectsData.length > 0) {
                 window.myProjectsData.forEach(p => {
                     grid.innerHTML += `
-                        <div onclick="openProject('${p.project_id}')" class="bg-slate-50 p-5 rounded-2xl border border-slate-200 hover:border-indigo-600 cursor-pointer transition space-y-2 shadow-sm">
-                            <h3 class="font-bold text-lg text-indigo-600">${p.name}</h3>
-                            <p class="text-xs text-slate-500">Project ID: ${p.project_id}</p>
-                            <p class="text-xs text-slate-400">Storage Used: ${Math.round(p.used_storage / 1024)} KB / 800MB</p>
+                        <div onclick="openProject('${p.project_id}')" class="bg-supabase-900 p-5 rounded-xl border border-supabase-border hover:border-supabase-green cursor-pointer transition space-y-2 shadow-md group">
+                            <h3 class="font-bold text-sm text-white group-hover:text-supabase-green transition">${p.name}</h3>
+                            <p class="text-xs text-slate-400 font-mono">ID: ${p.project_id}</p>
+                            <p class="text-xs text-slate-500">Storage: ${Math.round(p.used_storage / 1024)} KB / 800MB</p>
                         </div>`;
                 });
             } else {
-                grid.innerHTML = '<p class="text-slate-500 text-xs">No projects found.</p>';
+                grid.innerHTML = '<p class="text-slate-500 text-xs col-span-3">No projects found.</p>';
             }
         }
 
@@ -339,26 +339,39 @@
             document.getElementById('activeProjectBreadcrumb').innerText = `/ ${activeProject.name}`;
             document.getElementById('infoProjId').innerText = activeProject.project_id;
             document.getElementById('infoApiKey').innerText = activeProject.api_key;
-            document.getElementById('editProjNameInput').value = activeProject.name;
             switchSpTab('tables');
+            startLiveSync(activeProject.project_id);
         }
 
         function switchSpTab(tab) {
             ['sp-tables', 'sp-bucket', 'sp-apikeys'].forEach(t => document.getElementById(t).classList.add('hidden'));
-            ['btnSpTables', 'btnSpBucket', 'btnSpKeys'].forEach(b => document.getElementById(b).className = 'bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg font-medium');
+            ['btnSpTables', 'btnSpBucket', 'btnSpKeys'].forEach(b => document.getElementById(b).className = 'px-3 py-1.5 rounded-md font-medium text-slate-400 hover:text-white transition');
 
             if(tab === 'tables') {
                 document.getElementById('sp-tables').classList.remove('hidden');
-                document.getElementById('btnSpTables').className = 'bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-medium';
+                document.getElementById('btnSpTables').className = 'px-3 py-1.5 rounded-md font-medium bg-supabase-green text-black transition';
                 loadTables();
             } else if(tab === 'bucket') {
                 document.getElementById('sp-bucket').classList.remove('hidden');
-                document.getElementById('btnSpBucket').className = 'bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-medium';
+                document.getElementById('btnSpBucket').className = 'px-3 py-1.5 rounded-md font-medium bg-supabase-green text-black transition';
                 loadBucketFiles();
             } else if(tab === 'apikeys') {
                 document.getElementById('sp-apikeys').classList.remove('hidden');
-                document.getElementById('btnSpKeys').className = 'bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-medium';
+                document.getElementById('btnSpKeys').className = 'px-3 py-1.5 rounded-md font-medium bg-supabase-green text-black transition';
             }
+        }
+
+        function startLiveSync(projectId) {
+            if (liveSyncInterval) clearInterval(liveSyncInterval);
+            liveSyncInterval = setInterval(() => {
+                if (activeProject && activeProject.project_id === projectId) {
+                    if (!document.getElementById('sp-tables').classList.contains('hidden')) {
+                        loadTablesSilent();
+                    } else if (!document.getElementById('sp-bucket').classList.contains('hidden')) {
+                        loadBucketFilesSilent();
+                    }
+                }
+            }, 3000);
         }
 
         async function createTable() {
@@ -400,34 +413,46 @@
                     const rows = rowData.rows || [];
 
                     let html = `
-                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4 shadow-sm">
-                            <h4 class="font-bold text-indigo-600 text-sm">Table: ${t.table_name}</h4>
+                        <div class="bg-supabase-900 p-5 rounded-xl border border-supabase-border space-y-4 shadow-lg">
+                            <h4 class="font-bold text-white text-xs uppercase tracking-wider">Table: <span class="text-supabase-green">${t.table_name}</span> <span class="text-[10px] text-supabase-green font-normal ml-2 animate-pulse">● Live Sync</span></h4>
                             <div class="overflow-x-auto">
-                                <table class="w-full text-left text-xs text-slate-700">
+                                <table class="w-full text-left text-xs text-slate-300">
                                     <thead>
-                                        <tr class="border-b border-slate-200">
-                                            ${cols.map(c => `<th class="p-2">${c}</th>`).join('')}
+                                        <tr class="border-b border-supabase-border">
+                                            ${cols.map(c => `<th class="p-2 text-slate-400 font-medium">${c}</th>`).join('')}
                                         </tr>
                                     </thead>
                                     <tbody>`;
                     
                     rows.forEach(r => {
                         const parsed = JSON.parse(r.row_data);
-                        html += `<tr class="border-b border-slate-200/50">${cols.map(c => `<td class="p-2">${parsed[c] || ''}</td>`).join('')}</tr>`;
+                        html += `<tr class="border-b border-supabase-border/40">${cols.map(c => `<td class="p-2">${parsed[c] || ''}</td>`).join('')}</tr>`;
                     });
 
                     html += `       </tbody>
                                 </table>
                             </div>
                             <div class="flex space-x-2 pt-2">
-                                <input type="text" id="row-${t.table_name}" placeholder="Value for ${cols[0]}" class="flex-1 bg-white border border-slate-300 p-2 rounded-xl text-xs text-slate-900">
-                                <button onclick="addRow('${t.table_name}', '${cols[0]}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-xs font-medium">Add Row</button>
+                                <input type="text" id="row-${t.table_name}" placeholder="Value for ${cols[0]}" class="flex-1 bg-supabase-950 border border-supabase-border p-2 rounded-lg text-xs text-white focus:outline-none focus:border-supabase-green">
+                                <button onclick="addRow('${t.table_name}', '${cols[0]}')" class="bg-supabase-green hover:bg-supabase-darkgreen text-black px-3 py-1.5 rounded-lg text-xs font-semibold transition">Insert Row</button>
                             </div>
                         </div>`;
                     container.innerHTML += html;
                 }
             } else {
-                container.innerHTML = '<p class="text-xs text-slate-400">No tables created yet.</p>';
+                container.innerHTML = '<p class="text-xs text-slate-500">No tables created yet.</p>';
+            }
+        }
+
+        async function loadTablesSilent() {
+            if(!activeProject) return;
+            const res = await fetch('/api/database/tables', {
+                headers: {'x-api-key': activeProject.api_key}
+            });
+            const data = await res.json();
+            const container = document.getElementById('tablesContainer');
+            if(data.success && data.tables.length > 0 && container.innerHTML === '') {
+                loadTables();
             }
         }
 
@@ -481,33 +506,26 @@
             if(data.success && data.files.length > 0) {
                 data.files.forEach(f => {
                     grid.innerHTML += `
-                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2 text-xs shadow-sm">
-                            <img src="${f.file_url}" class="w-full h-24 object-cover rounded-lg">
-                            <p class="truncate text-slate-700">${f.file_name}</p>
-                            <a href="${f.file_url}" target="_blank" class="text-indigo-600 underline block font-medium">View File</a>
+                        <div class="bg-supabase-950 p-3 rounded-lg border border-supabase-border space-y-2 text-xs shadow-md">
+                            <img src="${f.file_url}" class="w-full h-24 object-cover rounded-md border border-supabase-border">
+                            <p class="truncate text-slate-300">${f.file_name}</p>
+                            <a href="${f.file_url}" target="_blank" class="text-supabase-green underline block font-medium">Public URL</a>
                         </div>`;
                 });
             } else {
-                grid.innerHTML = '<p class="text-xs text-slate-400 col-span-4">Bucket is empty.</p>';
+                grid.innerHTML = '<p class="text-xs text-slate-500 col-span-4">Storage bucket is empty.</p>';
             }
         }
 
-        async function updateProjectName() {
-            const newName = document.getElementById('editProjNameInput').value;
-            if(!newName) return alert('Enter new name');
-            const res = await fetch('/api/projects/update', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ project_id: activeProject.project_id, newName })
+        async function loadBucketFilesSilent() {
+            if(!activeProject) return;
+            const res = await fetch('/api/bucket/files', {
+                headers: {'x-api-key': activeProject.api_key}
             });
             const data = await res.json();
-            if(data.success) {
-                activeProject.name = newName;
-                document.getElementById('spTitle').innerText = newName;
-                document.getElementById('activeProjectBreadcrumb').innerText = `/ ${newName}`;
-                alert('Updated successfully!');
-            } else {
-                alert(data.error);
+            const grid = document.getElementById('bucketFilesGrid');
+            if(data.success && data.files.length > 0 && grid.innerHTML.includes('Storage bucket is empty')) {
+                loadBucketFiles();
             }
         }
     </script>
