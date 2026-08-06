@@ -1,7 +1,7 @@
 {
   "name": "sirdique-storage",
-  "version": "4.0.0",
-  "description": "Sirdique Storage & Multi-Project Backend with EmailJS Integration",
+  "version": "5.0.0",
+  "description": "Sirdique Storage & Multi-Project Dashboard with Auth",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
