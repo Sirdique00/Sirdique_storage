@@ -1,103 +1,46 @@
-
 <!DOCTYPE html>
-<html lang="ha">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sirdique Storage - Professional Dashboard</title>
+    <title>Sirdique Storage & Auth Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: '#6366F1',
-                        brandDark: '#4F46E5'
-                    }
-                }
-            }
-        }
-    </script>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen font-sans">
-    <header class="bg-slate-800 border-b border-slate-700 py-4 px-6 shadow-md">
-        <div class="max-w-6xl mx-auto flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <div class="bg-brand p-2 rounded-lg text-white font-bold text-xl">⚡</div>
-                <h1 class="text-2xl font-extrabold tracking-wide text-white">Sirdique <span class="text-brand">Storage</span></h1>
-            </div>
-            <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full font-medium">Active & Secure</span>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-6">
+    <div class="max-w-xl mx-auto space-y-8">
+        <div class="text-center">
+            <h1 class="text-3xl font-bold text-indigo-400">Sirdique Storage</h1>
+            <p class="text-sm text-slate-400">Cikakken Backend & Storage Management System</p>
         </div>
-    </header>
-    <main class="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-        <section class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl h-fit">
-            <h2 class="text-lg font-bold mb-4 text-slate-200 border-b border-slate-700 pb-2">Ajiye Sabon Bayani</h2>
-            <form id="storageForm" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-1">Take (Title)</label>
-                    <input type="text" id="title" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand transition">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-1">Bayani (Content)</label>
-                    <textarea id="content" rows="3" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand transition"></textarea>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-1">Zaɓi Fayil / Hoto (File)</label>
-                    <input type="file" id="file" class="w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-brand file:text-white hover:file:bg-brandDark cursor-pointer">
-                </div>
-                <button type="submit" class="w-full bg-brand hover:bg-brandDark text-white font-semibold py-3 rounded-xl transition shadow-lg shadow-brand/20">Ajiye a Sirdique</button>
-            </form>
-        </section>
-        <section class="md:col-span-2 bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl">
-            <h2 class="text-lg font-bold mb-4 text-slate-200 border-b border-slate-700 pb-2">Abubuwan da ke cikin Storage</h2>
-            <div id="dataList" class="space-y-4 max-h-[500px] overflow-y-auto pr-2">
-                <p class="text-slate-500 text-center py-10">Ana neman bayanai...</p>
-            </div>
-        </section>
-    </main>
+
+        <!-- Create Project Section -->
+        <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
+            <h2 class="text-xl font-semibold">1. Kirkiri Sabon Project</h2>
+            <input type="text" id="projectName" placeholder="Sunan Project (misali: MyBlog)" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl focus:outline-none focus:border-indigo-500">
+            <button onclick="createProject()" class="w-full bg-indigo-600 hover:bg-indigo-700 p-3 rounded-xl font-medium transition">Kirkira Project</button>
+            <div id="projectResult" class="hidden bg-slate-950 p-4 rounded-xl border border-indigo-900 text-xs space-y-2"></div>
+        </div>
+    </div>
+
     <script>
-        const form = document.getElementById('storageForm');
-        const dataList = document.getElementById('dataList');
-        async function loadData() {
-            try {
-                const res = await fetch('/api/data');
-                const result = await res.json();
-                if(result.success && result.data.length > 0) {
-                    dataList.innerHTML = result.data.map(item => `
-                        <div class="bg-slate-900/50 border border-slate-700/60 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                            <div>
-                                <h3 class="font-bold text-white text-base">${item.title}</h3>
-                                <p class="text-slate-400 text-sm mt-1">${item.content}</p>
-                                <span class="text-xs text-slate-500 mt-2 block">${item.created_at}</span>
-                            </div>
-                            ${item.filePath ? `<a href="${item.filePath}" target="_blank" class="bg-slate-800 hover:bg-slate-700 text-brand text-xs px-3 py-1.5 rounded-lg border border-slate-700 transition font-medium">Duba Fayil ↗</a>` : ''}
-                        </div>
-                    `).join('');
-                } else {
-                    dataList.innerHTML = `<p class="text-slate-500 text-center py-10">Babu wani bayani a cikin Sirdique Storage.</p>`;
-                }
-            } catch (err) {
-                dataList.innerHTML = `<p class="text-rose-400 text-center py-10">Kuskure wajen shiga database.</p>`;
+        async function createProject() {
+            const name = document.getElementById('projectName').value;
+            if(!name) return alert('Sanya sunan project!');
+            
+            const res = await fetch('/api/projects/create', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ name })
+            });
+            const data = await res.json();
+            if(data.success) {
+                const box = document.getElementById('projectResult');
+                box.classList.remove('hidden');
+                box.innerHTML = `<p class='text-green-400 font-bold'>An kirkira da nasara!</p>
+                                 <p><b>Project ID:</b> ${data.project_id}</p>
+                                 <p><b>API Key:</b> ${data.api_key}</p>`;
             }
         }
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData();
-            formData.append('title', document.getElementById('title').value);
-            formData.append('content', document.getElementById('content').value);
-            const fileInput = document.getElementById('file').files[0];
-            if(fileInput) formData.append('file', fileInput);
-            const btn = form.querySelector('button');
-            btn.textContent = 'Ana Ajiye wa...';
-            const res = await fetch('/api/save', { method: 'POST', body: formData });
-            const result = await res.json();
-            if(result.success) {
-                form.reset();
-                loadData();
-            }
-            btn.textContent = 'Ajiye a Sirdique';
-        });
-        loadData();
     </script>
 </body>
 </html>
