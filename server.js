@@ -1,177 +1,213 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sirdique Storage Hub</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-4 flex items-center justify-center">
-    <div class="max-w-md w-full bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-6 shadow-2xl">
-        <div class="text-center">
-            <h1 class="text-2xl font-bold text-indigo-400">Sirdique Storage</h1>
-            <p class="text-xs text-slate-400">Cikakken Backend & Project Dashboard</p>
-        </div>
+const express = require('express');
+const sqlite3 = require('sqlite3').verbose();
+const multer = require('multer');
+const sharp = require('sharp');
+const nodemailer = require('nodemailer');
+const path = require('path');
+const fs = require('fs');
 
-        <!-- AUTH SECTION -->
-        <div id="authView" class="space-y-4">
-            <div class="flex border-b border-slate-800 pb-2">
-                <button onclick="switchTab('login')" id="tabLogin" class="flex-1 text-center font-bold text-indigo-400">Login</button>
-                <button onclick="switchTab('register')" id="tabRegister" class="flex-1 text-center text-slate-400">Sign Up</button>
-            </div>
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(express.static(path.join(__dirname)));
 
-            <!-- Login Form -->
-            <div id="loginForm" class="space-y-3">
-                <input type="email" id="logEmail" placeholder="Email Address" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-sm focus:outline-none focus:border-indigo-500">
-                <input type="password" id="logPass" placeholder="Password" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-sm focus:outline-none focus:border-indigo-500">
-                <button onclick="loginUser()" class="w-full bg-indigo-600 hover:bg-indigo-700 p-3 rounded-xl font-medium transition text-sm">Login</button>
-            </div>
+if (!fs.existsSync('./uploads')) fs.mkdirSync('./uploads');
 
-            <!-- Register Form -->
-            <div id="regForm" class="space-y-3 hidden">
-                <input type="email" id="regEmail" placeholder="Email Address" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-sm focus:outline-none focus:border-indigo-500">
-                <button onclick="sendOtp()" class="w-full bg-slate-800 hover:bg-slate-700 p-3 rounded-xl font-medium transition text-xs">Tura Code (OTP) zuwa Email</button>
-                <input type="text" id="regCode" placeholder="Sanya Code (Mai expire a minti 1)" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-sm focus:outline-none focus:border-indigo-500">
-                <input type="password" id="regPass" placeholder="Saite Sabon Password" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-sm focus:outline-none focus:border-indigo-500">
-                <button onclick="registerUser()" class="w-full bg-indigo-600 hover:bg-indigo-700 p-3 rounded-xl font-medium transition text-sm">Kammala Sign Up</button>
-            </div>
-        </div>
+const db = new sqlite3.Database('./sirdique.db', (err) => {
+    if (err) console.error('Error opening database', err.message);
+    else console.log('Connected to SQLite database.');
+});
 
-        <!-- DASHBOARD SECTION -->
-        <div id="dashView" class="space-y-6 hidden">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <span id="userDisplayEmail" class="text-xs text-indigo-300 font-mono"></span>
-                <button onclick="logout()" class="text-xs text-red-400 hover:underline">Fita (Logout)</button>
-            </div>
+db.serialize(() => {
+    db.run(`CREATE TABLE IF NOT EXISTS dashboard_users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT UNIQUE,
+        password TEXT,
+        is_verified INTEGER DEFAULT 0
+    )`);
 
-            <div class="space-y-3">
-                <h2 class="text-sm font-semibold text-slate-300">Ƙirƙiri Sabon Project (Max 2)</h2>
-                <input type="text" id="newProjName" placeholder="Sunan Project (Dole ya zama daban)" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-sm focus:outline-none focus:border-indigo-500">
-                <button onclick="createProject()" class="w-full bg-indigo-600 hover:bg-indigo-700 p-3 rounded-xl font-medium transition text-sm">New Project (+)</button>
-            </div>
+    db.run(`CREATE TABLE IF NOT EXISTS otps (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT,
+        code TEXT,
+        expires_at DATETIME
+    )`);
 
-            <div class="space-y-3">
-                <h2 class="text-sm font-semibold text-slate-300">Jerin Project ɗinka</h2>
-                <div id="projectsList" class="space-y-3 max-h-60 overflow-y-auto"></div>
-            </div>
-        </div>
-    </div>
+    db.run(`CREATE TABLE IF NOT EXISTS projects (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        owner_email TEXT,
+        name TEXT UNIQUE,
+        project_id TEXT UNIQUE,
+        api_key TEXT UNIQUE
+    )`);
 
-    <script>
-        function switchTab(tab) {
-            if(tab === 'login') {
-                document.getElementById('loginForm').classList.remove('hidden');
-                document.getElementById('regForm').classList.add('hidden');
-                document.getElementById('tabLogin').className = "flex-1 text-center font-bold text-indigo-400";
-                document.getElementById('tabRegister').className = "flex-1 text-center text-slate-400";
-            } else {
-                document.getElementById('loginForm').classList.add('hidden');
-                document.getElementById('regForm').classList.remove('hidden');
-                document.getElementById('tabRegister').className = "flex-1 text-center font-bold text-indigo-400";
-                document.getElementById('tabLogin').className = "flex-1 text-center text-slate-400";
+    db.run(`CREATE TABLE IF NOT EXISTS data_entries (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        project_id TEXT,
+        title TEXT,
+        content TEXT,
+        file_url TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+});
+
+// Nodemailer setup (Ka sanya email da app password naka)
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'ka_sanya_email_naka@gmail.com',
+        pass: 'ka_sanya_app_password_naka'
+    }
+});
+
+const upload = multer({ storage: multer.memoryStorage() });
+
+// --- DASHBOARD AUTH & PROJECT ROUTES ---
+
+// 1. Send OTP for Registration (Expires in 1 minute)
+app.post('/api/dash/send-otp', (req, res) => {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email is required' });
+
+    db.get(`SELECT * FROM dashboard_users WHERE email = ?`, [email], (err, user) => {
+        if (user && user.is_verified === 1) {
+            return res.status(400).json({ error: 'Email already registered. Please login.' });
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = new Date(Date.now() + 60000).toISOString(); // Minti 1
+
+        db.run(`INSERT INTO otps (email, code, expires_at) VALUES (?, ?, ?)`, [email, otp, expiresAt], (err) => {
+            if (err) return res.status(500).json({ error: err.message });
+
+            transporter.sendMail({
+                from: 'Sirdique Hub <no-reply@sirdique.com>',
+                to: email,
+                subject: 'Sirdique Verification Code',
+                text: `Your code is: ${otp}. It expires in 1 minute and can only be used once.`
+            }).catch(console.error);
+
+            res.json({ success: true, message: 'OTP sent to email (Expires in 1 min)' });
+        });
+    });
+});
+
+// 2. Register / Verify OTP & Set Password
+app.post('/api/dash/register', (req, res) => {
+    const { email, code, password } = req.body;
+    db.get(`SELECT * FROM otps WHERE email = ? AND code = ? ORDER BY id DESC LIMIT 1`, [email, code], (err, otpRow) => {
+        if (!otpRow || new Date() > new Date(otpRow.expires_at)) {
+            return res.status(400).json({ error: 'Invalid or expired OTP (Expires in 1 min)' });
+        }
+
+        // Delete OTP so it becomes useless
+        db.run(`DELETE FROM otps WHERE id = ?`, [otpRow.id]);
+
+        db.run(`INSERT OR REPLACE INTO dashboard_users (email, password, is_verified) VALUES (?, ?, 1)`, [email, password], (err) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ success: true, message: 'Account created successfully!' });
+        });
+    });
+});
+
+// 3. Login
+app.post('/api/dash/login', (req, res) => {
+    const { email, password } = req.body;
+    db.get(`SELECT * FROM dashboard_users WHERE email = ? AND password = ?`, [email, password], (err, user) => {
+        if (!user) return res.status(400).json({ error: 'Invalid email or password' });
+        res.json({ success: true, email: user.email });
+    });
+});
+
+// 4. Get User Projects (Max 2 rule check)
+app.get('/api/dash/projects/:email', (req, res) => {
+    const { email } = req.params;
+    db.all(`SELECT * FROM projects WHERE owner_email = ?`, [email], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true, projects: rows });
+    });
+});
+
+// 5. Create Project (Max 2 per email & Unique Name)
+app.post('/api/dash/projects/create', (req, res) => {
+    const { email, name } = req.body;
+    if (!email || !name) return res.status(400).json({ error: 'Email and project name required' });
+
+    db.get(`SELECT COUNT(*) as count FROM projects WHERE owner_email = ?`, [email], (err, row) => {
+        if (row.count >= 2) {
+            return res.status(400).json({ error: 'Iyakacin project da za ka iya kirkira da wannan email shine biyu (2).' });
+        }
+
+        db.get(`SELECT * FROM projects WHERE name = ?`, [name], (err, existingName) => {
+            if (existingName) {
+                return res.status(400).json({ error: 'Wannan sunan project din an riga an yi amfani da shi. Ka sanya wani.' });
             }
-        }
 
-        async function sendOtp() {
-            const email = document.getElementById('regEmail').value;
-            if(!email) return alert('Sanya email naka!');
-            const res = await fetch('/api/dash/send-otp', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ email })
-            });
-            const data = await res.json();
-            alert(data.message || data.error);
-        }
+            const project_id = 'PRJ-' + Math.random().toString(36).substring(2, 9).toUpperCase();
+            const api_key = 'SK-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
-        async function registerUser() {
-            const email = document.getElementById('regEmail').value;
-            const code = document.getElementById('regCode').value;
-            const password = document.getElementById('regPass').value;
-            if(!email || !code || !password) return alert('Cika duk wuraren!');
-            
-            const res = await fetch('/api/dash/register', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ email, code, password })
-            });
-            const data = await res.json();
-            if(data.success) {
-                alert('An yi nasara! Yanzu ka shiga Login.');
-                switchTab('login');
-            } else { alert(data.error); }
-        }
-
-        async function loginUser() {
-            const email = document.getElementById('logEmail').value;
-            const password = document.getElementById('logPass').value;
-            const res = await fetch('/api/dash/login', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ email, password })
-            });
-            const data = await res.json();
-            if(data.success) {
-                localStorage.setItem('sirdique_email', data.email);
-                loadDashboard(data.email);
-            } else { alert(data.error); }
-        }
-
-        function logout() {
-            localStorage.removeItem('sirdique_email');
-            document.getElementById('authView').classList.remove('hidden');
-            document.getElementById('dashView').classList.add('hidden');
-        }
-
-        async function loadDashboard(email) {
-            document.getElementById('authView').classList.add('hidden');
-            document.getElementById('dashView').classList.remove('hidden');
-            document.getElementById('userDisplayEmail').innerText = email;
-
-            const res = await fetch(`/api/dash/projects/${email}`);
-            const data = await res.json();
-            const list = document.getElementById('projectsList');
-            list.innerHTML = '';
-
-            if(data.projects && data.projects.length > 0) {
-                data.projects.forEach(p => {
-                    list.innerHTML += `
-                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2 text-xs">
-                            <p class="font-bold text-indigo-400 text-sm">${p.name}</p>
-                            <p><b>Project ID:</b> <span class="font-mono bg-slate-900 p-1 rounded">${p.project_id}</span></p>
-                            <p><b>API Key:</b> <span class="font-mono bg-slate-900 p-1 rounded">${p.api_key}</span></p>
-                            <div class="text-slate-400 pt-1 border-t border-slate-900">
-                                <p><b>Base URL:</b> https://sirdique-storage.onrender.com</p>
-                                <p><b>Endpoint:</b> /api/save (POST) | /api/data (GET)</p>
-                            </div>
-                        </div>`;
+            db.run(`INSERT INTO projects (owner_email, name, project_id, api_key) VALUES (?, ?, ?, ?)`,
+                [email, name, project_id, api_key], function(err) {
+                    if (err) return res.status(500).json({ error: err.message });
+                    res.json({ success: true, project_id, api_key, name });
                 });
-            } else {
-                list.innerHTML = `<p class="text-slate-500 text-xs">Babu project da ka kirkira tukuna.</p>`;
-            }
+        });
+    });
+});
+
+// --- EXTERNAL API STORAGE ROUTES (Godiya ga API Key) ---
+const verifyApiKey = (req, res, next) => {
+    const apiKey = req.headers['x-api-key'] || req.body.api_key;
+    if (!apiKey) return res.status(401).json({ error: 'API Key is missing' });
+
+    db.get(`SELECT * FROM projects WHERE api_key = ?`, [apiKey], (err, project) => {
+        if (err || !project) return res.status(403).json({ error: 'Invalid API Key' });
+        req.project = project;
+        next();
+    });
+};
+
+app.post('/api/save', verifyApiKey, upload.single('file'), async (req, res) => {
+    try {
+        const { title, content } = req.body;
+        let file_url = null;
+        if (req.file) {
+            const filename = `img-${Date.now()}.webp`;
+            const filepath = path.join(__dirname, 'uploads', filename);
+            await sharp(req.file.buffer).resize({ width: 1000, withoutEnlargement: true }).webp({ quality: 80 }).toFile(filepath);
+            file_url = `/uploads/${filename}`;
         }
-
-        async function createProject() {
-            const email = localStorage.getItem('sirdique_email');
-            const name = document.getElementById('newProjName').value;
-            if(!name) return alert('Sanya sunan project!');
-
-            const res = await fetch('/api/dash/projects/create', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ email, name })
+        db.run(`INSERT INTO data_entries (project_id, title, content, file_url) VALUES (?, ?, ?, ?)`,
+            [req.project.project_id, title, content, file_url], function(err) {
+                if (err) return res.status(500).json({ error: err.message });
+                res.json({ success: true, id: this.lastID, file_url });
             });
-            const data = await res.json();
-            if(data.success) {
-                document.getElementById('newProjName').value = '';
-                loadDashboard(email);
-            } else { alert(data.error); }
-        }
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
 
-        window.onload = () => {
-            const savedEmail = localStorage.getItem('sirdique_email');
-            if(savedEmail) loadDashboard(savedEmail);
-        }
-    </script>
-</body>
-</html>
+app.get('/api/data', verifyApiKey, (req, res) => {
+    db.all(`SELECT * FROM data_entries WHERE project_id = ? ORDER BY id DESC`, [req.project.project_id], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true, data: rows });
+    });
+});
+
+app.put('/api/data/:id', verifyApiKey, (req, res) => {
+    const { title, content } = req.body;
+    db.run(`UPDATE data_entries SET title = ?, content = ? WHERE id = ? AND project_id = ?`,
+        [title, content, req.params.id, req.project.project_id], function(err) {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ success: true, updated: this.changes });
+        });
+});
+
+app.delete('/api/data/:id', verifyApiKey, (req, res) => {
+    db.run(`DELETE FROM data_entries WHERE id = ? AND project_id = ?`, [req.params.id, req.project.project_id], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true, deleted: this.changes });
+    });
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
