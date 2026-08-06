@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sirdique Storage Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- EmailJS SDK -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script type="text/javascript">
         (function() {
@@ -15,86 +14,80 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
 
-    <!-- Navigation Bar -->
+    <!-- Header Navigation -->
     <header class="bg-slate-900 border-b border-slate-800 p-4 flex justify-between items-center">
-        <h1 class="text-xl font-bold text-indigo-400 cursor-pointer" onclick="switchTab('home')">Sirdique Storage</h1>
-        <div class="space-x-4 text-sm">
-            <button onclick="switchTab('home')" class="hover:text-indigo-400">Home</button>
-            <button onclick="switchTab('my-projects')" class="hover:text-indigo-400">Project Dina</button>
-            <button onclick="switchTab('about')" class="hover:text-indigo-400">About Us</button>
-            <button onclick="switchTab('admin')" class="bg-indigo-600 px-3 py-1 rounded-lg text-white">Admin</button>
+        <h1 class="text-xl font-bold text-indigo-400 cursor-pointer" onclick="switchView('welcome')">Sirdique Storage</h1>
+        <div id="navLinks" class="space-x-4 text-sm">
+            <button onclick="switchView('welcome')" class="hover:text-indigo-400">Home</button>
+            <button onclick="switchView('login')" class="hover:text-indigo-400">Login</button>
+            <button onclick="switchView('signup')" class="hover:text-indigo-400">Sign Up</button>
+            <button onclick="switchView('about')" class="hover:text-indigo-400">About Us</button>
+            <button onclick="switchView('admin')" class="bg-indigo-600 px-3 py-1 rounded-lg text-white">Admin</button>
         </div>
     </header>
 
     <!-- Main Container -->
-    <main class="flex-1 p-6 max-w-3xl mx-w-full w-full mx-auto">
+    <main class="flex-1 p-6 max-w-4xl w-full mx-auto">
 
-        <!-- HOME TAB: Create Project -->
-        <div id="tab-home" class="space-y-6">
-            <div class="text-center">
-                <h2 class="text-3xl font-bold text-indigo-400">Sirdique Storage System</h2>
-                <p class="text-sm text-slate-400">Kowanne email yana da limit na project biyu (2) da 800MB storage kowanne project.</p>
-            </div>
-
-            <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
-                <h3 class="text-xl font-semibold">Kirkiri Sabon Project</h3>
-                <input type="email" id="regEmail" placeholder="Sanya Email dinka" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl">
-                <input type="text" id="projectNameInput" placeholder="Sunan Project (Baza a maimaita ba)" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl">
-                <button onclick="startProjectCreation()" class="w-full bg-indigo-600 hover:bg-indigo-700 p-3 rounded-xl font-medium">Aiko da Code (EmailJS)</button>
-                
-                <div id="otpSection" class="hidden space-y-3 pt-4 border-t border-slate-800">
-                    <p class="text-xs text-indigo-300">An tura confirmation code zuwa email dinka! Yana expire bayan minti daya (1 min).</p>
-                    <input type="text" id="otpCodeInput" placeholder="Sanya Code din da aka tura" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl">
-                    <button onclick="verifyAndFinishProject()" class="w-full bg-green-600 hover:bg-green-700 p-3 rounded-xl font-medium">Tabbata Kuma Kammala</button>
-                </div>
-                <div id="projectResult" class="hidden bg-slate-950 p-4 rounded-xl border border-indigo-900 text-xs space-y-2"></div>
+        <!-- 1. WELCOME VIEW -->
+        <div id="view-welcome" class="space-y-8 text-center py-12">
+            <h2 class="text-4xl font-extrabold text-indigo-400">Barka da zuwa Sirdique Storage</h2>
+            <p class="text-slate-300 max-w-lg mx-auto text-sm">Mafi kyawun tsarin ajiye bayanai, hotuna, da kuma sarrafa APIs da Auth don applications ɗinka cikin hanzari.</p>
+            <div class="space-x-4">
+                <button onclick="switchView('signup')" class="bg-indigo-600 hover:bg-indigo-700 px-6 py-3 rounded-xl font-medium transition">Yi Sign Up</button>
+                <button onclick="switchView('login')" class="bg-slate-800 hover:bg-slate-700 px-6 py-3 rounded-xl font-medium transition">Shiga Login</button>
             </div>
         </div>
 
-        <!-- MY PROJECTS TAB -->
-        <div id="tab-my-projects" class="hidden space-y-6">
-            <h2 class="text-2xl font-bold text-indigo-400">Bincike da Duba Project Dina</h2>
-            <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
-                <input type="email" id="searchEmail" placeholder="Sanya email dinka da kuka kirkiri project" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl">
-                <button onclick="fetchMyProjects()" class="w-full bg-indigo-600 p-3 rounded-xl font-medium">Nemo Project Dina</button>
-                <div id="projectsList" class="space-y-4 pt-4"></div>
+        <!-- 2. SIGN UP VIEW -->
+        <div id="view-signup" class="hidden max-w-md mx-auto space-y-6 bg-slate-900 p-6 rounded-2xl border border-slate-800">
+            <h2 class="text-2xl font-bold text-indigo-400">Kirkiri Sabon Account & Project</h2>
+            <input type="email" id="suEmail" placeholder="Sanya Email dinka" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl">
+            <input type="text" id="suProjectName" placeholder="Sunan Project (Baza a maimaita ba)" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl">
+            <input type="password" id="suPassword" placeholder="Saita Password don login" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl">
+            <button onclick="sendSignupOtp()" class="w-full bg-indigo-600 hover:bg-indigo-700 p-3 rounded-xl font-medium">Aiko da Confirmation Code</button>
+
+            <div id="suOtpBox" class="hidden space-y-3 pt-4 border-t border-slate-800">
+                <p class="text-xs text-indigo-300">An tura code zuwa email dinka! (Expires in 1 min)</p>
+                <input type="text" id="suOtpInput" placeholder="Sanya Code din" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl">
+                <button onclick="verifyAndCreateProject()" class="w-full bg-green-600 hover:bg-green-700 p-3 rounded-xl font-medium">Tabbata Kuma Kammala Sign Up</button>
             </div>
         </div>
 
-        <!-- ABOUT US TAB -->
-        <div id="tab-about" class="hidden space-y-6 bg-slate-900 p-6 rounded-2xl border border-slate-800">
+        <!-- 3. LOGIN VIEW -->
+        <div id="view-login" class="hidden max-w-md mx-auto space-y-6 bg-slate-900 p-6 rounded-2xl border border-slate-800">
+            <h2 class="text-2xl font-bold text-indigo-400">Shiga Dashboard ɗinka</h2>
+            <input type="email" id="logEmail" placeholder="Email dinka" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl">
+            <input type="password" id="logPassword" placeholder="Password dinka" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl">
+            <button onclick="userLogin()" class="w-full bg-indigo-600 hover:bg-indigo-700 p-3 rounded-xl font-medium">Shiga Dashboard</button>
+        </div>
+
+        <!-- 4. USER DASHBOARD VIEW -->
+        <div id="view-user-dashboard" class="hidden space-y-6">
+            <div class="flex justify-between items-center bg-slate-900 p-4 rounded-xl border border-slate-800">
+                <h2 class="text-xl font-bold text-indigo-400">Sirdique User Dashboard</h2>
+                <button onclick="switchView('welcome')" class="bg-red-600 px-3 py-1 text-xs rounded-lg">Fita (Logout)</button>
+            </div>
+            <div id="userProjectsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </div>
+
+        <!-- 5. ABOUT US VIEW -->
+        <div id="view-about" class="hidden space-y-6 bg-slate-900 p-6 rounded-2xl border border-slate-800 max-w-xl mx-auto">
             <h2 class="text-2xl font-bold text-indigo-400">Game da Sirdique Storage</h2>
-            <p class="text-slate-300 text-sm leading-relaxed">
-                Wannan tsari ne mai cikakken karfi wanda aka gina shi musamman domin tallafawa masu kirkirar applications da websites. Yana bayar da damar ajiye hotuna da rubututtuka (Storage) tare da EmailJS integration don hanzarin tura sako.
-            </p>
+            <p class="text-slate-300 text-sm leading-relaxed">Wannan shine babban tsarin backend da storage wanda yake ba da damar gina applications tare da cikakken tsaro da hanzari.</p>
             <p class="text-xs text-slate-500">Admin Email: abubakarsadeeq8533@gmail.com</p>
         </div>
 
-        <!-- ADMIN TAB -->
-        <div id="tab-admin" class="hidden space-y-6">
-            <div id="adminLoginBox" class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4 max-w-md mx-auto">
+        <!-- 6. ADMIN VIEW -->
+        <div id="view-admin" class="hidden space-y-6 max-w-md mx-auto">
+            <div id="adminLoginBox" class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
                 <h2 class="text-xl font-bold text-indigo-400">Admin Login (Pin: 676767)</h2>
-                <input type="email" id="adminEmail" placeholder="Admin Email" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl" value="abubakarsadeeq8533@gmail.com">
+                <input type="email" id="adminEmail" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl" value="abubakarsadeeq8533@gmail.com">
                 <input type="password" id="adminPin" placeholder="Admin PIN (676767)" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl">
-                <button onclick="adminLogin()" class="w-full bg-indigo-600 p-3 rounded-xl font-medium">Shiga Admin Dashboard</button>
+                <button onclick="adminLogin()" class="w-full bg-indigo-600 p-3 rounded-xl font-medium">Shiga Admin</button>
             </div>
-
-            <div id="adminDashboard" class="hidden grid grid-cols-1 md:grid-cols-4 gap-6">
-                <!-- Sidebar -->
-                <aside class="bg-slate-900 p-4 rounded-2xl border border-slate-800 space-y-2">
-                    <h3 class="font-bold text-indigo-400">Admin Sidebar</h3>
-                    <p class="text-xs text-slate-400 cursor-pointer hover:text-white">Dashboard Overview</p>
-                    <p class="text-xs text-slate-400 cursor-pointer hover:text-white">Manage Projects</p>
-                    <p class="text-xs text-slate-400 cursor-pointer hover:text-white">Security Logs</p>
-                </aside>
-                <!-- Main Content & Searchbar -->
-                <section class="md:col-span-3 bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
-                    <div class="flex justify-between items-center">
-                        <h3 class="text-xl font-bold">Admin Panel - Kwararru</h3>
-                        <input type="text" id="adminSearch" placeholder="Search projects..." class="bg-slate-950 border border-slate-800 px-3 py-2 rounded-xl text-sm">
-                    </div>
-                    <p class="text-sm text-green-400">Admin ya shiga lafiya ƙalau! Komai yana aiki 100%.</p>
-                </section>
+            <div id="adminDashboard" class="hidden bg-slate-900 p-6 rounded-2xl border border-slate-800">
+                <h3 class="text-xl font-bold text-green-400">Admin Dashboard ya buɗe lafiya ƙalau!</h3>
             </div>
         </div>
 
@@ -102,103 +95,91 @@
 
     <script>
         let generatedOtp = '';
-        let pendingEmail = '';
-        let pendingProjectName = '';
+        let tempEmail = '', tempProjectName = '', tempPassword = '';
 
-        function switchTab(tab) {
-            ['home', 'my-projects', 'about', 'admin'].forEach(t => {
-                document.getElementById(`tab-${t}`).classList.add('hidden');
+        function switchView(view) {
+            ['welcome', 'signup', 'login', 'user-dashboard', 'about', 'admin'].forEach(v => {
+                document.getElementById(`view-${v}`).classList.add('hidden');
             });
-            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+            document.getElementById(`view-${view}`).classList.remove('hidden');
         }
 
-        async function startProjectCreation() {
-            const email = document.getElementById('regEmail').value;
-            const projectName = document.getElementById('projectNameInput').value;
-            if(!email || !projectName) return alert('Cika email da sunan project!');
+        async function sendSignupOtp() {
+            const email = document.getElementById('suEmail').value;
+            const projectName = document.getElementById('suProjectName').value;
+            const password = document.getElementById('suPassword').value;
+            if(!email || !projectName || !password) return alert('Cika duk wuraren da ake bukata!');
 
-            // Validate limit and name on server
             const res = await fetch('/api/projects/validate-limit', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ email, projectName })
             });
             const data = await res.json();
-            if(!data.success) {
-                return alert(data.error);
-            }
+            if(!data.success) return alert(data.error);
 
-            pendingEmail = email;
-            pendingProjectName = projectName;
+            tempEmail = email;
+            tempProjectName = projectName;
+            tempPassword = password;
             generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
-            // Send via EmailJS instantly
-            const templateParams = {
+            emailjs.send('service_49wqltg', 'template_dqofkf8', {
                 to_email: email,
                 pass_code: generatedOtp,
-                message: `Lambar tabbatar da project dinka ta Sirdique Storage ita ce: ${generatedOtp}. Wannan lambar za ta mutu bayan minti daya (1 min).\n\nPowered by Sirdique`
-            };
-
-            emailjs.send('service_49wqltg', 'template_dqofkf8', templateParams)
-                .then(function(response) {
-                    alert('An tura confirmation code zuwa email dinka cikin hanzari ta hanyar EmailJS!');
-                    document.getElementById('otpSection').classList.remove('hidden');
-                }, function(error) {
-                    alert('Matsala wajen tura email: ' + JSON.stringify(error));
-                });
+                message: `Lambar tabbatar da sign up dinka ta Sirdique ita ce: ${generatedOtp}. Yana expire bayan minti daya (1 min).\n\nPowered by Sirdique`
+            }).then(() => {
+                alert('An tura code zuwa email dinka ta hanyar EmailJS!');
+                document.getElementById('suOtpBox').classList.remove('hidden');
+            }, (err) => {
+                alert('Matsala wajen tura email: ' + JSON.stringify(err));
+            });
         }
 
-        async function verifyAndFinishProject() {
-            const enteredOtp = document.getElementById('otpCodeInput').value;
-            if(!enteredOtp) return alert('Sanya code din!');
-            if(enteredOtp !== generatedOtp) {
-                return alert('Code din da ka saka bai daidai ba!');
-            }
+        async function verifyAndCreateProject() {
+            const code = document.getElementById('suOtpInput').value;
+            if(code !== generatedOtp) return alert('Code din bai daidai ba!');
 
-            // Create project in DB
             const res = await fetch('/api/projects/create', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ email: pendingEmail, projectName: pendingProjectName })
+                body: JSON.stringify({ email: tempEmail, password: tempPassword, projectName: tempProjectName })
             });
             const data = await res.json();
             if(data.success) {
-                const box = document.getElementById('projectResult');
-                box.classList.remove('hidden');
-                box.innerHTML = `<p class='text-green-400 font-bold'>An kirkira project da nasara 100%!</p>
-                                 <p><b>Project Name:</b> ${data.name}</p>
-                                 <p><b>Project ID:</b> ${data.project_id}</p>
-                                 <p><b>API Key:</b> ${data.api_key} (Farawa da sd)</p>
-                                 <p class='text-xs text-indigo-300 mt-2'>Base URL: https://sirdique-storage.onrender.com</p>`;
+                alert('An kirkira project da account dinka da nasara 100%!');
+                switchView('login');
             } else {
                 alert(data.error);
             }
         }
 
-        async function fetchMyProjects() {
-            const email = document.getElementById('searchEmail').value;
-            if(!email) return alert('Sanya email!');
-            const res = await fetch('/api/projects/list', {
+        async function userLogin() {
+            const email = document.getElementById('logEmail').value;
+            const password = document.getElementById('logPassword').value;
+            if(!email || !password) return alert('Sanya email da password!');
+
+            const res = await fetch('/api/projects/login', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ email })
+                body: JSON.stringify({ email, password })
             });
             const data = await res.json();
-            const listDiv = document.getElementById('projectsList');
-            listDiv.innerHTML = '';
-            if(data.success && data.projects.length > 0) {
+            if(data.success) {
+                const container = document.getElementById('userProjectsContainer');
+                container.innerHTML = '';
                 data.projects.forEach(p => {
-                    listDiv.innerHTML += `
-                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2 text-xs">
-                            <p class="font-bold text-indigo-400 text-sm">${p.name}</p>
+                    container.innerHTML += `
+                        <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-3 text-xs">
+                            <h3 class="text-indigo-400 font-bold text-base">${p.name}</h3>
                             <p><b>Project ID:</b> ${p.project_id}</p>
                             <p><b>API Key:</b> ${p.api_key}</p>
                             <p><b>Base URL:</b> https://sirdique-storage.onrender.com</p>
                             <p class="text-slate-400">Limit: 800MB | Used: ${Math.round(p.used_storage / 1024)} KB</p>
                         </div>`;
                 });
+                switchView('user-dashboard');
             } else {
-                listDiv.innerHTML = '<p class="text-red-400 text-xs">Babu wani project da aka samu da wannan email din.</p>';
+                alert(data.error);
             }
         }
 
