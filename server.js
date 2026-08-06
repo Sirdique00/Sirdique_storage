@@ -1,5 +1,5 @@
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
+const sqlite3 = sqlite3 = require('sqlite3').verbose();
 const multer = require('multer');
 const sharp = require('sharp');
 const path = require('path');
@@ -24,7 +24,8 @@ db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS hub_users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         email TEXT UNIQUE,
-        password TEXT
+        password TEXT,
+        reset_code TEXT
     )`);
 
     db.run(`CREATE TABLE IF NOT EXISTS projects (
@@ -61,7 +62,7 @@ db.serialize(() => {
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Hub User Authentication
+// Hub User Authentication & Forgot Password
 app.post('/api/hub/signup', (req, res) => {
     const { email, password } = req.body;
     db.run(`INSERT INTO hub_users (email, password) VALUES (?, ?)`, [email, password], function(err) {
@@ -75,6 +76,33 @@ app.post('/api/hub/login', (req, res) => {
     db.get(`SELECT * FROM hub_users WHERE email = ? AND password = ?`, [email, password], (err, user) => {
         if (!user) return res.status(400).json({ error: 'Email ko password ba daidai ba ne.' });
         res.json({ success: true, email: user.email });
+    });
+});
+
+// Forgot Password - Generate & Save Reset Code
+app.post('/api/hub/forgot-password', (req, res) => {
+    const { email } = req.body;
+    db.get(`SELECT * FROM hub_users WHERE email = ?`, [email], (err, user) => {
+        if (!user) return res.status(400).json({ error: 'Wannan email din babu shi a tsarin mu.' });
+        
+        const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+        db.run(`UPDATE hub_users SET reset_code = ? WHERE email = ?`, [resetCode, email], (err) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ success: true, resetCode, message: 'An tura code din sake saita password zuwa email dinka!' });
+        });
+    });
+});
+
+// Reset Password - Save New Password
+app.post('/api/hub/reset-password', (req, res) => {
+    const { email, code, newPassword } = req.body;
+    db.get(`SELECT * FROM hub_users WHERE email = ? AND reset_code = ?`, [email, code], (err, user) => {
+        if (!user) return res.status(400).json({ error: 'Lambar code din da ka saka ba daidai ba ce.' });
+
+        db.run(`UPDATE hub_users SET password = ?, reset_code = NULL WHERE email = ?`, [newPassword, email], (err) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ success: true, message: 'An canza password din ka da nasara! Yanzu zaka iya yin login.' });
+        });
     });
 });
 
@@ -162,7 +190,7 @@ app.get('/api/database/rows/:tableName', verifyApiKey, (req, res) => {
     });
 });
 
-// Bucket Storage API (Hotuna tare da compression da 800MB limit)
+// Bucket Storage API
 app.post('/api/bucket/upload', verifyApiKey, upload.single('file'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ error: 'Babu fayil da aka saka.' });
