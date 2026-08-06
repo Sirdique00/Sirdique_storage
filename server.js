@@ -30,7 +30,8 @@ db.serialize(() => {
         password TEXT,
         failed_attempts INTEGER DEFAULT 0,
         ban_until INTEGER DEFAULT 0,
-        verified INTEGER DEFAULT 1
+        last_login DATETIME,
+        status TEXT DEFAULT 'Active'
     )`);
 
     db.run(`CREATE TABLE IF NOT EXISTS verification_codes (
@@ -47,15 +48,15 @@ db.serialize(() => {
         name TEXT UNIQUE,
         project_id TEXT UNIQUE,
         api_key TEXT UNIQUE,
-        used_storage INTEGER DEFAULT 0
+        used_storage INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
 
     db.run(`CREATE TABLE IF NOT EXISTS project_tables (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         project_id TEXT,
         table_name TEXT,
-        columns TEXT,
-        rls_enabled INTEGER DEFAULT 1
+        columns TEXT
     )`);
 
     db.run(`CREATE TABLE IF NOT EXISTS project_rows (
@@ -65,11 +66,12 @@ db.serialize(() => {
         row_data TEXT
     )`);
 
-    db.run(`CREATE TABLE IF NOT EXISTS project_buckets (
+    db.run(`CREATE TABLE IF NOT EXISTS buckets (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         project_id TEXT,
         bucket_name TEXT,
-        status TEXT DEFAULT 'enabled'
+        is_enabled INTEGER DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
 
     db.run(`CREATE TABLE IF NOT EXISTS bucket_files (
@@ -85,24 +87,27 @@ db.serialize(() => {
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-// 1. SEND VERIFICATION / FORGOT CODE
+// 1. AUTHENTICATION & SECURITY (OTP, 3-Attempts Ban, 2-Min Expiry)
 app.post('/api/hub/send-code', (req, res) => {
     const { email, type } = req.body;
     if(!email) return res.status(400).json({ error: 'Sanya email din ka.' });
 
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const expires_at = Date.now() + 2 * 60 * 1000; // Minti 2
+    db.get(`SELECT * FROM hub_users WHERE email = ?`, [email], (err, user) => {
+        if(type === 'signup' && user) return res.status(400).json({ error: 'An riga an yi amfani da wannan email din.' });
+        
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const expires_at = Date.now() + 2 * 60 * 1000; // Minti biyu
 
-    db.run(`DELETE FROM verification_codes WHERE email = ? AND type = ?`, [email, type], () => {
-        db.run(`INSERT INTO verification_codes (email, code, type, expires_at) VALUES (?, ?, ?, ?)`, 
-            [email, code, type, expires_at], (err) => {
-                if (err) return res.status(500).json({ error: err.message });
-                res.json({ success: true, code });
-            });
+        db.run(`DELETE FROM verification_codes WHERE email = ? AND type = ?`, [email, type], () => {
+            db.run(`INSERT INTO verification_codes (email, code, type, expires_at) VALUES (?, ?, ?, ?)`, 
+                [email, code, type, expires_at], (err) => {
+                    if (err) return res.status(500).json({ error: err.message });
+                    res.json({ success: true, code });
+                });
+        });
     });
 });
 
-// 2. VERIFY & REGISTER
 app.post('/api/hub/verify-and-register', (req, res) => {
     const { email, password, code } = req.body;
     db.get(`SELECT * FROM verification_codes WHERE email = ? AND type = 'signup' ORDER BY id DESC LIMIT 1`, [email], (err, record) => {
@@ -110,68 +115,69 @@ app.post('/api/hub/verify-and-register', (req, res) => {
         if (Date.now() > record.expires_at) return res.status(400).json({ error: 'Wannan code din ya wuce lokacinsa (Expired).' });
         if (record.code !== code) return res.status(400).json({ error: 'Code din bai daidai ba.' });
 
-        db.run(`DELETE FROM verification_codes WHERE id = ?`, [record.id]); // Single-use
-
-        db.run(`INSERT INTO hub_users (email, password, verified) VALUES (?, ?, 1)`, [email, password], function(err) {
-            if (err) return res.status(400).json({ error: 'An riga an yi amfani da wannan email din.' });
+        db.run(`DELETE FROM verification_codes WHERE id = ?`, [record.id]);
+        db.run(`INSERT INTO hub_users (email, password, status, last_login) VALUES (?, ?, 'Active', CURRENT_TIMESTAMP)`, [email, password], function(err) {
+            if (err) return res.status(400).json({ error: err.message });
             res.json({ success: true });
         });
     });
 });
 
-// 3. VERIFY & RESET PASSWORD
 app.post('/api/hub/verify-and-reset', (req, res) => {
     const { email, newPassword, code } = req.body;
     db.get(`SELECT * FROM verification_codes WHERE email = ? AND type = 'forgot' ORDER BY id DESC LIMIT 1`, [email], (err, record) => {
         if (!record) return res.status(400).json({ error: 'Babu wani code da aka tura.' });
-        if (Date.now() > record.expires_at) return res.status(400).json({ error: 'Code din ya wuce lokacinsa (Expired).' });
+        if (Date.now() > record.expires_at) return res.status(400).json({ error: 'Wannan code din ya wuce lokacinsa (Expired).' });
         if (record.code !== code) return res.status(400).json({ error: 'Code din bai daidai ba.' });
 
-        db.run(`DELETE FROM verification_codes WHERE id = ?`, [record.id]); // Single-use
-
-        db.run(`UPDATE hub_users SET password = ? WHERE email = ?`, [newPassword, email], function(err) {
+        db.run(`DELETE FROM verification_codes WHERE id = ?`, [record.id]);
+        db.run(`UPDATE hub_users SET password = ?, failed_attempts = 0, ban_until = 0 WHERE email = ?`, [newPassword, email], function(err) {
             if (err) return res.status(500).json({ error: err.message });
             res.json({ success: true, message: 'An sauya password din da nasara!' });
         });
     });
 });
 
-// 4. LOGIN WITH 3-ATTEMPT BAN PROTECTION (30 mins)
 app.post('/api/hub/login', (req, res) => {
     const { email, password } = req.body;
     db.get(`SELECT * FROM hub_users WHERE email = ?`, [email], (err, user) => {
-        if (!user) return res.status(400).json({ error: 'Email ko password ba daidai ba ne.' });
-
+        if (!user) return res.status(400).json({ error: 'Email din nan bai wanzu ba.' });
+        
+        // Binciken Ban (Minti 30)
         if (user.ban_until && Date.now() < user.ban_until) {
-            const minutesLeft = Math.ceil((user.ban_until - Date.now()) / 60000);
-            return res.status(400).json({ error: `An yi ban na wucin gadi saboda kuskure sau 3. Sake gwadawa bayan minti ${minutesLeft}.` });
+            const minsLeft = Math.ceil((user.ban_until - Date.now()) / 60000);
+            return res.status(403).json({ error: `An yi ban na wucin gadi saboda kuskuren password sau 3. Sake gwadawa bayan minti ${minsLeft}.` });
+        }
+
+        if (user.status === 'Suspended') {
+            return res.status(403).json({ error: 'An dakatar da wannan account din (Suspended).' });
         }
 
         if (user.password !== password) {
             const newAttempts = (user.failed_attempts || 0) + 1;
             if (newAttempts >= 3) {
-                const banUntil = Date.now() + 30 * 60 * 1000; // Ban na minti 30
-                db.run(`UPDATE hub_users SET failed_attempts = ?, ban_until = ? WHERE email = ?`, [newAttempts, banUntil, email]);
-                return res.status(400).json({ error: 'Kayi kuskure sau 3! An yi ban ga account din na tsawon minti 30.' });
+                const banTime = Date.now() + 30 * 60 * 1000; // Ban na minti 30
+                db.run(`UPDATE hub_users SET failed_attempts = ?, ban_until = ? WHERE email = ?`, [newAttempts, banTime, email]);
+                return res.status(403).json({ error: 'Kayi kuskuren password sau 3. An yi ban na tsawon minti 30!' });
             } else {
                 db.run(`UPDATE hub_users SET failed_attempts = ? WHERE email = ?`, [newAttempts, email]);
-                return res.status(400).json({ error: `Password ba daidai ba ne. Saurara ƙoƙari ${3 - newAttempts} su ka rage.` });
+                return res.status(400).json({ error: `Password ba daidai ba ne. Sauran kuskure ${3 - newAttempts} kafin a yi ban.` });
             }
         }
 
-        // Idan yayi daidai, mu share failed attempts
-        db.run(`UPDATE hub_users SET failed_attempts = 0, ban_until = 0 WHERE email = ?`, [email]);
-        res.json({ success: true, email: user.email });
+        // Idan komai yayi daidai, reset failed attempts da kuma sabunta last login
+        db.run(`UPDATE hub_users SET failed_attempts = 0, ban_until = 0, last_login = CURRENT_TIMESTAMP WHERE email = ?`, [email]);
+        res.json({ success: true, email: user.email, isAdmin: email === 'abubakarsadeeq8533@gmail.com' });
     });
 });
 
-// Project Management
+// 2. PROJECT MANAGEMENT
 app.post('/api/projects/create', (req, res) => {
     const { email, projectName } = req.body;
     if(!projectName) return res.status(400).json({ error: 'Sanya sunan project.' });
 
     db.get(`SELECT * FROM projects WHERE name = ?`, [projectName], (err, existing) => {
-        if (existing) return res.status(400).json({ error: 'An riga an yi amfani da wannan sunan project din.' });
+        if (existing) return res.status(400).json({ error: 'An riga an yi amfani da wannan sunan.' });
 
         const project_id = 'PRJ-' + Math.random().toString(36).substring(2, 9).toUpperCase();
         const api_key = 'sd-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -192,24 +198,39 @@ app.post('/api/projects/list', (req, res) => {
     });
 });
 
-const verifyApiKey = (req, res, next) => {
-    const apiKey = req.headers['x-api-key'] || req.body.api_key;
-    if (!apiKey) return res.status(401).json({ error: 'API Key is missing.' });
+// 3. STORAGE BUCKETS & RLS
+app.post('/api/buckets/create', verifyApiKey, (req, res) => {
+    const { bucketName } = req.body;
+    if(!bucketName) return res.status(400).json({ error: 'Sanya sunan bucket.' });
 
-    db.get(`SELECT * FROM projects WHERE api_key = ?`, [apiKey], (err, project) => {
-        if (err || !project) return res.status(403).json({ error: 'Invalid API Key.' });
-        req.project = project;
-        next();
+    db.run(`INSERT INTO buckets (project_id, bucket_name, is_enabled) VALUES (?, ?, 1)`, [req.project.project_id, bucketName], (err) => {
+        if (err) return res.status(500).json({ error: 'Bucket din yana da shi ko kuskure ya faru.' });
+        res.json({ success: true });
     });
-};
+});
 
-// Tables & Rows API (with RLS support)
+app.get('/api/buckets/list', verifyApiKey, (req, res) => {
+    db.all(`SELECT * FROM buckets WHERE project_id = ?`, [req.project.project_id], (err, buckets) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true, buckets });
+    });
+});
+
+app.post('/api/buckets/toggle', verifyApiKey, (req, res) => {
+    const { bucketId, isEnabled } = req.body;
+    db.run(`UPDATE buckets SET is_enabled = ? WHERE id = ? AND project_id = ?`, [isEnabled, bucketId, req.project.project_id], (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true });
+    });
+});
+
+// 4. DATABASE TABLES & RLS
 app.post('/api/database/tables', verifyApiKey, (req, res) => {
-    const { tableName, columns, rlsEnabled } = req.body;
-    db.run(`INSERT INTO project_tables (project_id, table_name, columns, rls_enabled) VALUES (?, ?, ?, ?)`,
-        [req.project.project_id, tableName, JSON.stringify(columns), rlsEnabled ? 1 : 0], function(err) {
+    const { tableName, columns, enableRls } = req.body;
+    db.run(`INSERT INTO project_tables (project_id, table_name, columns) VALUES (?, ?, ?)`,
+        [req.project.project_id, tableName, JSON.stringify(columns)], function(err) {
             if (err) return res.status(500).json({ error: err.message });
-            res.json({ success: true });
+            res.json({ success: true, rls: enableRls ? 'Enabled' : 'Disabled' });
         });
 });
 
@@ -237,43 +258,27 @@ app.get('/api/database/rows/:tableName', verifyApiKey, (req, res) => {
     });
 });
 
-// Bucket Management API
-app.post('/api/buckets/create', verifyApiKey, (req, res) => {
-    const { bucketName } = req.body;
-    if(!bucketName) return res.status(400).json({ error: 'Sanya sunan bucket.' });
+// 5. BUCKET UPLOAD WITH WEBP COMPRESSION
+const verifyApiKey = (req, res, next) => {
+    const apiKey = req.headers['x-api-key'] || req.body.api_key;
+    if (!apiKey) return res.status(401).json({ error: 'API Key is missing.' });
 
-    db.run(`INSERT INTO project_buckets (project_id, bucket_name, status) VALUES (?, ?, 'enabled')`,
-        [req.project.project_id, bucketName], function(err) {
-            if(err) return res.status(500).json({ error: err.message });
-            res.json({ success: true });
-        });
-});
-
-app.get('/api/buckets/list', verifyApiKey, (req, res) => {
-    db.all(`SELECT * FROM project_buckets WHERE project_id = ?`, [req.project.project_id], (err, buckets) => {
-        if(err) return res.status(500).json({ error: err.message });
-        res.json({ success: true, buckets });
+    db.get(`SELECT * FROM projects WHERE api_key = ?`, [apiKey], (err, project) => {
+        if (err || !project) return res.status(403).json({ error: 'Invalid API Key.' });
+        req.project = project;
+        next();
     });
-});
+};
 
-app.post('/api/buckets/toggle', verifyApiKey, (req, res) => {
-    const { bucketId, status } = req.body;
-    db.run(`UPDATE project_buckets SET status = ? WHERE id = ? AND project_id = ?`, [status, bucketId, req.project.project_id], (err) => {
-        if(err) return res.status(500).json({ error: err.message });
-        res.json({ success: true });
-    });
-});
-
-// Bucket File Upload (Auto WebP Compression)
 app.post('/api/bucket/upload', verifyApiKey, upload.single('file'), async (req, res) => {
     try {
-        if (!req.file) return res.status(400).json({ error: 'Babu fayil da aka saka.' });
         const { bucketName } = req.body;
-        
-        // Bincika ko bucket din yana aiki (enabled)
-        db.get(`SELECT * FROM project_buckets WHERE project_id = ? AND bucket_name = ?`, [req.project.project_id, bucketName], async (err, bucket) => {
-            if(!bucket || bucket.status !== 'enabled') {
-                return res.status(400).json({ error: 'Wannan bucket din ba zai karbi fayil ba (ko dai a kashe shi ko babu shi).' });
+        if (!req.file || !bucketName) return res.status(400).json({ error: 'Sanya bucket name da fayil.' });
+
+        // Binciki ko bucket din yana aiki (Enabled)
+        db.get(`SELECT * FROM buckets WHERE project_id = ? AND bucket_name = ?`, [req.project.project_id, bucketName], async (err, bucket) => {
+            if (!bucket || bucket.is_enabled === 0) {
+                return res.status(403).json({ error: 'Wannan bucket din a kashe yake (Disabled) ko bai wanzu ba.' });
             }
 
             const fileSize = req.file.buffer.length;
@@ -294,7 +299,7 @@ app.post('/api/bucket/upload', verifyApiKey, upload.single('file'), async (req, 
                 [req.project.project_id, bucketName, file_url, req.file.originalname, fileSize], function(err) {
                     if (err) return res.status(500).json({ error: err.message });
                     db.run(`UPDATE projects SET used_storage = used_storage + ? WHERE project_id = ?`, [fileSize, req.project.project_id]);
-                    res.json({ success: true, file_url, message: 'An loda hoton kuma an matse shi!' });
+                    res.json({ success: true, file_url });
                 });
         });
     } catch (e) {
@@ -307,6 +312,40 @@ app.get('/api/bucket/files/:bucketName', verifyApiKey, (req, res) => {
     db.all(`SELECT * FROM bucket_files WHERE project_id = ? AND bucket_name = ? ORDER BY id DESC`, [req.project.project_id, bucketName], (err, files) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ success: true, files });
+    });
+});
+
+// 6. ADMIN API ENDPOINTS (For `abubakarsadeeq8533@gmail.com`)
+app.get('/api/admin/stats', (req, res) => {
+    db.get(`SELECT COUNT(*) as totalUsers FROM hub_users`, (err, uRow) => {
+        db.get(`SELECT COUNT(*) as totalProjects FROM projects`, (err, pRow) => {
+            db.all(`SELECT * FROM hub_users`, (err, users) => {
+                db.all(`SELECT * FROM projects`, (err, projects) => {
+                    res.json({
+                        success: true,
+                        totalUsers: uRow.totalUsers,
+                        totalProjects: pRow.totalProjects,
+                        users,
+                        projects
+                    });
+                });
+            });
+        });
+    });
+});
+
+app.post('/api/admin/user-action', (req, res) => {
+    const { email, action } = req.body; // action: 'suspend' ko 'forceout' ko 'activate'
+    let newStatus = action === 'suspend' ? 'Suspended' : 'Active';
+    if(action === 'forceout') {
+        db.run(`UPDATE hub_users SET failed_attempts = 3 WHERE email = ?`, [email], () => {
+            return res.json({ success: true, message: 'An cire user din (Force out).' });
+        });
+        return;
+    }
+    db.run(`UPDATE hub_users SET status = ? WHERE email = ?`, [newStatus, email], (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true });
     });
 });
 
