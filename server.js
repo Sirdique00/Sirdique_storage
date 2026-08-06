@@ -27,7 +27,18 @@ db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS hub_users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         email TEXT UNIQUE,
-        password TEXT
+        password TEXT,
+        verified INTEGER DEFAULT 1,
+        failed_attempts INTEGER DEFAULT 0,
+        banned_until INTEGER DEFAULT 0
+    )`);
+
+    db.run(`CREATE TABLE IF NOT EXISTS verification_codes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT,
+        code TEXT,
+        type TEXT,
+        expires_at INTEGER
     )`);
 
     db.run(`CREATE TABLE IF NOT EXISTS projects (
@@ -36,7 +47,16 @@ db.serialize(() => {
         name TEXT UNIQUE,
         project_id TEXT UNIQUE,
         api_key TEXT UNIQUE,
-        used_storage INTEGER DEFAULT 0
+        used_storage INTEGER DEFAULT 0,
+        rls_enabled INTEGER DEFAULT 1
+    )`);
+
+    db.run(`CREATE TABLE IF NOT EXISTS project_buckets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        project_id TEXT,
+        bucket_name TEXT,
+        is_enabled INTEGER DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
 
     db.run(`CREATE TABLE IF NOT EXISTS project_tables (
@@ -56,6 +76,7 @@ db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS bucket_files (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         project_id TEXT,
+        bucket_name TEXT,
         file_url TEXT,
         file_name TEXT,
         file_size INTEGER DEFAULT 0,
@@ -65,37 +86,86 @@ db.serialize(() => {
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Hub User Authentication
-app.post('/api/hub/signup', (req, res) => {
-    const { email, password } = req.body;
-    if(!email || !password) return res.status(400).json({ error: 'Cika duk wuraren da ake bukata.' });
-    
-    db.run(`INSERT INTO hub_users (email, password) VALUES (?, ?)`, [email, password], function(err) {
-        if (err) return res.status(400).json({ error: 'An riga an yi amfani da wannan email din.' });
-        res.json({ success: true });
+// 1. SEND OTP CODE (Signup / Forgot)
+app.post('/api/hub/send-code', (req, res) => {
+    const { email, type } = req.body;
+    if(!email) return res.status(400).json({ error: 'Sanya email din ka.' });
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expires_at = Date.now() + 2 * 60 * 1000; // Minti biyu (120 seconds)
+
+    db.run(`DELETE FROM verification_codes WHERE email = ? AND type = ?`, [email, type], (err) => {
+        db.run(`INSERT INTO verification_codes (email, code, type, expires_at) VALUES (?, ?, ?, ?)`, 
+            [email, code, type, expires_at], (err) => {
+                if (err) return res.status(500).json({ error: err.message });
+                res.json({ success: true, code });
+            });
     });
 });
 
-app.post('/api/hub/login', (req, res) => {
-    const { email, password } = req.body;
-    db.get(`SELECT * FROM hub_users WHERE email = ? AND password = ?`, [email, password], (err, user) => {
-        if (!user) return res.status(400).json({ error: 'Email ko password ba daidai ba ne.' });
-        res.json({ success: true, email: user.email });
+// 2. VERIFY & REGISTER
+app.post('/api/hub/verify-and-register', (req, res) => {
+    const { email, password, code } = req.body;
+    db.get(`SELECT * FROM verification_codes WHERE email = ? AND type = 'signup' ORDER BY id DESC LIMIT 1`, [email], (err, record) => {
+        if (!record) return res.status(400).json({ error: 'Babu wani code da aka tura zuwa wannan email din.' });
+        if (Date.now() > record.expires_at) return res.status(400).json({ error: 'Wannan code din ya wuce lokacinsa (Expired).' });
+        if (record.code !== code) return res.status(400).json({ error: 'Wannan code din bai daidai ba.' });
+
+        db.run(`DELETE FROM verification_codes WHERE id = ?`, [record.id]);
+
+        db.run(`INSERT INTO hub_users (email, password, verified) VALUES (?, ?, 1)`, [email, password], function(err) {
+            if (err) return res.status(400).json({ error: 'An riga an yi amfani da wannan email din.' });
+            res.json({ success: true });
+        });
     });
 });
 
-app.post('/api/hub/forgot-password', (req, res) => {
-    const { email, newPassword } = req.body;
-    db.get(`SELECT * FROM hub_users WHERE email = ?`, [email], (err, user) => {
-        if (!user) return res.status(404).json({ error: 'Ba a samu wannan email din ba.' });
-        db.run(`UPDATE hub_users SET password = ? WHERE email = ?`, [newPassword, email], function(err) {
+// 3. VERIFY & RESET PASSWORD
+app.post('/api/hub/verify-and-reset', (req, res) => {
+    const { email, newPassword, code } = req.body;
+    db.get(`SELECT * FROM verification_codes WHERE email = ? AND type = 'forgot' ORDER BY id DESC LIMIT 1`, [email], (err, record) => {
+        if (!record) return res.status(400).json({ error: 'Babu wani code da aka tura.' });
+        if (Date.now() > record.expires_at) return res.status(400).json({ error: 'Wannan code din ya wuce lokacinsa (Expired).' });
+        if (record.code !== code) return res.status(400).json({ error: 'Code din da aka saka bai daidai ba.' });
+
+        db.run(`DELETE FROM verification_codes WHERE id = ?`, [record.id]);
+
+        db.run(`UPDATE hub_users SET password = ?, failed_attempts = 0, banned_until = 0 WHERE email = ?`, [newPassword, email], function(err) {
             if (err) return res.status(500).json({ error: err.message });
             res.json({ success: true, message: 'An sauya password din da nasara!' });
         });
     });
 });
 
-// Project Management (Babu Limit - Unlimited Projects)
+// 4. LOGIN WITH 3 ATTEMPTS LOCKOUT (30 MINTI BAN)
+app.post('/api/hub/login', (req, res) => {
+    const { email, password } = req.body;
+    db.get(`SELECT * FROM hub_users WHERE email = ?`, [email], (err, user) => {
+        if (!user) return res.status(400).json({ error: 'Email ko password ba daidai ba ne.' });
+
+        if (user.banned_until && user.banned_until > Date.now()) {
+            const mins = Math.ceil((user.banned_until - Date.now()) / 60000);
+            return res.status(403).json({ error: `Account dinka yana karkashin kariya. An kulle shi saboda kuskuren password sau uku. Jira na tsawon minti ${mins}.` });
+        }
+
+        if (user.password !== password) {
+            const failed = (user.failed_attempts || 0) + 1;
+            if (failed >= 3) {
+                const banTime = Date.now() + 30 * 60 * 1000; // 30 Minti
+                db.run(`UPDATE hub_users SET failed_attempts = ?, banned_until = ? WHERE email = ?`, [failed, banTime, email]);
+                return res.status(403).json({ error: 'Kayi kuskuren password sau uku! An kulle account din na tsawon minti 30.' });
+            } else {
+                db.run(`UPDATE hub_users SET failed_attempts = ? WHERE email = ?`, [failed, email]);
+                return res.status(400).json({ error: `Password ba daidai ba ne. Saurara kokari ${3 - failed} kafin a kulle account din.` });
+            }
+        } else {
+            db.run(`UPDATE hub_users SET failed_attempts = 0, banned_until = 0 WHERE email = ?`, [email]);
+            res.json({ success: true, email: user.email });
+        }
+    });
+});
+
+// PROJECT MANAGEMENT
 app.post('/api/projects/create', (req, res) => {
     const { email, projectName } = req.body;
     if(!projectName) return res.status(400).json({ error: 'Sanya sunan project.' });
@@ -109,6 +179,8 @@ app.post('/api/projects/create', (req, res) => {
         db.run(`INSERT INTO projects (owner_email, name, project_id, api_key) VALUES (?, ?, ?, ?)`,
             [email, projectName, project_id, api_key], function(err) {
                 if (err) return res.status(500).json({ error: err.message });
+                // Create a default bucket
+                db.run(`INSERT INTO project_buckets (project_id, bucket_name) VALUES (?, ?)`, [project_id, 'default-bucket']);
                 res.json({ success: true, name: projectName, project_id, api_key });
             });
     });
@@ -122,9 +194,9 @@ app.post('/api/projects/list', (req, res) => {
     });
 });
 
-app.post('/api/projects/update', (req, res) => {
-    const { project_id, newName } = req.body;
-    db.run(`UPDATE projects SET name = ? WHERE project_id = ?`, [newName, project_id], function(err) {
+app.post('/api/projects/toggle-rls', (req, res) => {
+    const { project_id, rls_enabled } = req.body;
+    db.run(`UPDATE projects SET rls_enabled = ? WHERE project_id = ?`, [rls_enabled, project_id], function(err) {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ success: true });
     });
@@ -141,7 +213,29 @@ const verifyApiKey = (req, res, next) => {
     });
 };
 
-// Tables & Rows API
+// BUCKETS MANAGEMENT API
+app.post('/api/buckets/create', verifyApiKey, (req, res) => {
+    const { bucketName } = req.body;
+    if(!bucketName) return res.status(400).json({ error: 'Sanya sunan bucket.' });
+
+    db.get(`SELECT * FROM project_buckets WHERE project_id = ? AND bucket_name = ?`, [req.project.project_id, bucketName], (err, existing) => {
+        if(existing) return res.status(400).json({ error: 'Wannan bucket din yana da shi riga.' });
+
+        db.run(`INSERT INTO project_buckets (project_id, bucket_name) VALUES (?, ?)`, [req.project.project_id, bucketName], function(err) {
+            if(err) return res.status(500).json({ error: err.message });
+            res.json({ success: true });
+        });
+    });
+});
+
+app.get('/api/buckets/list', verifyApiKey, (req, res) => {
+    db.all(`SELECT * FROM project_buckets WHERE project_id = ?`, [req.project.project_id], (err, buckets) => {
+        if(err) return res.status(500).json({ error: err.message });
+        res.json({ success: true, buckets });
+    });
+});
+
+// TABLES & ROWS API
 app.post('/api/database/tables', verifyApiKey, (req, res) => {
     const { tableName, columns } = req.body;
     db.run(`INSERT INTO project_tables (project_id, table_name, columns) VALUES (?, ?, ?)`,
@@ -175,10 +269,11 @@ app.get('/api/database/rows/:tableName', verifyApiKey, (req, res) => {
     });
 });
 
-// Bucket Storage API
+// BUCKET UPLOAD API (Optimized Compression)
 app.post('/api/bucket/upload', verifyApiKey, upload.single('file'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ error: 'Babu fayil da aka saka.' });
+        const bucketName = req.body.bucketName || 'default-bucket';
         const fileSize = req.file.buffer.length;
 
         if (req.project.used_storage + fileSize > 800 * 1024 * 1024) {
@@ -194,8 +289,8 @@ app.post('/api/bucket/upload', verifyApiKey, upload.single('file'), async (req, 
             .toFile(filepath);
 
         const file_url = `/uploads/${filename}`;
-        db.run(`INSERT INTO bucket_files (project_id, file_url, file_name, file_size) VALUES (?, ?, ?, ?)`,
-            [req.project.project_id, file_url, req.file.originalname, fileSize], function(err) {
+        db.run(`INSERT INTO bucket_files (project_id, bucket_name, file_url, file_name, file_size) VALUES (?, ?, ?, ?, ?)`,
+            [req.project.project_id, bucketName, file_url, req.file.originalname, fileSize], function(err) {
                 if (err) return res.status(500).json({ error: err.message });
                 db.run(`UPDATE projects SET used_storage = used_storage + ? WHERE project_id = ?`, [fileSize, req.project.project_id]);
                 res.json({ success: true, file_url, filename });
@@ -205,8 +300,9 @@ app.post('/api/bucket/upload', verifyApiKey, upload.single('file'), async (req, 
     }
 });
 
-app.get('/api/bucket/files', verifyApiKey, (req, res) => {
-    db.all(`SELECT * FROM bucket_files WHERE project_id = ? ORDER BY id DESC`, [req.project.project_id], (err, files) => {
+app.get('/api/bucket/files/:bucketName', verifyApiKey, (req, res) => {
+    const { bucketName } = req.params;
+    db.all(`SELECT * FROM bucket_files WHERE project_id = ? AND bucket_name = ? ORDER BY id DESC`, [req.project.project_id, bucketName], (err, files) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ success: true, files });
     });
@@ -240,6 +336,7 @@ app.get('/api/v1/data/:tableName', verifyApiKey, (req, res) => {
 app.post('/api/v1/storage/upload', verifyApiKey, upload.single('file'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ error: 'Babu fayil din hoto.' });
+        const bucketName = req.body.bucketName || 'default-bucket';
         const fileSize = req.file.buffer.length;
 
         if (req.project.used_storage + fileSize > 800 * 1024 * 1024) {
@@ -256,8 +353,8 @@ app.post('/api/v1/storage/upload', verifyApiKey, upload.single('file'), async (r
 
         const file_url = `${req.protocol}://${req.get('host')}/uploads/${filename}`;
         
-        db.run(`INSERT INTO bucket_files (project_id, file_url, file_name, file_size) VALUES (?, ?, ?, ?)`,
-            [req.project.project_id, file_url, req.file.originalname, fileSize], function(err) {
+        db.run(`INSERT INTO bucket_files (project_id, bucket_name, file_url, file_name, file_size) VALUES (?, ?, ?, ?, ?)`,
+            [req.project.project_id, bucketName, file_url, req.file.originalname, fileSize], function(err) {
                 if (err) return res.status(500).json({ error: err.message });
                 db.run(`UPDATE projects SET used_storage = used_storage + ? WHERE project_id = ?`, [fileSize, req.project.project_id]);
                 res.json({ success: true, file_url, message: 'An loda kuma an matse hoton cikin nasara!' });
