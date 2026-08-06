@@ -65,7 +65,7 @@ db.serialize(() => {
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Hub User Authentication & Forgot Password
+// Hub User Authentication
 app.post('/api/hub/signup', (req, res) => {
     const { email, password } = req.body;
     if(!email || !password) return res.status(400).json({ error: 'Cika duk wuraren da ake bukata.' });
@@ -95,25 +95,22 @@ app.post('/api/hub/forgot-password', (req, res) => {
     });
 });
 
-// Project Management
+// Project Management (Babu Limit - Unlimited Projects)
 app.post('/api/projects/create', (req, res) => {
     const { email, projectName } = req.body;
-    db.get(`SELECT COUNT(*) as count FROM projects WHERE owner_email = ?`, [email], (err, row) => {
-        if (row && row.count >= 5) {
-            return res.status(400).json({ error: 'Kun raggi iyakan project guda biyar (5).' });
-        }
-        db.get(`SELECT * FROM projects WHERE name = ?`, [projectName], (err, existing) => {
-            if (existing) return res.status(400).json({ error: 'An riga an yi amfani da wannan sunan project din.' });
+    if(!projectName) return res.status(400).json({ error: 'Sanya sunan project.' });
 
-            const project_id = 'PRJ-' + Math.random().toString(36).substring(2, 9).toUpperCase();
-            const api_key = 'sd-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    db.get(`SELECT * FROM projects WHERE name = ?`, [projectName], (err, existing) => {
+        if (existing) return res.status(400).json({ error: 'An riga an yi amfani da wannan sunan project din.' });
 
-            db.run(`INSERT INTO projects (owner_email, name, project_id, api_key) VALUES (?, ?, ?, ?)`,
-                [email, projectName, project_id, api_key], function(err) {
-                    if (err) return res.status(500).json({ error: err.message });
-                    res.json({ success: true, name: projectName, project_id, api_key });
-                });
-        });
+        const project_id = 'PRJ-' + Math.random().toString(36).substring(2, 9).toUpperCase();
+        const api_key = 'sd-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+        db.run(`INSERT INTO projects (owner_email, name, project_id, api_key) VALUES (?, ?, ?, ?)`,
+            [email, projectName, project_id, api_key], function(err) {
+                if (err) return res.status(500).json({ error: err.message });
+                res.json({ success: true, name: projectName, project_id, api_key });
+            });
     });
 });
 
@@ -133,7 +130,6 @@ app.post('/api/projects/update', (req, res) => {
     });
 });
 
-// Middleware for API Key verification
 const verifyApiKey = (req, res, next) => {
     const apiKey = req.headers['x-api-key'] || req.body.api_key;
     if (!apiKey) return res.status(401).json({ error: 'API Key is missing.' });
@@ -216,9 +212,7 @@ app.get('/api/bucket/files', verifyApiKey, (req, res) => {
     });
 });
 
-// ==========================================
-// PUBLIC SDK ENDPOINTS (For external apps & watches vault)
-// ==========================================
+// PUBLIC SDK ENDPOINTS
 app.post('/api/v1/data/insert', verifyApiKey, (req, res) => {
     const { tableName, rowData } = req.body;
     if (!tableName || !rowData) return res.status(400).json({ error: 'TableName da rowData ana bukatarsu.' });
