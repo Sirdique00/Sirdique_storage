@@ -24,6 +24,7 @@ db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS projects (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         owner_email TEXT,
+        password TEXT,
         name TEXT UNIQUE,
         project_id TEXT UNIQUE,
         api_key TEXT UNIQUE,
@@ -60,36 +61,52 @@ app.post('/api/admin/login', (req, res) => {
     res.json({ success: true, message: 'Welcome to Admin Dashboard' });
 });
 
-// Check Project Limit per Email (Max 2 projects) & Unique Name Validation
+// Validate project limit (Max 2 projects per email) & unique name
 app.post('/api/projects/validate-limit', (req, res) => {
     const { email, projectName } = req.body;
     
     db.get(`SELECT COUNT(*) as count FROM projects WHERE owner_email = ?`, [email], (err, row) => {
         if (row && row.count >= 2) {
-            return res.status(400).json({ error: 'An riga an kirkiri project biyu (2) da wannan email din. Ba za a iya wuce haka ba.' });
+            return res.status(400).json({ error: 'An riga an kirkiri project biyu (2) da wannan email din.' });
         }
 
         db.get(`SELECT * FROM projects WHERE name = ?`, [projectName], (err, existing) => {
             if (existing) {
-                return res.status(400).json({ error: 'An riga an yi amfani da wannan sunan a wani project din. Da fatan a zabi wani.' });
+                return res.status(400).json({ error: 'An riga an yi amfani da wannan sunan a wani project din.' });
             }
             res.json({ success: true });
         });
     });
 });
 
-// Create Project Finally
+// Create Project with Account Password
 app.post('/api/projects/create', (req, res) => {
-    const { email, projectName } = req.body;
+    const { email, password, projectName } = req.body;
     
     const project_id = 'PRJ-' + Math.random().toString(36).substring(2, 9).toUpperCase();
     const api_key = 'sd-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
-    db.run(`INSERT INTO projects (owner_email, name, project_id, api_key) VALUES (?, ?, ?, ?)`,
-        [email, projectName, project_id, api_key], function(err) {
+    db.run(`INSERT INTO projects (owner_email, password, name, project_id, api_key) VALUES (?, ?, ?, ?, ?)`,
+        [email, password, projectName, project_id, api_key], function(err) {
             if (err) return res.status(500).json({ error: err.message });
             res.json({ success: true, project_id, api_key, name: projectName });
         });
+});
+
+// Project Dashboard Login (Email & Password) with Brute Force Protection
+app.post('/api/projects/login', (req, res) => {
+    const { email, password } = req.body;
+    db.all(`SELECT * FROM projects WHERE owner_email = ?`, [email], (err, projects) => {
+        if (!projects || projects.length === 0) return res.status(400).json({ error: 'Babu wani project da aka samu da wannan email din.' });
+
+        // Check password against the owner's projects
+        const matchedProject = projects.find(p => p.password === password);
+        if (!matchedProject) {
+            return res.status(400).json({ error: 'Password din bai daidai ba!' });
+        }
+
+        res.json({ success: true, projects });
+    });
 });
 
 // Get Projects by Email
@@ -123,7 +140,7 @@ app.post('/api/save', verifyApiKey, upload.single('file'), async (req, res) => {
         if (req.file) {
             fileSize = req.file.buffer.length;
             if (req.project.used_storage + fileSize > 800 * 1024 * 1024) {
-                return res.status(400).json({ error: 'Storage Limit Exceeded! Kowanne project yana da limit na 800MB.' });
+                return res.status(400).json({ error: 'Storage Limit Exceeded! 800MB limit reached.' });
             }
 
             const filename = `img-${Date.now()}.webp`;
@@ -155,77 +172,11 @@ app.get('/api/data', verifyApiKey, (req, res) => {
     });
 });
 
-app.put('/api/data/:id', verifyApiKey, (req, res) => {
-    const { title, content } = req.body;
-    const { id } = req.params;
-    db.run(`UPDATE data_entries SET title = ?, content = ? WHERE id = ? AND project_id = ?`,
-        [title, content, id, req.project.project_id], function(err) {
-            if (err) return res.status(500).json({ error: err.message });
-            res.json({ success: true, updated: this.changes });
-        });
-});
-
 app.delete('/api/data/:id', verifyApiKey, (req, res) => {
     const { id } = req.params;
     db.run(`DELETE FROM data_entries WHERE id = ? AND project_id = ?`, [id, req.project.project_id], function(err) {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ success: true, deleted: this.changes });
-    });
-});
-
-// --- EXTERNAL WEBSITE AUTH & BRUTE FORCE PROTECTION ---
-app.post('/api/auth/signup', verifyApiKey, (req, res) => {
-    const { email, password } = req.body;
-    db.get(`SELECT * FROM app_users WHERE email = ? AND project_id = ?`, [email, req.project.project_id], (err, user) => {
-        if (user) return res.status(400).json({ error: 'Email already registered for this project' });
-
-        db.run(`INSERT INTO app_users (project_id, email, password, is_verified) VALUES (?, ?, ?, 0)`,
-            [req.project.project_id, email, password], function(err) {
-                if (err) return res.status(500).json({ error: err.message });
-                res.json({ success: true, message: 'User registered. Please verify OTP.' });
-            });
-    });
-});
-
-app.post('/api/auth/verify-user', verifyApiKey, (req, res) => {
-    const { email } = req.body;
-    db.run(`UPDATE app_users SET is_verified = 1 WHERE email = ? AND project_id = ?`, [email, req.project.project_id], (err) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ success: true, message: 'Account verified successfully 100%!' });
-    });
-});
-
-app.post('/api/auth/login', verifyApiKey, (req, res) => {
-    const { email, password } = req.body;
-    db.get(`SELECT * FROM app_users WHERE email = ? AND project_id = ?`, [email, req.project.project_id], (err, user) => {
-        if (!user) return res.status(400).json({ error: 'Email not found' });
-
-        const now = new Date();
-        if (user.lock_until && new Date(user.lock_until) > now) {
-            const minutesLeft = Math.ceil((new Date(user.lock_until) - now) / 60000);
-            return res.status(403).json({ error: `Account locked due to multiple failed password attempts. Try again in ${minutesLeft} minutes.` });
-        }
-
-        if (user.password !== password) {
-            let attempts = user.failed_attempts + 1;
-            let lockTime = null;
-
-            if (attempts >= 9) {
-                lockTime = new Date(now.getTime() + 24 * 3600000).toISOString(); // 24 hours
-            } else if (attempts >= 6 || attempts >= 3) {
-                lockTime = new Date(now.getTime() + 5 * 60000).toISOString(); // 5 mins
-            }
-
-            db.run(`UPDATE app_users SET failed_attempts = ?, lock_until = ? WHERE id = ?`, [attempts, lockTime, user.id]);
-            return res.status(400).json({ error: `Incorrect password. Attempt ${attempts}/9. (3 kuskure suna kulle account na minti 5, sannan awa 24)` });
-        }
-
-        if (user.is_verified === 0) {
-            return res.status(401).json({ error: 'Please verify your email first' });
-        }
-
-        db.run(`UPDATE app_users SET failed_attempts = 0, lock_until = NULL WHERE id = ?`, [user.id]);
-        res.json({ success: true, message: 'Login successful', email: user.email });
     });
 });
 
