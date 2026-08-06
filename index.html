@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sirdique Storage Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function() {
+            emailjs.init("cyG3rOixg3oOuJ2eL");
+        })();
+    </script>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
 
@@ -26,18 +33,19 @@
         <div id="tab-home" class="space-y-6">
             <div class="text-center">
                 <h2 class="text-3xl font-bold text-indigo-400">Sirdique Storage System</h2>
-                <p class="text-sm text-slate-400">Kowanne email na da damar kirkirar project biyu (2) kacal. Limit: 800MB.</p>
+                <p class="text-sm text-slate-400">Kowanne email yana da limit na project biyu (2) da 800MB storage kowanne project.</p>
             </div>
 
             <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
                 <h3 class="text-xl font-semibold">Kirkiri Sabon Project</h3>
                 <input type="email" id="regEmail" placeholder="Sanya Email dinka" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl">
-                <button onclick="sendProjectOtp()" class="w-full bg-indigo-600 hover:bg-indigo-700 p-3 rounded-xl font-medium">Aiko da Confirmation Code</button>
+                <input type="text" id="projectNameInput" placeholder="Sunan Project (Baza a maimaita ba)" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl">
+                <button onclick="startProjectCreation()" class="w-full bg-indigo-600 hover:bg-indigo-700 p-3 rounded-xl font-medium">Aiko da Code (EmailJS)</button>
                 
                 <div id="otpSection" class="hidden space-y-3 pt-4 border-t border-slate-800">
-                    <input type="text" id="projectNameInput" placeholder="Sunan Project (Baza a maimaita ba)" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl">
-                    <input type="text" id="otpCode" placeholder="Sanya Code (Expires in 1 min)" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl">
-                    <button onclick="confirmAndCreateProject()" class="w-full bg-green-600 hover:bg-green-700 p-3 rounded-xl font-medium">Tabbata Kuma Kirkira Project</button>
+                    <p class="text-xs text-indigo-300">An tura confirmation code zuwa email dinka! Yana expire bayan minti daya (1 min).</p>
+                    <input type="text" id="otpCodeInput" placeholder="Sanya Code din da aka tura" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl">
+                    <button onclick="verifyAndFinishProject()" class="w-full bg-green-600 hover:bg-green-700 p-3 rounded-xl font-medium">Tabbata Kuma Kammala</button>
                 </div>
                 <div id="projectResult" class="hidden bg-slate-950 p-4 rounded-xl border border-indigo-900 text-xs space-y-2"></div>
             </div>
@@ -57,7 +65,7 @@
         <div id="tab-about" class="hidden space-y-6 bg-slate-900 p-6 rounded-2xl border border-slate-800">
             <h2 class="text-2xl font-bold text-indigo-400">Game da Sirdique Storage</h2>
             <p class="text-slate-300 text-sm leading-relaxed">
-                Wannan tsari ne mai cikakken karfi wanda aka gina shi musamman domin tallafawa masu kirkirar applications da websites. Yana bayar da damar ajiye hotuna da rubututtuka (Storage), tsaron Auth na musamman da OTP mai expire na minti daya, da kuma kare shafuka daga hare-hare da kutse.
+                Wannan tsari ne mai cikakken karfi wanda aka gina shi musamman domin tallafawa masu kirkirar applications da websites. Yana bayar da damar ajiye hotuna da rubututtuka (Storage) tare da EmailJS integration don hanzarin tura sako.
             </p>
             <p class="text-xs text-slate-500">Admin Email: abubakarsadeeq8533@gmail.com</p>
         </div>
@@ -85,7 +93,7 @@
                         <h3 class="text-xl font-bold">Admin Panel - Kwararru</h3>
                         <input type="text" id="adminSearch" placeholder="Search projects..." class="bg-slate-950 border border-slate-800 px-3 py-2 rounded-xl text-sm">
                     </div>
-                    <p class="text-sm text-green-400">Admin ya shiga lafiya ƙalau! Tsarin yana aiki 100%.</p>
+                    <p class="text-sm text-green-400">Admin ya shiga lafiya ƙalau! Komai yana aiki 100%.</p>
                 </section>
             </div>
         </div>
@@ -93,6 +101,10 @@
     </main>
 
     <script>
+        let generatedOtp = '';
+        let pendingEmail = '';
+        let pendingProjectName = '';
+
         function switchTab(tab) {
             ['home', 'my-projects', 'about', 'admin'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.add('hidden');
@@ -100,39 +112,60 @@
             document.getElementById(`tab-${tab}`).classList.remove('hidden');
         }
 
-        async function sendProjectOtp() {
+        async function startProjectCreation() {
             const email = document.getElementById('regEmail').value;
-            if(!email) return alert('Sanya email dinka!');
-            const res = await fetch('/api/project-auth/send-otp', {
+            const projectName = document.getElementById('projectNameInput').value;
+            if(!email || !projectName) return alert('Cika email da sunan project!');
+
+            // Validate limit and name on server
+            const res = await fetch('/api/projects/validate-limit', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ email })
+                body: JSON.stringify({ email, projectName })
             });
             const data = await res.json();
-            if(data.success) {
-                alert(data.message);
-                document.getElementById('otpSection').classList.remove('hidden');
-            } else {
-                alert(data.error);
+            if(!data.success) {
+                return alert(data.error);
             }
+
+            pendingEmail = email;
+            pendingProjectName = projectName;
+            generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+
+            // Send via EmailJS instantly
+            const templateParams = {
+                to_email: email,
+                pass_code: generatedOtp,
+                message: `Lambar tabbatar da project dinka ta Sirdique Storage ita ce: ${generatedOtp}. Wannan lambar za ta mutu bayan minti daya (1 min).\n\nPowered by Sirdique`
+            };
+
+            emailjs.send('service_49wqltg', 'template_dqofkf8', templateParams)
+                .then(function(response) {
+                    alert('An tura confirmation code zuwa email dinka cikin hanzari ta hanyar EmailJS!');
+                    document.getElementById('otpSection').classList.remove('hidden');
+                }, function(error) {
+                    alert('Matsala wajen tura email: ' + JSON.stringify(error));
+                });
         }
 
-        async function confirmAndCreateProject() {
-            const email = document.getElementById('regEmail').value;
-            const code = document.getElementById('otpCode').value;
-            const projectName = document.getElementById('projectNameInput').value;
-            if(!code || !projectName) return alert('Cika duk wuraren da ake bukata!');
+        async function verifyAndFinishProject() {
+            const enteredOtp = document.getElementById('otpCodeInput').value;
+            if(!enteredOtp) return alert('Sanya code din!');
+            if(enteredOtp !== generatedOtp) {
+                return alert('Code din da ka saka bai daidai ba!');
+            }
 
+            // Create project in DB
             const res = await fetch('/api/projects/create', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ email, code, projectName, password: 'nopass' })
+                body: JSON.stringify({ email: pendingEmail, projectName: pendingProjectName })
             });
             const data = await res.json();
             if(data.success) {
                 const box = document.getElementById('projectResult');
                 box.classList.remove('hidden');
-                box.innerHTML = `<p class='text-green-400 font-bold'>An kirkira project da nasara!</p>
+                box.innerHTML = `<p class='text-green-400 font-bold'>An kirkira project da nasara 100%!</p>
                                  <p><b>Project Name:</b> ${data.name}</p>
                                  <p><b>Project ID:</b> ${data.project_id}</p>
                                  <p><b>API Key:</b> ${data.api_key} (Farawa da sd)</p>
