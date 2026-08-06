@@ -2,7 +2,6 @@ const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const multer = require('multer');
 const sharp = require('sharp');
-const nodemailer = require('nodemailer');
 const path = require('path');
 const fs = require('fs');
 
@@ -22,12 +21,6 @@ const db = new sqlite3.Database('./sirdique.db', (err) => {
 });
 
 db.serialize(() => {
-    db.run(`CREATE TABLE IF NOT EXISTS admin_users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        email TEXT UNIQUE,
-        password TEXT
-    )`);
-
     db.run(`CREATE TABLE IF NOT EXISTS projects (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         owner_email TEXT,
@@ -55,29 +48,11 @@ db.serialize(() => {
         failed_attempts INTEGER DEFAULT 0,
         lock_until DATETIME
     )`);
-
-    db.run(`CREATE TABLE IF NOT EXISTS otps (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        email TEXT,
-        code TEXT,
-        expires_at DATETIME,
-        is_used INTEGER DEFAULT 0
-    )`);
-});
-
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: 'abubakarsadeeq8533@gmail.com',
-        pass: 'ka_sanya_gmail_app_password_naka'
-    }
 });
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-// --- ADMIN & AUTH ROUTES ---
-
-// Admin Registration / Login verification
+// --- ADMIN LOGIN ---
 app.post('/api/admin/login', (req, res) => {
     const { email, password, pin } = req.body;
     if (pin !== '676767') return res.status(403).json({ error: 'Invalid Admin PIN' });
@@ -85,70 +60,36 @@ app.post('/api/admin/login', (req, res) => {
     res.json({ success: true, message: 'Welcome to Admin Dashboard' });
 });
 
-// Send OTP for Project Registration (Expires in 1 minute)
-app.post('/api/project-auth/send-otp', (req, res) => {
-    const { email } = req.body;
-    if (!email) return res.status(400).json({ error: 'Email is required' });
-
-    // Check project limit per email (Max 2 projects)
+// Check Project Limit per Email (Max 2 projects) & Unique Name Validation
+app.post('/api/projects/validate-limit', (req, res) => {
+    const { email, projectName } = req.body;
+    
     db.get(`SELECT COUNT(*) as count FROM projects WHERE owner_email = ?`, [email], (err, row) => {
         if (row && row.count >= 2) {
             return res.status(400).json({ error: 'An riga an kirkiri project biyu (2) da wannan email din. Ba za a iya wuce haka ba.' });
         }
 
-        const code = Math.floor(100000 + Math.random() * 900000).toString();
-        const expiresAt = new Date(Date.now() + 1 * 60000).toISOString(); // 1 minute expiry
-
-        db.run(`INSERT INTO otps (email, code, expires_at, is_used) VALUES (?, ?, ?, 0)`, [email, code, expiresAt], () => {
-            transporter.sendMail({
-                from: 'Sirdique Storage <abubakarsadeeq8533@gmail.com>',
-                to: email,
-                subject: 'Sirdique Storage - Project Registration Code',
-                text: `Sannu! Lambar tabbatar da account dinka ta Sirdique Storage ita ce: ${code}\n\nWannan lambar za ta mutu bayan minti daya (1 minute).\n\nPowered by Sirdique`
-            }).catch(console.error);
-
-            res.json({ success: true, message: 'An tura code zuwa email dinka cikin hanzari!' });
+        db.get(`SELECT * FROM projects WHERE name = ?`, [projectName], (err, existing) => {
+            if (existing) {
+                return res.status(400).json({ error: 'An riga an yi amfani da wannan sunan a wani project din. Da fatan a zabi wani.' });
+            }
+            res.json({ success: true });
         });
     });
 });
 
-// Create Project after OTP verification
+// Create Project Finally
 app.post('/api/projects/create', (req, res) => {
-    const { email, code, projectName, password } = req.body;
+    const { email, projectName } = req.body;
+    
+    const project_id = 'PRJ-' + Math.random().toString(36).substring(2, 9).toUpperCase();
+    const api_key = 'sd-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
-    db.get(`SELECT * FROM otps WHERE email = ? AND code = ? AND is_used = 0 ORDER BY id DESC LIMIT 1`, [email, code], (err, otpRow) => {
-        if (!otpRow || new Date() > new Date(otpRow.expires_at)) {
-            return res.status(400).json({ error: 'Code din ya lalace ko bai da tabbas, ko kuma lokacinsa ya wuce (Minti daya ya cika).' });
-        }
-
-        // Mark OTP as used (Useless now)
-        db.run(`UPDATE otps SET is_used = 1 WHERE id = ?`, [otpRow.id]);
-
-        // Check if project name already exists
-        db.get(`SELECT * FROM projects WHERE name = ?`, [projectName], (err, existingProj) => {
-            if (existingProj) {
-                return res.status(400).json({ error: 'An riga an yi amfani da wannan sunan a wani project din. Da fatan a zabi wani sunan.' });
-            }
-
-            const project_id = 'PRJ-' + Math.random().toString(36).substring(2, 9).toUpperCase();
-            const api_key = 'sd-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-
-            db.run(`INSERT INTO projects (owner_email, name, project_id, api_key) VALUES (?, ?, ?, ?)`,
-                [email, projectName, project_id, api_key], function(err) {
-                    if (err) return res.status(500).json({ error: err.message });
-
-                    // Send Welcome Message
-                    transporter.sendMail({
-                        from: 'Sirdique Storage <abubakarsadeeq8533@gmail.com>',
-                        to: email,
-                        subject: 'Barka da zuwa Sirdique Storage!',
-                        text: `Murna ce da samun nasarar kirkirar project dinka: ${projectName}.\nProject ID: ${project_id}\nAPI Key: ${api_key}\n\nPowered by Sirdique`
-                    }).catch(console.error);
-
-                    res.json({ success: true, project_id, api_key, name: projectName });
-                });
+    db.run(`INSERT INTO projects (owner_email, name, project_id, api_key) VALUES (?, ?, ?, ?)`,
+        [email, projectName, project_id, api_key], function(err) {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ success: true, project_id, api_key, name: projectName });
         });
-    });
 });
 
 // Get Projects by Email
@@ -172,7 +113,7 @@ const verifyApiKey = (req, res, next) => {
     });
 };
 
-// Storage API with 800MB limit & Image Compression
+// Storage API with 800MB limit & Compression
 app.post('/api/save', verifyApiKey, upload.single('file'), async (req, res) => {
     try {
         const { title, content } = req.body;
@@ -182,7 +123,7 @@ app.post('/api/save', verifyApiKey, upload.single('file'), async (req, res) => {
         if (req.file) {
             fileSize = req.file.buffer.length;
             if (req.project.used_storage + fileSize > 800 * 1024 * 1024) {
-                return res.status(400).json({ error: 'Storage Limit Exceeded! Kowanne project yana da limit na 800MB ne kacal.' });
+                return res.status(400).json({ error: 'Storage Limit Exceeded! Kowanne project yana da limit na 800MB.' });
             }
 
             const filename = `img-${Date.now()}.webp`;
@@ -199,8 +140,6 @@ app.post('/api/save', verifyApiKey, upload.single('file'), async (req, res) => {
         db.run(`INSERT INTO data_entries (project_id, title, content, file_url) VALUES (?, ?, ?, ?)`,
             [req.project.project_id, title, content, file_url], function(err) {
                 if (err) return res.status(500).json({ error: err.message });
-                
-                // Update used storage
                 db.run(`UPDATE projects SET used_storage = used_storage + ? WHERE project_id = ?`, [fileSize, req.project.project_id]);
                 res.json({ success: true, id: this.lastID, file_url });
             });
@@ -234,51 +173,28 @@ app.delete('/api/data/:id', verifyApiKey, (req, res) => {
     });
 });
 
-// --- EXTERNAL WEBSITE AUTH (Sign Up & Login with Custom Website Name Support) ---
-
+// --- EXTERNAL WEBSITE AUTH & BRUTE FORCE PROTECTION ---
 app.post('/api/auth/signup', verifyApiKey, (req, res) => {
-    const { email, password, websiteName } = req.body;
+    const { email, password } = req.body;
     db.get(`SELECT * FROM app_users WHERE email = ? AND project_id = ?`, [email, req.project.project_id], (err, user) => {
         if (user) return res.status(400).json({ error: 'Email already registered for this project' });
 
         db.run(`INSERT INTO app_users (project_id, email, password, is_verified) VALUES (?, ?, ?, 0)`,
             [req.project.project_id, email, password], function(err) {
                 if (err) return res.status(500).json({ error: err.message });
-
-                const otp = Math.floor(100000 + Math.random() * 900000).toString();
-                const expiresAt = new Date(Date.now() + 1 * 60000).toISOString(); // 1 min
-
-                db.run(`INSERT INTO otps (email, code, expires_at, is_used) VALUES (?, ?, ?, 0)`, [email, otp, expiresAt], () => {
-                    const senderName = websiteName || req.project.name || 'Sirdique Partner Website';
-                    transporter.sendMail({
-                        from: `${senderName} <abubakarsadeeq8533@gmail.com>`,
-                        to: email,
-                        subject: `${senderName} - Sign Up Confirmation Code`,
-                        text: `Sannu! Lambar tabbatar da shiga (Sign Up confirmation code) ta ${senderName} ita ce: ${otp}\n\nWannan lambar za ta mutu bayan minti daya (1 minute).\n\nPowered by Sirdique`
-                    }).catch(console.error);
-
-                    res.json({ success: true, message: 'An tura code zuwa email dinka cikin hanzari!' });
-                });
+                res.json({ success: true, message: 'User registered. Please verify OTP.' });
             });
     });
 });
 
-app.post('/api/auth/verify-otp', verifyApiKey, (req, res) => {
-    const { email, code } = req.body;
-    db.get(`SELECT * FROM otps WHERE email = ? AND code = ? AND is_used = 0 ORDER BY id DESC LIMIT 1`, [email, code], (err, otpRow) => {
-        if (!otpRow || new Date() > new Date(otpRow.expires_at)) {
-            return res.status(400).json({ error: 'Invalid or expired OTP (Minti daya ya wuce ko kuma an riga an yi amfani da shi).' });
-        }
-
-        db.run(`UPDATE otps SET is_used = 1 WHERE id = ?`, [otpRow.id]);
-        db.run(`UPDATE app_users SET is_verified = 1 WHERE email = ? AND project_id = ?`, [email, req.project.project_id], (err) => {
-            if (err) return res.status(500).json({ error: err.message });
-            res.json({ success: true, message: 'Account verified successfully 100%!' });
-        });
+app.post('/api/auth/verify-user', verifyApiKey, (req, res) => {
+    const { email } = req.body;
+    db.run(`UPDATE app_users SET is_verified = 1 WHERE email = ? AND project_id = ?`, [email, req.project.project_id], (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true, message: 'Account verified successfully 100%!' });
     });
 });
 
-// Login with strict Brute-force protection (3 attempts -> 5 mins, then up to 24 hours)
 app.post('/api/auth/login', verifyApiKey, (req, res) => {
     const { email, password } = req.body;
     db.get(`SELECT * FROM app_users WHERE email = ? AND project_id = ?`, [email, req.project.project_id], (err, user) => {
@@ -296,18 +212,16 @@ app.post('/api/auth/login', verifyApiKey, (req, res) => {
 
             if (attempts >= 9) {
                 lockTime = new Date(now.getTime() + 24 * 3600000).toISOString(); // 24 hours
-            } else if (attempts >= 6) {
-                lockTime = new Date(now.getTime() + 5 * 60000).toISOString(); // 5 mins
-            } else if (attempts >= 3) {
+            } else if (attempts >= 6 || attempts >= 3) {
                 lockTime = new Date(now.getTime() + 5 * 60000).toISOString(); // 5 mins
             }
 
             db.run(`UPDATE app_users SET failed_attempts = ?, lock_until = ? WHERE id = ?`, [attempts, lockTime, user.id]);
-            return res.status(400).json({ error: `Incorrect password. Attempt ${attempts}/9. (3 kuskure suna kulle account na mintina 5, sannan awa 24)` });
+            return res.status(400).json({ error: `Incorrect password. Attempt ${attempts}/9. (3 kuskure suna kulle account na minti 5, sannan awa 24)` });
         }
 
         if (user.is_verified === 0) {
-            return res.status(401).json({ error: 'Please verify your email first using the confirmation code' });
+            return res.status(401).json({ error: 'Please verify your email first' });
         }
 
         db.run(`UPDATE app_users SET failed_attempts = 0, lock_until = NULL WHERE id = ?`, [user.id]);
