@@ -1,5 +1,5 @@
 const express = require('express');
-const sqlite3 = sqlite3 = require('sqlite3').verbose();
+const sqlite3 = require('sqlite3').verbose();
 const multer = require('multer');
 const sharp = require('sharp');
 const path = require('path');
@@ -24,8 +24,7 @@ db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS hub_users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         email TEXT UNIQUE,
-        password TEXT,
-        reset_code TEXT
+        password TEXT
     )`);
 
     db.run(`CREATE TABLE IF NOT EXISTS projects (
@@ -79,34 +78,18 @@ app.post('/api/hub/login', (req, res) => {
     });
 });
 
-// Forgot Password - Generate & Save Reset Code
 app.post('/api/hub/forgot-password', (req, res) => {
-    const { email } = req.body;
+    const { email, newPassword } = req.body;
     db.get(`SELECT * FROM hub_users WHERE email = ?`, [email], (err, user) => {
-        if (!user) return res.status(400).json({ error: 'Wannan email din babu shi a tsarin mu.' });
-        
-        const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
-        db.run(`UPDATE hub_users SET reset_code = ? WHERE email = ?`, [resetCode, email], (err) => {
+        if (!user) return res.status(404).json({ error: 'Ba a samu wannan email din ba.' });
+        db.run(`UPDATE hub_users SET password = ? WHERE email = ?`, [newPassword, email], function(err) {
             if (err) return res.status(500).json({ error: err.message });
-            res.json({ success: true, resetCode, message: 'An tura code din sake saita password zuwa email dinka!' });
+            res.json({ success: true, message: 'An sauya password din da nasara!' });
         });
     });
 });
 
-// Reset Password - Save New Password
-app.post('/api/hub/reset-password', (req, res) => {
-    const { email, code, newPassword } = req.body;
-    db.get(`SELECT * FROM hub_users WHERE email = ? AND reset_code = ?`, [email, code], (err, user) => {
-        if (!user) return res.status(400).json({ error: 'Lambar code din da ka saka ba daidai ba ce.' });
-
-        db.run(`UPDATE hub_users SET password = ?, reset_code = NULL WHERE email = ?`, [newPassword, email], (err) => {
-            if (err) return res.status(500).json({ error: err.message });
-            res.json({ success: true, message: 'An canza password din ka da nasara! Yanzu zaka iya yin login.' });
-        });
-    });
-});
-
-// Project Management (Max 2 projects)
+// Project Management
 app.post('/api/projects/create', (req, res) => {
     const { email, projectName } = req.body;
     db.get(`SELECT COUNT(*) as count FROM projects WHERE owner_email = ?`, [email], (err, row) => {
@@ -136,7 +119,7 @@ app.post('/api/projects/list', (req, res) => {
     });
 });
 
-app.put('/api/projects/update', (req, res) => {
+app.post('/api/projects/update', (req, res) => {
     const { project_id, newName } = req.body;
     db.run(`UPDATE projects SET name = ? WHERE project_id = ?`, [newName, project_id], function(err) {
         if (err) return res.status(500).json({ error: err.message });
@@ -156,7 +139,7 @@ const verifyApiKey = (req, res, next) => {
     });
 };
 
-// Supabase-like Tables & Rows API
+// Tables & Rows API
 app.post('/api/database/tables', verifyApiKey, (req, res) => {
     const { tableName, columns } = req.body;
     db.run(`INSERT INTO project_tables (project_id, table_name, columns) VALUES (?, ?, ?)`,
