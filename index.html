@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sirdique Dashboard — Studio</title>
+    <title>Sirdique Studio — Cloud Infrastructure</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script type="text/javascript">
-        (function() {
-            emailjs.init("cyG3rOixg3oOuJ2eL");
-        })();
+        (function() { emailjs.init("cyG3rOixg3oOuJ2eL"); })();
     </script>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col font-sans">
@@ -31,27 +29,29 @@
             <div id="standardAuthForm" class="space-y-4">
                 <input type="email" id="authEmail" placeholder="you@example.com" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-sm text-slate-900">
                 <input type="password" id="authPassword" placeholder="••••••••" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-sm text-slate-900">
-                <button onclick="handleAuthSubmit()" id="authSubmitBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-lg text-sm font-medium">Sign In</button>
+                <button onclick="handleAuthSubmit()" id="authSubmitBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium p-3 rounded-lg text-sm">Sign In</button>
                 <div class="text-right">
                     <button onclick="showForgotPasswordView()" class="text-xs text-emerald-600 hover:underline">Forgot password?</button>
                 </div>
             </div>
 
             <div id="otpVerifyForm" class="hidden space-y-4">
-                <p class="text-xs text-slate-600 text-center">Sanya confirmation code (Minti 2 zai yi expire):</p>
-                <input type="text" id="otpCodeInput" placeholder="Lamba 6" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-center tracking-widest font-bold text-slate-900">
-                <button onclick="verifyAndCompleteSignup()" class="w-full bg-emerald-600 text-white p-3 rounded-lg text-sm font-semibold">Verify & Register</button>
+                <p class="text-xs text-slate-600 text-center">Sanya confirmation code (Minti 2 zai expire):</p>
+                <input type="text" id="otpCodeInput" placeholder="Lamba 6" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-center tracking-widest text-lg font-bold text-slate-900">
+                <button onclick="verifyAndCompleteSignup()" class="w-full bg-emerald-600 text-white p-3 rounded-lg text-sm font-semibold">Tabbatar da Code</button>
+                <button onclick="cancelOtpView()" class="w-full bg-slate-200 text-slate-700 p-2 rounded-lg text-xs">Komawa</button>
             </div>
 
             <div id="forgotPasswordForm" class="hidden space-y-4">
-                <p class="text-xs text-slate-600">Sanya email ɗinka domin a tura maka code:</p>
+                <p class="text-xs text-slate-600">Sanya email dinka don tura code na forgot password.</p>
                 <input type="email" id="forgotEmail" placeholder="you@example.com" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-sm text-slate-900">
-                <button onclick="requestForgotCode()" class="w-full bg-emerald-600 text-white p-3 rounded-lg text-sm font-medium">Tura Code</button>
-                <button onclick="cancelForgotPassword()" class="w-full bg-slate-200 text-slate-700 p-2.5 rounded-lg text-xs">Komawa</button>
+                <button onclick="requestForgotCode()" class="w-full bg-emerald-600 text-white p-3 rounded-lg text-sm">Tura Code</button>
+                <button onclick="cancelForgotPassword()" class="w-full bg-slate-200 text-slate-700 p-2 rounded-lg text-xs">Komawa</button>
             </div>
 
             <div id="resetPasswordForm" class="hidden space-y-4">
-                <input type="text" id="resetCodeInput" placeholder="Sanya Code lamba 6" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-center tracking-widest font-bold text-slate-900">
+                <p class="text-xs text-slate-600">Sanya code da sabon password:</p>
+                <input type="text" id="resetCodeInput" placeholder="Code lamba 6" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-center tracking-widest font-bold text-slate-900">
                 <input type="password" id="resetNewPassword" placeholder="Sabon Password" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-sm text-slate-900">
                 <button onclick="verifyAndResetPassword()" class="w-full bg-emerald-600 text-white p-3 rounded-lg text-sm font-semibold">Sabunta Password</button>
             </div>
@@ -62,38 +62,83 @@
     <div id="app-container" class="hidden flex-1 flex flex-col bg-slate-100">
         <header class="bg-white border-b border-slate-200 px-6 py-3.5 flex justify-between items-center shadow-sm z-20">
             <div class="flex items-center space-x-4">
-                <button onclick="toggleSidebar()" class="p-2 rounded-lg hover:bg-slate-100 text-slate-700">☰</button>
+                <button onclick="toggleSidebar()" class="p-2 rounded-lg hover:bg-slate-100 text-slate-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
                 <div class="flex items-center space-x-2 cursor-pointer" onclick="openFullPage('home')">
-                    <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-xs border border-emerald-200">S</div>
-                    <span class="font-bold text-sm text-slate-900">Sirdique Hub</span>
+                    <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-xs">S</div>
+                    <span class="font-bold text-sm tracking-wide text-slate-900">Sirdique Hub</span>
                 </div>
                 <div id="activeProjectBreadcrumb" class="text-xs text-slate-500 font-medium"></div>
             </div>
             <div class="flex items-center space-x-3 text-xs font-medium">
                 <button onclick="openFullPage('new-project')" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg">+ New Project</button>
-                <button onclick="logout()" class="text-red-600">Sign Out</button>
+                <button onclick="logout()" class="text-red-600 hover:bg-red-50 px-2.5 py-1.5 rounded-lg">Sign Out</button>
             </div>
         </header>
 
         <!-- SIDEBAR -->
         <div id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-white border-r border-slate-200 shadow-2xl transform -translate-x-full transition-transform duration-300 z-30 flex flex-col">
             <div class="p-5 border-b border-slate-200 flex justify-between items-center">
-                <span class="font-bold text-sm">Navigation</span>
-                <button onclick="toggleSidebar()">&times;</button>
+                <span class="font-bold text-sm text-slate-900">Menu</span>
+                <button onclick="toggleSidebar()" class="text-slate-400">&times;</button>
             </div>
             <div class="flex-1 p-4 space-y-2 text-xs font-medium">
-                <button onclick="openFullPage('home'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-100">📂 Projects</button>
-                <button onclick="openFullPage('new-project'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-100">➕ Create Project</button>
+                <button onclick="openFullPage('home'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-100 text-slate-700">📂 Projects</button>
+                <button onclick="openFullPage('new-project'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-100 text-slate-700">➕ Create Project</button>
+                <div id="adminMenuLink" class="hidden">
+                    <button onclick="openFullPage('admin-dashboard'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg bg-indigo-50 text-indigo-700 font-bold">🛡️ Admin Dashboard</button>
+                </div>
+                <button onclick="openFullPage('rules'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-100 text-slate-700">📖 API Docs & RLS</button>
+                <button onclick="openFullPage('settings'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-100 text-slate-700">⚙️ Account Settings</button>
             </div>
         </div>
         <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/30 hidden z-20"></div>
 
+        <!-- FULL PAGES -->
         <div id="page-home" class="full-page flex-1 p-6 md:p-10 max-w-6xl mx-auto w-full space-y-6">
-            <h2 class="text-xl font-bold text-slate-900">Your Projects</h2>
+            <div class="flex justify-between items-center border-b border-slate-200 pb-4">
+                <h2 class="text-xl font-bold text-slate-900">Your Projects</h2>
+                <button onclick="openFullPage('new-project')" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs">+ New Project</button>
+            </div>
             <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2"></div>
         </div>
 
-        <div id="page-new-project" class="full-page hidden flex-1 p-6 max-w-md mx-auto w-full flex items-center justify-center">
+        <!-- ADMIN DASHBOARD PAGE -->
+        <div id="page-admin-dashboard" class="full-page hidden flex-1 p-6 md:p-10 max-w-7xl mx-auto w-full space-y-6">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-4">
+                <h2 class="text-xl font-bold text-indigo-700">🛡️ Super Admin Control Center</h2>
+                <button onclick="openFullPage('home')" class="text-xs bg-slate-200 px-3 py-1.5 rounded-lg">&larr; Back</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <p class="text-xs text-slate-500">Total Users</p>
+                    <h3 id="adminTotalUsers" class="text-2xl font-bold text-slate-900">0</h3>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <p class="text-xs text-slate-500">Total Projects</p>
+                    <h3 id="adminTotalProjects" class="text-2xl font-bold text-slate-900">0</h3>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <h3 class="font-bold text-sm text-slate-900">Registered Users Management</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-700">
+                        <thead>
+                            <tr class="border-b border-slate-200">
+                                <th class="p-2">Email</th>
+                                <th class="p-2">Status</th>
+                                <th class="p-2">Last Login</th>
+                                <th class="p-2">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminUsersTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-new-project" class="full-page hidden flex-1 p-6 md:p-12 max-w-md mx-auto w-full space-y-6 flex items-center justify-center">
             <div class="bg-white p-8 rounded-xl border border-slate-200 space-y-5 w-full shadow-xl">
                 <h2 class="text-lg font-bold text-slate-900">Create a new project</h2>
                 <input type="text" id="newProjectName" placeholder="production-db" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-sm text-slate-900">
@@ -101,27 +146,41 @@
             </div>
         </div>
 
-        <!-- SINGLE PROJECT VIEW -->
+        <div id="page-settings" class="full-page hidden flex-1 p-6 md:p-12 max-w-xl mx-auto w-full space-y-6">
+            <div class="bg-white p-8 rounded-xl border border-slate-200 space-y-4 shadow-xl">
+                <h2 class="text-lg font-bold text-slate-900">Account Settings</h2>
+                <p class="text-xs text-slate-700">Email: <span id="settingsEmail" class="text-emerald-600 font-semibold"></span></p>
+            </div>
+        </div>
+
+        <div id="page-rules" class="full-page hidden flex-1 p-6 md:p-12 max-w-2xl mx-auto w-full space-y-6">
+            <div class="bg-white p-8 rounded-xl border border-slate-200 space-y-4 shadow-xl">
+                <h2 class="text-lg font-bold text-slate-900">API Docs & RLS Rules</h2>
+                <p class="text-xs text-slate-600">Row Level Security (RLS) is automatically provisioned for all tables.</p>
+            </div>
+        </div>
+
+        <!-- SINGLE PROJECT DASHBOARD (Buckets & Table Editor) -->
         <div id="page-single-project" class="full-page hidden flex-1 p-6 md:p-10 max-w-7xl mx-auto w-full space-y-6">
             <div class="flex justify-between items-center border-b border-slate-200 pb-4">
                 <h2 id="spTitle" class="text-xl font-bold text-slate-900"></h2>
-                <div class="space-x-1 bg-white p-1 rounded-lg border border-slate-200 text-xs">
-                    <button onclick="switchSpTab('tables')" id="btnSpTables" class="px-3 py-1.5 rounded-md font-medium bg-emerald-600 text-white">Table Editor & RLS</button>
+                <div class="space-x-1 bg-white p-1 rounded-lg border border-slate-200 text-xs shadow-sm">
+                    <button onclick="switchSpTab('tables')" id="btnSpTables" class="px-3 py-1.5 rounded-md font-medium bg-emerald-600 text-white">Table Editor</button>
                     <button onclick="switchSpTab('bucket')" id="btnSpBucket" class="px-3 py-1.5 rounded-md font-medium text-slate-600">Storage Buckets</button>
                     <button onclick="switchSpTab('apikeys')" id="btnSpKeys" class="px-3 py-1.5 rounded-md font-medium text-slate-600">API Settings</button>
                 </div>
             </div>
 
-            <!-- TABLE EDITOR & RLS -->
+            <!-- TABLES VIEW -->
             <div id="sp-tables" class="space-y-6">
                 <div class="bg-white p-5 rounded-xl border border-slate-200 space-y-4 shadow-sm">
-                    <h3 class="font-semibold text-xs text-slate-700 uppercase">Create New Table & RLS</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
-                        <input type="text" id="newTableName" placeholder="table_name" class="bg-slate-50 border p-2.5 rounded-lg text-xs text-slate-900">
-                        <input type="text" id="newTableCols" placeholder="Columns (name,price)" class="bg-slate-50 border p-2.5 rounded-lg text-xs text-slate-900">
-                        <label class="flex items-center space-x-2 text-xs font-medium text-slate-700"><input type="checkbox" id="rlsCheckbox" checked class="rounded text-emerald-600"> Enable Automatic RLS</label>
+                    <h3 class="font-semibold text-xs text-slate-700 uppercase">Create Table with RLS</h3>
+                    <div class="flex space-x-2">
+                        <input type="text" id="newTableName" placeholder="table_name" class="flex-1 bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-xs text-slate-900">
+                        <input type="text" id="newTableCols" placeholder="Columns (name,price)" class="flex-1 bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-xs text-slate-900">
+                        <label class="flex items-center space-x-1 text-xs"><input type="checkbox" id="enableRlsCheckbox" checked> RLS</label>
+                        <button onclick="createTable()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs font-semibold">Save</button>
                     </div>
-                    <button onclick="createTable()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs font-semibold">Save Table</button>
                 </div>
                 <div id="tablesContainer" class="space-y-6"></div>
             </div>
@@ -129,21 +188,21 @@
             <!-- STORAGE BUCKETS VIEW -->
             <div id="sp-bucket" class="hidden space-y-6">
                 <div class="bg-white p-5 rounded-xl border border-slate-200 space-y-4 shadow-sm">
-                    <h3 class="font-semibold text-xs text-slate-700 uppercase">Create New Storage Bucket</h3>
+                    <h3 class="font-semibold text-xs text-slate-700 uppercase">Create Storage Bucket</h3>
                     <div class="flex space-x-2">
-                        <input type="text" id="newBucketName" placeholder="Bucket Name (e.g. watches-images)" class="flex-1 bg-slate-50 border p-2.5 rounded-lg text-xs text-slate-900">
+                        <input type="text" id="newBucketNameInput" placeholder="bucket-name (e.g. watches-vault)" class="flex-1 bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-xs text-slate-900">
                         <button onclick="createBucket()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs font-semibold">Create Bucket</button>
                     </div>
                 </div>
                 <div id="bucketsListContainer" class="space-y-6"></div>
             </div>
 
-            <!-- API SETTINGS -->
+            <!-- API KEYS VIEW -->
             <div id="sp-apikeys" class="hidden space-y-6 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                <h3 class="text-base font-bold text-slate-900">API Configuration</h3>
+                <h3 class="text-base font-bold text-slate-900">Project API Configuration</h3>
                 <div class="space-y-3 text-xs text-slate-700">
-                    <p class="p-3 bg-slate-50 rounded-lg border flex justify-between"><span>Project ID:</span> <span id="infoProjId" class="text-emerald-600 font-mono font-bold"></span></p>
-                    <p class="p-3 bg-slate-50 rounded-lg border flex justify-between"><span>API Key:</span> <span id="infoApiKey" class="text-emerald-600 font-mono font-bold"></span></p>
+                    <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex justify-between"><span>Project ID:</span> <span id="infoProjId" class="text-emerald-600 font-mono font-bold"></span></p>
+                    <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex justify-between"><span>API Key:</span> <span id="infoApiKey" class="text-emerald-600 font-mono font-bold"></span></p>
                 </div>
             </div>
         </div>
@@ -153,6 +212,7 @@
         let currentAuthMode = 'login';
         let loggedInEmail = localStorage.getItem('sirdique_email') || null;
         let activeProject = null;
+        let liveSyncInterval = null;
         let tempSignupData = {};
 
         if (loggedInEmail) showMainApp();
@@ -188,6 +248,12 @@
             document.getElementById('standardAuthForm').classList.remove('hidden');
         }
 
+        function cancelOtpView() {
+            document.getElementById('otpVerifyForm').classList.add('hidden');
+            document.getElementById('authTabsContainer').classList.remove('hidden');
+            document.getElementById('standardAuthForm').classList.remove('hidden');
+        }
+
         async function handleAuthSubmit() {
             const email = document.getElementById('authEmail').value;
             const password = document.getElementById('authPassword').value;
@@ -207,7 +273,7 @@
                         passcode: data.code,
                         message: `Your Sirdique Verification Code is: ${data.code}. Expires in 2 minutes.`
                     }).then(() => {
-                        alert('An tura code zuwa email ɗinka!');
+                        alert('An tura code zuwa email dinka!');
                         document.getElementById('standardAuthForm').classList.add('hidden');
                         document.getElementById('authTabsContainer').classList.add('hidden');
                         document.getElementById('otpVerifyForm').classList.remove('hidden');
@@ -234,6 +300,8 @@
 
         async function verifyAndCompleteSignup() {
             const code = document.getElementById('otpCodeInput').value;
+            if(!code) return alert('Sanya code!');
+
             const res = await fetch('/api/hub/verify-and-register', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -241,6 +309,7 @@
             });
             const data = await res.json();
             if(data.success) {
+                alert('Account created successfully!');
                 loggedInEmail = tempSignupData.email;
                 localStorage.setItem('sirdique_email', loggedInEmail);
                 showMainApp();
@@ -251,6 +320,8 @@
 
         async function requestForgotCode() {
             const email = document.getElementById('forgotEmail').value;
+            if(!email) return alert('Sanya email!');
+
             const res = await fetch('/api/hub/send-code', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -261,9 +332,9 @@
                 emailjs.send('service_49wqltg', 'template_dqofkf8', {
                     to_email: email,
                     passcode: data.code,
-                    message: `Your Password Reset Code is: ${data.code}. Expires in 2 minutes.`
+                    message: `Your Reset Code is: ${data.code}. Expires in 2 minutes.`
                 }).then(() => {
-                    alert('An tura code na sauya password!');
+                    alert('An tura reset code zuwa email dinka!');
                     document.getElementById('forgotPasswordForm').classList.add('hidden');
                     document.getElementById('resetPasswordForm').classList.remove('hidden');
                 }).catch(err => alert('Error: ' + JSON.stringify(err)));
@@ -276,6 +347,8 @@
             const email = document.getElementById('forgotEmail').value;
             const code = document.getElementById('resetCodeInput').value;
             const newPassword = document.getElementById('resetNewPassword').value;
+            if(!code || !newPassword) return alert('Cika duk wuraren!');
+
             const res = await fetch('/api/hub/verify-and-reset', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -295,32 +368,91 @@
             document.getElementById('auth-view').classList.add('hidden');
             document.getElementById('app-container').classList.remove('hidden');
             document.getElementById('settingsEmail').innerText = loggedInEmail;
-            openFullPage('home');
+            
+            // Check if Super Admin
+            if(loggedInEmail === 'abubakarsadeeq8533@gmail.com') {
+                document.getElementById('adminMenuLink').classList.remove('hidden');
+                openFullPage('admin-dashboard');
+            } else {
+                openFullPage('home');
+            }
         }
 
         function logout() {
             localStorage.removeItem('sirdique_email');
+            if (liveSyncInterval) clearInterval(liveSyncInterval);
             location.reload();
         }
 
         function openFullPage(pageName) {
-            ['home', 'new-project', 'settings', 'rules', 'single-project'].forEach(p => {
-                document.getElementById(`page-${p}`).classList.add('hidden');
+            const pages = ['home', 'new-project', 'settings', 'rules', 'single-project', 'admin-dashboard'];
+            pages.forEach(p => {
+                const el = document.getElementById(`page-${p}`);
+                if(el) el.classList.add('hidden');
             });
             document.getElementById(`page-${pageName}`).classList.remove('hidden');
-            if(pageName === 'home') loadMyProjects();
+
+            if(pageName === 'home') {
+                if (liveSyncInterval) clearInterval(liveSyncInterval);
+                loadMyProjects();
+            } else if(pageName === 'admin-dashboard') {
+                loadAdminStats();
+            }
+        }
+
+        async function loadAdminStats() {
+            const res = await fetch('/api/admin/stats');
+            const data = await res.json();
+            if(data.success) {
+                document.getElementById('adminTotalUsers').innerText = data.totalUsers;
+                document.getElementById('adminTotalProjects').innerText = data.totalProjects;
+                
+                let tbody = document.getElementById('adminUsersTableBody');
+                tbody.innerHTML = '';
+                data.users.forEach(u => {
+                    tbody.innerHTML += `
+                        <tr class="border-b border-slate-100">
+                            <td class="p-2 font-mono">${u.email}</td>
+                            <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] ${u.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${u.status}</span></td>
+                            <td class="p-2">${u.last_login || 'Never'}</td>
+                            <td class="p-2 space-x-1">
+                                <button onclick="adminUserAction('${u.email}', '${u.status === 'Active' ? 'suspend' : 'activate'}')" class="bg-amber-500 text-white px-2 py-1 rounded text-[10px]">${u.status === 'Active' ? 'Suspend' : 'Activate'}</button>
+                                <button onclick="adminUserAction('${u.email}', 'forceout')" class="bg-red-600 text-white px-2 py-1 rounded text-[10px]">Force Out</button>
+                            </td>
+                        </tr>`;
+                });
+            }
+        }
+
+        async function adminUserAction(email, action) {
+            const res = await fetch('/api/admin/user-action', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email, action })
+            });
+            const data = await res.json();
+            if(data.success) {
+                loadAdminStats();
+            } else {
+                alert(data.error);
+            }
         }
 
         async function createProject() {
             const projectName = document.getElementById('newProjectName').value;
+            if(!projectName) return alert('Enter project name!');
             const res = await fetch('/api/projects/create', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ email: loggedInEmail, projectName })
             });
             const data = await res.json();
-            if(data.success) openFullPage('home');
-            else alert(data.error);
+            if(data.success) {
+                document.getElementById('newProjectName').value = '';
+                openFullPage('home');
+            } else {
+                alert(data.error);
+            }
         }
 
         async function loadMyProjects() {
@@ -332,30 +464,33 @@
             const data = await res.json();
             const grid = document.getElementById('projectsGrid');
             grid.innerHTML = '';
-            (data.projects || []).forEach(p => {
-                grid.innerHTML += `
-                    <div onclick="openProject('${p.project_id}')" class="bg-white p-5 rounded-xl border hover:border-emerald-600 cursor-pointer shadow-sm">
-                        <h3 class="font-bold text-sm text-slate-900">${p.name}</h3>
-                        <p class="text-xs text-slate-400 font-mono">ID: ${p.project_id}</p>
-                    </div>`;
-            });
+            window.myProjectsData = data.projects || [];
+
+            if(window.myProjectsData.length > 0) {
+                window.myProjectsData.forEach(p => {
+                    grid.innerHTML += `
+                        <div onclick="openProject('${p.project_id}')" class="bg-white p-5 rounded-xl border border-slate-200 hover:border-emerald-600 cursor-pointer transition space-y-2 shadow-sm">
+                            <h3 class="font-bold text-sm text-slate-900">${p.name}</h3>
+                            <p class="text-xs text-slate-400 font-mono">ID: ${p.project_id}</p>
+                            <p class="text-xs text-slate-500">Storage: ${Math.round(p.used_storage / 1024)} KB / 800MB</p>
+                        </div>`;
+                });
+            } else {
+                grid.innerHTML = '<p class="text-slate-500 text-xs col-span-3">No projects found.</p>';
+            }
         }
 
         function openProject(projectId) {
-            activeProject = window.myProjectsData?.find(p => p.project_id === projectId) || { project_id: projectId };
-            // Fetch fresh list to be safe
-            fetch('/api/projects/list', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ email: loggedInEmail })
-            }).then(res => res.json()).then(data => {
-                activeProject = data.projects.find(p => p.project_id === projectId);
-                openFullPage('single-project');
-                document.getElementById('spTitle').innerText = activeProject.name;
-                document.getElementById('infoProjId').innerText = activeProject.project_id;
-                document.getElementById('infoApiKey').innerText = activeProject.api_key;
-                switchSpTab('tables');
-            });
+            activeProject = window.myProjectsData.find(p => p.project_id === projectId);
+            if(!activeProject) return;
+
+            openFullPage('single-project');
+            document.getElementById('spTitle').innerText = activeProject.name;
+            document.getElementById('activeProjectBreadcrumb').innerText = `/ ${activeProject.name}`;
+            document.getElementById('infoProjId').innerText = activeProject.project_id;
+            document.getElementById('infoApiKey').innerText = activeProject.api_key;
+            switchSpTab('tables');
+            startLiveSync(activeProject.project_id);
         }
 
         function switchSpTab(tab) {
@@ -376,18 +511,35 @@
             }
         }
 
+        function startLiveSync(projectId) {
+            if (liveSyncInterval) clearInterval(liveSyncInterval);
+            liveSyncInterval = setInterval(() => {
+                if (activeProject && activeProject.project_id === projectId) {
+                    if (!document.getElementById('sp-tables').classList.contains('hidden')) loadTablesSilent();
+                }
+            }, 3000);
+        }
+
         async function createTable() {
             const tableName = document.getElementById('newTableName').value;
             const colsStr = document.getElementById('newTableCols').value;
-            const rlsEnabled = document.getElementById('rlsCheckbox').checked;
-            const columns = colsStr.split(',').map(c => c.trim());
+            const enableRls = document.getElementById('enableRlsCheckbox').checked;
+            if(!tableName || !colsStr) return alert('Fill table name and columns!');
 
-            await fetch('/api/database/tables', {
+            const columns = colsStr.split(',').map(c => c.trim());
+            const res = await fetch('/api/database/tables', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', 'x-api-key': activeProject.api_key},
-                body: JSON.stringify({ tableName, columns, rlsEnabled })
+                body: JSON.stringify({ tableName, columns, enableRls })
             });
-            loadTables();
+            const data = await res.json();
+            if(data.success) {
+                document.getElementById('newTableName').value = '';
+                document.getElementById('newTableCols').value = '';
+                loadTables();
+            } else {
+                alert(data.error);
+            }
         }
 
         async function loadTables() {
@@ -395,24 +547,46 @@
             const data = await res.json();
             const container = document.getElementById('tablesContainer');
             container.innerHTML = '';
-            for(let t of (data.tables || [])) {
-                const cols = JSON.parse(t.columns);
-                const rowRes = await fetch(`/api/database/rows/${t.table_name}`, { headers: {'x-api-key': activeProject.api_key} });
-                const rowData = await rowRes.json();
-                
-                let html = `<div class="bg-white p-5 rounded-xl border space-y-3"><h4 class="font-bold text-xs">Table: ${t.table_name} (RLS: ${t.rls_enabled ? 'Active' : 'Off'})</h4><table class="w-full text-xs"><thead><tr>${cols.map(c=>`<th class="text-left">${c}</th>`).join('')}</tr></thead><tbody>`;
-                (rowData.rows || []).forEach(r => {
-                    const parsed = JSON.parse(r.row_data);
-                    html += `<tr>${cols.map(c=>`<td>${parsed[c]||''}</td>`).join('')}</tr>`;
-                });
-                html += `</tbody></table><div class="flex space-x-2 pt-2"><input type="text" id="row-${t.table_name}" placeholder="Value for ${cols[0]}" class="border p-2 rounded text-xs flex-1"><button onclick="addRow('${t.table_name}','${cols[0]}')" class="bg-emerald-600 text-white px-3 py-1 rounded text-xs">Insert</button></div></div>`;
-                container.innerHTML += html;
+
+            if(data.success && data.tables.length > 0) {
+                for(let t of data.tables) {
+                    const cols = JSON.parse(t.columns);
+                    const rowRes = await fetch(`/api/database/rows/${t.table_name}`, { headers: {'x-api-key': activeProject.api_key} });
+                    const rowData = await rowRes.json();
+                    const rows = rowData.rows || [];
+
+                    let html = `
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 space-y-4 shadow-sm">
+                            <h4 class="font-bold text-slate-900 text-xs uppercase">Table: <span class="text-emerald-600">${t.table_name}</span> (RLS Enabled)</h4>
+                            <div class="overflow-x-auto"><table class="w-full text-left text-xs text-slate-700"><thead><tr class="border-b border-slate-200">${cols.map(c => `<th class="p-2">${c}</th>`).join('')}</tr></thead><tbody>`;
+                    rows.forEach(r => {
+                        const parsed = JSON.parse(r.row_data);
+                        html += `<tr class="border-b border-slate-100">${cols.map(c => `<td class="p-2">${parsed[c] || ''}</td>`).join('')}</tr>`;
+                    });
+                    html += `</tbody></table></div>
+                            <div class="flex space-x-2 pt-2">
+                                <input type="text" id="row-${t.table_name}" placeholder="Value for ${cols[0]}" class="flex-1 bg-slate-50 border border-slate-300 p-2 rounded-lg text-xs">
+                                <button onclick="addRow('${t.table_name}', '${cols[0]}')" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold">Insert Row</button>
+                            </div>
+                        </div>`;
+                    container.innerHTML += html;
+                }
+            } else {
+                container.innerHTML = '<p class="text-xs text-slate-500">No tables created yet.</p>';
             }
+        }
+
+        async function loadTablesSilent() {
+            if(!activeProject) return;
+            const res = await fetch('/api/database/tables', { headers: {'x-api-key': activeProject.api_key} });
+            const data = await res.json();
+            if(data.success && data.tables.length > 0 && document.getElementById('tablesContainer').innerHTML === '') loadTables();
         }
 
         async function addRow(tableName, firstCol) {
             const val = document.getElementById(`row-${tableName}`).value;
-            let rowData = {}; rowData[firstCol] = val;
+            if(!val) return;
+            const rowData = {}; rowData[firstCol] = val;
             await fetch('/api/database/rows', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', 'x-api-key': activeProject.api_key},
@@ -421,14 +595,23 @@
             loadTables();
         }
 
+        // BUCKETS MANAGEMENT UI
         async function createBucket() {
-            const bucketName = document.getElementById('newBucketName').value;
-            await fetch('/api/buckets/create', {
+            const bucketName = document.getElementById('newBucketNameInput').value;
+            if(!bucketName) return alert('Sanya sunan bucket!');
+
+            const res = await fetch('/api/buckets/create', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', 'x-api-key': activeProject.api_key},
                 body: JSON.stringify({ bucketName })
             });
-            loadBuckets();
+            const data = await res.json();
+            if(data.success) {
+                document.getElementById('newBucketNameInput').value = '';
+                loadBuckets();
+            } else {
+                alert(data.error);
+            }
         }
 
         async function loadBuckets() {
@@ -436,40 +619,48 @@
             const data = await res.json();
             const container = document.getElementById('bucketsListContainer');
             container.innerHTML = '';
-            for(let b of (data.buckets || [])) {
-                const filesRes = await fetch(`/api/bucket/files/${b.bucket_name}`, { headers: {'x-api-key': activeProject.api_key} });
-                const filesData = await filesRes.json();
 
-                container.innerHTML += `
-                    <div class="bg-white p-5 rounded-xl border space-y-4">
-                        <div class="flex justify-between items-center">
-                            <h4 class="font-bold text-sm text-emerald-600">Bucket: ${b.bucket_name}</h4>
-                            <button onclick="toggleBucket('${b.id}', '${b.status === 'enabled' ? 'disabled' : 'enabled'}')" class="px-3 py-1 rounded text-xs ${b.status === 'enabled' ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-600'}">${b.status === 'enabled' ? 'Disable Bucket' : 'Enable Bucket'}</button>
-                        </div>
-                        ${b.status === 'enabled' ? `
-                            <div class="flex space-x-2">
+            if(data.success && data.buckets.length > 0) {
+                for(let b of data.buckets) {
+                    const fRes = await fetch(`/api/bucket/files/${b.bucket_name}`, { headers: {'x-api-key': activeProject.api_key} });
+                    const fData = await fRes.json();
+                    const files = fData.files || [];
+
+                    container.innerHTML += `
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 space-y-4 shadow-sm">
+                            <div class="flex justify-between items-center">
+                                <h4 class="font-bold text-slate-900 text-xs">Bucket: <span class="text-emerald-600">${b.bucket_name}</span></h4>
+                                <label class="text-xs flex items-center space-x-1">
+                                    <input type="checkbox" ${b.is_enabled ? 'checked' : ''} onchange="toggleBucket(${b.id}, this.checked)"> Enable Bucket
+                                </label>
+                            </div>
+                            <div class="space-y-2">
                                 <input type="file" id="file-${b.bucket_name}" class="text-xs">
-                                <button onclick="uploadToBucket('${b.bucket_name}')" class="bg-emerald-600 text-white px-3 py-1 rounded text-xs">Upload Asset</button>
-                            </div>` : `<p class="text-xs text-red-500">Wannan bucket din a karkashe yake (Disabled).</p>`}
-                        <div class="grid grid-cols-4 gap-2 pt-2">
-                            ${(filesData.files || []).map(f => `<div class="border p-2 rounded text-center"><img src="${f.file_url}" class="h-16 w-full object-cover rounded"><p class="text-[10px] truncate">${f.file_name}</p></div>`).join('')}
-                        </div>
-                    </div>`;
+                                <button onclick="uploadBucketFile('${b.bucket_name}')" class="bg-emerald-600 text-white px-3 py-1.5 rounded text-xs">Upload (Auto WebP)</button>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 pt-2">
+                                ${files.map(f => `<div class="p-2 border rounded text-[10px]"><img src="${f.file_url}" class="h-16 w-full object-cover rounded mb-1"><span class="truncate block">${f.file_name}</span></div>`).join('')}
+                            </div>
+                        </div>`;
+                }
+            } else {
+                container.innerHTML = '<p class="text-xs text-slate-500">No buckets created yet.</p>';
             }
         }
 
-        async function toggleBucket(bucketId, status) {
+        async function toggleBucket(bucketId, isEnabled) {
             await fetch('/api/buckets/toggle', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', 'x-api-key': activeProject.api_key},
-                body: JSON.stringify({ bucketId, status })
+                body: JSON.stringify({ bucketId, isEnabled: isEnabled ? 1 : 0 })
             });
             loadBuckets();
         }
 
-        async function uploadToBucket(bucketName) {
+        async function uploadBucketFile(bucketName) {
             const fileInput = document.getElementById(`file-${bucketName}`).files[0];
-            if(!fileInput) return alert('Zaɓi hoto!');
+            if(!fileInput) return alert('Zabi hoto!');
+
             const formData = new FormData();
             formData.append('file', fileInput);
             formData.append('bucketName', bucketName);
@@ -480,8 +671,11 @@
                 body: formData
             });
             const data = await res.json();
-            if(data.success) loadBuckets();
-            else alert(data.error);
+            if(data.success) {
+                loadBuckets();
+            } else {
+                alert(data.error);
+            }
         }
     </script>
 </body>
