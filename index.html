@@ -3,65 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sirdique Studio — Ultimate Cloud Infrastructure</title>
+    <title>Sirdique Studio — Enterprise Cloud Infrastructure</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script type="text/javascript">
         (function() { emailjs.init("cyG3rOixg3oOuJ2eL"); })();
     </script>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col font-sans">
 
     <!-- AUTH VIEW -->
-    <div id="auth-view" class="flex-1 flex items-center justify-center p-6">
-        <div class="max-w-md w-full bg-white p-8 rounded-2xl border border-slate-200 space-y-6 shadow-2xl">
+    <div id="auth-view" class="flex-1 flex items-center justify-center p-6 bg-slate-100">
+        <div class="max-w-md w-full bg-white p-8 rounded-xl border border-slate-200 space-y-6 shadow-xl">
             <div class="text-center space-y-2">
-                <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 mb-2 font-bold text-2xl border border-emerald-100 shadow-sm">S</div>
-                <h1 class="text-2xl font-black tracking-tight text-slate-900">Sirdique Studio</h1>
-                <p class="text-xs text-slate-500 font-medium">Professional Cloud Backend Infrastructure</p>
+                <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 mb-2 font-bold text-xl border border-emerald-200">S</div>
+                <h1 class="text-2xl font-bold tracking-tight text-slate-900">Sirdique Studio</h1>
+                <p class="text-xs text-slate-500">Enterprise Backend Infrastructure & Cloud Storage</p>
             </div>
             
-            <div id="authTabsContainer" class="flex border-b border-slate-100 pb-2 space-x-4">
-                <button onclick="switchAuthMode('login')" id="btnLoginTab" class="flex-1 font-bold text-emerald-600 border-b-2 border-emerald-600 pb-2 text-sm transition">Sign In</button>
-                <button onclick="switchAuthMode('signup')" id="btnSignupTab" class="flex-1 font-medium text-slate-400 pb-2 text-sm transition">Sign Up</button>
+            <div id="authTabsContainer" class="flex border-b border-slate-200 pb-2 space-x-4">
+                <button onclick="switchAuthMode('login')" id="btnLoginTab" class="flex-1 font-medium text-emerald-600 border-b-2 border-emerald-600 pb-2 text-sm">Sign In</button>
+                <button onclick="switchAuthMode('signup')" id="btnSignupTab" class="flex-1 text-slate-400 pb-2 text-sm">Sign Up</button>
             </div>
 
             <div id="standardAuthForm" class="space-y-4">
-                <input type="email" id="authEmail" placeholder="you@example.com" class="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-emerald-500 transition">
-                <input type="password" id="authPassword" placeholder="••••••••" class="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-emerald-500 transition">
-                <button onclick="handleAuthSubmit()" id="authSubmitBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-3.5 rounded-xl text-sm shadow-lg shadow-emerald-600/20 transition">Sign In</button>
+                <input type="email" id="authEmail" placeholder="you@example.com" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-sm text-slate-900">
+                <input type="password" id="authPassword" placeholder="••••••••" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-sm text-slate-900">
+                <button onclick="handleAuthSubmit()" id="authSubmitBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium p-3 rounded-lg text-sm">Sign In</button>
                 <div class="text-right">
-                    <button onclick="showForgotPasswordView()" class="text-xs text-emerald-600 hover:underline font-semibold">Forgot password?</button>
+                    <button onclick="showForgotPasswordView()" class="text-xs text-emerald-600 hover:underline">Forgot password?</button>
                 </div>
             </div>
 
+            <!-- OTP FORM WITH RESEND & COUNTDOWN -->
             <div id="otpVerifyForm" class="hidden space-y-4">
-                <p class="text-xs text-slate-600 text-center font-medium">Sanya confirmation code da aka tura email dinka:</p>
-                <input type="text" id="otpCodeInput" placeholder="000000" class="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-center tracking-widest text-lg font-black text-slate-900">
-                <button onclick="verifyAndCompleteSignup()" class="w-full bg-emerald-600 text-white p-3.5 rounded-xl text-sm font-bold shadow-lg shadow-emerald-600/20">Tabbatar da Code</button>
+                <p class="text-xs text-slate-600 text-center">Enter the verification code sent to your email:</p>
+                <input type="text" id="otpCodeInput" placeholder="6-digit Code" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-center tracking-widest text-lg font-bold text-slate-900">
+                <button onclick="verifyAndCompleteSignup()" class="w-full bg-emerald-600 text-white p-3 rounded-lg text-sm font-semibold">Verify Code</button>
+                
                 <div class="flex justify-between items-center text-xs pt-2">
-                    <button onclick="cancelOtpView()" class="bg-slate-100 text-slate-600 px-3 py-2 rounded-xl font-semibold">Komawa</button>
-                    <div>
-                        <span id="countdownTimer" class="text-slate-400 font-mono font-bold">2:00</span>
+                    <button onclick="cancelOtpView()" class="bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg">Back</button>
+                    <div id="resendContainer">
+                        <span id="countdownTimer" class="text-slate-500 font-mono">2:00</span>
                         <button id="resendBtn" onclick="resendOtpCode()" class="hidden text-emerald-600 font-bold hover:underline">Resend Code</button>
                     </div>
                 </div>
             </div>
 
             <div id="forgotPasswordForm" class="hidden space-y-4">
-                <p class="text-xs text-slate-600 font-medium">Sanya email dinka don tura code na forgot password.</p>
-                <input type="email" id="forgotEmail" placeholder="you@example.com" class="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-sm text-slate-900">
-                <button id="forgotSendBtn" onclick="requestForgotCode()" class="w-full bg-emerald-600 text-white p-3.5 rounded-xl text-sm font-bold">Tura Code</button>
-                <button onclick="cancelForgotPassword()" class="w-full bg-slate-100 text-slate-600 p-2.5 rounded-xl text-xs font-semibold">Komawa</button>
+                <p class="text-xs text-slate-600">Enter your email address to receive a password reset code.</p>
+                <input type="email" id="forgotEmail" placeholder="you@example.com" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-sm text-slate-900">
+                <button id="forgotSendBtn" onclick="requestForgotCode()" class="w-full bg-emerald-600 text-white p-3 rounded-lg text-sm">Send Reset Code</button>
+                <button onclick="cancelForgotPassword()" class="w-full bg-slate-200 text-slate-700 p-2 rounded-lg text-xs">Back</button>
             </div>
 
             <div id="resetPasswordForm" class="hidden space-y-4">
-                <p class="text-xs text-slate-600 font-medium">Sanya code da sabon password:</p>
-                <input type="text" id="resetCodeInput" placeholder="Code lamba 6" class="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-center tracking-widest font-black text-slate-900">
-                <input type="password" id="resetNewPassword" placeholder="Sabon Password" class="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-sm text-slate-900">
-                <button onclick="verifyAndResetPassword()" class="w-full bg-emerald-600 text-white p-3.5 rounded-xl text-sm font-bold shadow-lg shadow-emerald-600/20">Sabunta Password</button>
+                <p class="text-xs text-slate-600">Enter code and your new password:</p>
+                <input type="text" id="resetCodeInput" placeholder="6-digit Code" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-center tracking-widest font-bold text-slate-900">
+                <input type="password" id="resetNewPassword" placeholder="New Password" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-sm text-slate-900">
+                <button onclick="verifyAndResetPassword()" class="w-full bg-emerald-600 text-white p-3 rounded-lg text-sm font-semibold">Update Password</button>
+                
                 <div class="flex justify-between items-center text-xs pt-2">
-                    <span id="resetCountdownTimer" class="text-slate-400 font-mono font-bold">2:00</span>
+                    <span id="resetCountdownTimer" class="text-slate-500 font-mono">2:00</span>
                     <button id="resetResendBtn" onclick="resendResetCode()" class="hidden text-emerald-600 font-bold hover:underline">Resend Code</button>
                 </div>
             </div>
@@ -69,80 +72,81 @@
     </div>
 
     <!-- MAIN APP VIEW -->
-    <div id="app-container" class="hidden flex-1 flex flex-col bg-slate-50">
-        <header class="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center shadow-sm z-20">
+    <div id="app-container" class="hidden flex-1 flex flex-col bg-slate-100">
+        <header class="bg-white border-b border-slate-200 px-6 py-3.5 flex justify-between items-center shadow-sm z-20">
             <div class="flex items-center space-x-4">
-                <button onclick="toggleSidebar()" class="p-2.5 rounded-xl hover:bg-slate-100 text-slate-700 transition">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                <button onclick="toggleSidebar()" class="p-2 rounded-lg hover:bg-slate-100 text-slate-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
-                <div class="flex items-center space-x-2.5 cursor-pointer" onclick="openFullPage('home')">
-                    <div class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-xs shadow-md shadow-emerald-600/20">S</div>
-                    <span class="font-black text-sm tracking-wide text-slate-900">Sirdique Hub</span>
+                <div class="flex items-center space-x-2 cursor-pointer" onclick="openFullPage('home')">
+                    <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-xs">S</div>
+                    <span class="font-bold text-sm tracking-wide text-slate-900">Sirdique Hub</span>
                 </div>
-                <div id="activeProjectBreadcrumb" class="text-xs text-slate-500 font-semibold"></div>
+                <div id="activeProjectBreadcrumb" class="text-xs text-slate-500 font-medium"></div>
             </div>
-            <div class="flex items-center space-x-3 text-xs font-semibold">
-                <button onclick="openFullPage('new-project')" class="bg-emerald-600 text-white px-4 py-2 rounded-xl shadow-md shadow-emerald-600/20 transition hover:bg-emerald-700">+ New Project</button>
-                <button onclick="logout()" class="text-red-600 hover:bg-red-50 px-3 py-2 rounded-xl transition">Sign Out</button>
+            <div class="flex items-center space-x-3 text-xs font-medium">
+                <button onclick="openFullPage('new-project')" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg">+ New Project</button>
+                <button onclick="logout()" class="text-red-600 hover:bg-red-50 px-2.5 py-1.5 rounded-lg">Sign Out</button>
             </div>
         </header>
 
         <!-- SIDEBAR -->
         <div id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-white border-r border-slate-200 shadow-2xl transform -translate-x-full transition-transform duration-300 z-30 flex flex-col">
-            <div class="p-5 border-b border-slate-100 flex justify-between items-center">
-                <span class="font-black text-sm text-slate-900">Navigation</span>
-                <button onclick="toggleSidebar()" class="text-slate-400 font-bold text-lg">&times;</button>
+            <div class="p-5 border-b border-slate-200 flex justify-between items-center">
+                <span class="font-bold text-sm text-slate-900">Menu</span>
+                <button onclick="toggleSidebar()" class="text-slate-400">&times;</button>
             </div>
-            <div class="flex-1 p-4 space-y-2 text-xs font-semibold">
-                <button onclick="openFullPage('home'); toggleSidebar();" class="w-full text-left p-3 rounded-xl hover:bg-slate-50 text-slate-700 transition flex items-center space-x-2"><span>📂</span><span>Projects</span></button>
-                <button onclick="openFullPage('new-project'); toggleSidebar();" class="w-full text-left p-3 rounded-xl hover:bg-slate-50 text-slate-700 transition flex items-center space-x-2"><span>➕</span><span>Create Project</span></button>
+            <div class="flex-1 p-4 space-y-2 text-xs font-medium">
+                <button onclick="openFullPage('home'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-100 text-slate-700">📂 Projects</button>
+                <button onclick="openFullPage('new-project'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-100 text-slate-700">➕ Create Project</button>
                 <div id="adminMenuLink" class="hidden">
-                    <button onclick="openFullPage('admin-dashboard'); toggleSidebar();" class="w-full text-left p-3 rounded-xl bg-indigo-50 text-indigo-700 font-bold transition flex items-center space-x-2"><span>🛡️</span><span>Admin Dashboard</span></button>
+                    <button onclick="openFullPage('admin-dashboard'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg bg-indigo-50 text-indigo-700 font-bold">🛡️ Admin Dashboard</button>
                 </div>
-                <button onclick="openFullPage('rules'); toggleSidebar();" class="w-full text-left p-3 rounded-xl hover:bg-slate-50 text-slate-700 transition flex items-center space-x-2"><span>📖</span><span>API Docs & RLS</span></button>
-                <button onclick="openFullPage('settings'); toggleSidebar();" class="w-full text-left p-3 rounded-xl hover:bg-slate-50 text-slate-700 transition flex items-center space-x-2"><span>⚙️</span><span>Account Settings</span></button>
+                <button onclick="openFullPage('rules'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-100 text-slate-700">📖 API Docs & RLS</button>
+                <button onclick="openFullPage('settings'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-100 text-slate-700">⚙️ Account Settings</button>
             </div>
         </div>
-        <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/20 backdrop-blur-xs hidden z-20"></div>
+        <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/30 hidden z-20"></div>
 
         <!-- FULL PAGES -->
         <div id="page-home" class="full-page flex-1 p-6 md:p-10 max-w-6xl mx-auto w-full space-y-6">
-            <div class="flex justify-between items-center border-b border-slate-200/60 pb-4">
-                <div>
-                    <h2 class="text-xl font-black text-slate-900">Your Projects</h2>
-                    <p class="text-xs text-slate-500">Manage your cloud storage projects securely</p>
-                </div>
-                <button onclick="openFullPage('new-project')" class="bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20">+ New Project</button>
+            <div class="flex justify-between items-center border-b border-slate-200 pb-4">
+                <h2 class="text-xl font-bold text-slate-900">Your Projects</h2>
+                <button onclick="openFullPage('new-project')" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs">+ New Project</button>
             </div>
-            <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-5 pt-2"></div>
+            <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2"></div>
         </div>
 
-        <!-- ADMIN DASHBOARD PAGE -->
+        <!-- ADMIN DASHBOARD PAGE (Real-Time Stats & Total Storage) -->
         <div id="page-admin-dashboard" class="full-page hidden flex-1 p-6 md:p-10 max-w-7xl mx-auto w-full space-y-6">
-            <div class="flex justify-between items-center border-b border-slate-200/60 pb-4">
-                <h2 class="text-xl font-black text-indigo-700">🛡️ Super Admin Control Center</h2>
-                <button onclick="openFullPage('home')" class="text-xs bg-slate-200 px-3.5 py-2 rounded-xl font-bold">&larr; Back</button>
+            <div class="flex justify-between items-center border-b border-slate-200 pb-4">
+                <h2 class="text-xl font-bold text-indigo-700">🛡️ Super Admin Control Center</h2>
+                <button onclick="openFullPage('home')" class="text-xs bg-slate-200 px-3 py-1.5 rounded-lg">&larr; Back</button>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
-                    <p class="text-xs text-slate-500 font-semibold">Total Users</p>
-                    <h3 id="adminTotalUsers" class="text-3xl font-black text-slate-900 pt-1">0</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <p class="text-xs text-slate-500">Total Users</p>
+                    <h3 id="adminTotalUsers" class="text-2xl font-bold text-slate-900">0</h3>
                 </div>
-                <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
-                    <p class="text-xs text-slate-500 font-semibold">Total Projects</p>
-                    <h3 id="adminTotalProjects" class="text-3xl font-black text-slate-900 pt-1">0</h3>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <p class="text-xs text-slate-500">Total Projects</p>
+                    <h3 id="adminTotalProjects" class="text-2xl font-bold text-slate-900">0</h3>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <p class="text-xs text-slate-500">Total Sirdique Storage Used</p>
+                    <h3 id="adminTotalStorage" class="text-2xl font-bold text-emerald-600">0 KB</h3>
                 </div>
             </div>
-            <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
                 <h3 class="font-bold text-sm text-slate-900">Registered Users Management</h3>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs text-slate-700">
                         <thead>
-                            <tr class="border-b border-slate-100">
-                                <th class="p-3">Email</th>
-                                <th class="p-3">Status</th>
-                                <th class="p-3">Last Login</th>
-                                <th class="p-3">Actions</th>
+                            <tr class="border-b border-slate-200">
+                                <th class="p-2">Email</th>
+                                <th class="p-2">Status</th>
+                                <th class="p-2">Last Login</th>
+                                <th class="p-2">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="adminUsersTableBody"></tbody>
@@ -152,100 +156,91 @@
         </div>
 
         <div id="page-new-project" class="full-page hidden flex-1 p-6 md:p-12 max-w-md mx-auto w-full space-y-6 flex items-center justify-center">
-            <div class="bg-white p-8 rounded-2xl border border-slate-200/80 space-y-5 w-full shadow-xl">
-                <h2 class="text-lg font-black text-slate-900">Create a new project</h2>
-                <input type="text" id="newProjectName" placeholder="my-awesome-db" class="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-sm text-slate-900">
-                <button onclick="createProject()" class="w-full bg-emerald-600 text-white p-3.5 rounded-xl text-xs font-bold shadow-lg shadow-emerald-600/20">Create Project</button>
+            <div class="bg-white p-8 rounded-xl border border-slate-200 space-y-5 w-full shadow-xl">
+                <h2 class="text-lg font-bold text-slate-900">Create a new project</h2>
+                <input type="text" id="newProjectName" placeholder="production-db" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-sm text-slate-900">
+                <button onclick="createProject()" class="w-full bg-emerald-600 text-white p-3 rounded-lg text-xs font-semibold">Create</button>
             </div>
         </div>
 
         <div id="page-settings" class="full-page hidden flex-1 p-6 md:p-12 max-w-xl mx-auto w-full space-y-6">
-            <div class="bg-white p-8 rounded-2xl border border-slate-200/80 space-y-4 shadow-xl">
-                <h2 class="text-lg font-black text-slate-900">Account Settings</h2>
-                <p class="text-xs text-slate-600">Email: <span id="settingsEmail" class="text-emerald-600 font-bold"></span></p>
+            <div class="bg-white p-8 rounded-xl border border-slate-200 space-y-4 shadow-xl">
+                <h2 class="text-lg font-bold text-slate-900">Account Settings</h2>
+                <p class="text-xs text-slate-700">Email: <span id="settingsEmail" class="text-emerald-600 font-semibold"></span></p>
             </div>
         </div>
 
         <div id="page-rules" class="full-page hidden flex-1 p-6 md:p-12 max-w-2xl mx-auto w-full space-y-6">
-            <div class="bg-white p-8 rounded-2xl border border-slate-200/80 space-y-4 shadow-xl">
-                <h2 class="text-lg font-black text-slate-900">API Docs & RLS Rules</h2>
-                <p class="text-xs text-slate-600 leading-relaxed">Row Level Security (RLS) is automatically provisioned for all tables.</p>
+            <div class="bg-white p-8 rounded-xl border border-slate-200 space-y-4 shadow-xl">
+                <h2 class="text-lg font-bold text-slate-900">API Docs & RLS Rules</h2>
+                <p class="text-xs text-slate-600">Row Level Security (RLS) is automatically provisioned for all tables.</p>
             </div>
         </div>
 
         <!-- SINGLE PROJECT DASHBOARD -->
         <div id="page-single-project" class="full-page hidden flex-1 p-6 md:p-10 max-w-7xl mx-auto w-full space-y-6">
-            <div class="flex justify-between items-center border-b border-slate-200/60 pb-4">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-4">
                 <div class="flex items-center space-x-3">
-                    <h2 id="spTitle" class="text-xl font-black text-slate-900"></h2>
-                    <span id="projectLiveBadge" class="px-3 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-700 border border-emerald-300">● LIVE & CONNECTED</span>
+                    <h2 id="spTitle" class="text-xl font-bold text-slate-900"></h2>
+                    <span id="projectLiveBadge" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-300">● LIVE & CONNECTED</span>
                 </div>
-                <div class="space-x-1 bg-white p-1 rounded-xl border border-slate-200/80 text-xs shadow-sm">
-                    <button onclick="switchSpTab('tables')" id="btnSpTables" class="px-3.5 py-2 rounded-lg font-bold bg-emerald-600 text-white transition">Table Editor</button>
-                    <button onclick="switchSpTab('ai')" id="btnSpAi" class="px-3.5 py-2 rounded-lg font-semibold text-slate-600 transition">🤖 AI Prompt</button>
-                    <button onclick="switchSpTab('bucket')" id="btnSpBucket" class="px-3.5 py-2 rounded-lg font-semibold text-slate-600 transition">Storage Buckets</button>
-                    <button onclick="switchSpTab('apikeys')" id="btnSpKeys" class="px-3.5 py-2 rounded-lg font-semibold text-slate-600 transition">API Settings</button>
+                <div class="space-x-1 bg-white p-1 rounded-lg border border-slate-200 text-xs shadow-sm">
+                    <button onclick="switchSpTab('tables')" id="btnSpTables" class="px-3 py-1.5 rounded-md font-medium bg-emerald-600 text-white">Table Editor</button>
+                    <button onclick="switchSpTab('ai')" id="btnSpAi" class="px-3 py-1.5 rounded-md font-medium text-slate-600">🤖 AI Prompt Studio</button>
+                    <button onclick="switchSpTab('bucket')" id="btnSpBucket" class="px-3 py-1.5 rounded-md font-medium text-slate-600">Storage Buckets</button>
+                    <button onclick="switchSpTab('apikeys')" id="btnSpKeys" class="px-3 py-1.5 rounded-md font-medium text-slate-600">API Settings</button>
                 </div>
             </div>
 
             <!-- TABLES VIEW -->
             <div id="sp-tables" class="space-y-6">
-                <div class="bg-white p-6 rounded-2xl border border-slate-200/80 space-y-4 shadow-sm">
-                    <h3 class="font-bold text-xs text-slate-700 uppercase tracking-wider">Create Table with RLS</h3>
-                    <div class="flex space-x-3">
-                        <input type="text" id="newTableName" placeholder="table_name" class="flex-1 bg-slate-50 border border-slate-200 p-3 rounded-xl text-xs text-slate-900">
-                        <input type="text" id="newTableCols" placeholder="Columns (name,price)" class="flex-1 bg-slate-50 border border-slate-200 p-3 rounded-xl text-xs text-slate-900">
-                        <label class="flex items-center space-x-1.5 text-xs font-semibold"><input type="checkbox" id="enableRlsCheckbox" checked class="rounded text-emerald-600"> RLS</label>
-                        <button onclick="createTable()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20">Save Table</button>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 space-y-4 shadow-sm">
+                    <h3 class="font-semibold text-xs text-slate-700 uppercase">Create Table with RLS</h3>
+                    <div class="flex space-x-2">
+                        <input type="text" id="newTableName" placeholder="table_name" class="flex-1 bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-xs text-slate-900">
+                        <input type="text" id="newTableCols" placeholder="Columns (name,price)" class="flex-1 bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-xs text-slate-900">
+                        <label class="flex items-center space-x-1 text-xs"><input type="checkbox" id="enableRlsCheckbox" checked> RLS</label>
+                        <button onclick="createTable()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs font-semibold">Save</button>
                     </div>
                 </div>
                 <div id="tablesContainer" class="space-y-6"></div>
             </div>
 
-            <!-- AI SQL PROMPT VIEW -->
-            <div id="sp-ai" class="hidden space-y-6 bg-white p-8 rounded-2xl border border-slate-200/80 shadow-sm">
-                <div class="space-y-1">
-                    <h3 class="text-base font-black text-slate-900">🤖 AI SQL / Prompt Table Generator</h3>
-                    <p class="text-xs text-slate-500">Rubuta umarni kuma AI zata kirkira maka teburin da kake bukata nan take.</p>
+            <!-- AI PROMPT STUDIO (Create & Delete Tables via AI) -->
+            <div id="sp-ai" class="hidden space-y-6 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <div class="space-y-2">
+                    <h3 class="text-base font-bold text-slate-900">🤖 AI Prompt Studio (Create / Delete Tables)</h3>
+                    <p class="text-xs text-slate-500">Type instructions in natural language (e.g., "Create a users table" or "Delete the products table").</p>
                 </div>
-                <div class="space-y-4">
-                    <textarea id="aiPromptInput" rows="3" placeholder="Rubuta prompt dinka anan (misali: Kirkiro mini teburin products da price da category)..." class="w-full bg-slate-50 border border-slate-200 p-4 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-indigo-500"></textarea>
-                    <button onclick="runAiTableGenerator()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/20">Generate Table with AI</button>
-                    <div id="aiResponseMsg" class="text-xs font-bold pt-2"></div>
+                <div class="space-y-3">
+                    <textarea id="aiPromptInput" rows="3" placeholder="Type your AI prompt here..." class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-xs text-slate-900"></textarea>
+                    <button onclick="runAiProcessor()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-semibold">Run AI Prompt</button>
+                    <div id="aiResponseMsg" class="text-xs font-medium pt-2"></div>
                 </div>
             </div>
 
             <!-- STORAGE BUCKETS VIEW -->
             <div id="sp-bucket" class="hidden space-y-6">
-                <div class="bg-white p-6 rounded-2xl border border-slate-200/80 space-y-4 shadow-sm">
-                    <h3 class="font-bold text-xs text-slate-700 uppercase tracking-wider">Create Storage Bucket</h3>
-                    <div class="flex space-x-3">
-                        <input type="text" id="newBucketNameInput" placeholder="bucket-name (e.g. client-vault)" class="flex-1 bg-slate-50 border border-slate-200 p-3 rounded-xl text-xs text-slate-900">
-                        <button onclick="createBucket()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20">Create Bucket</button>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 space-y-4 shadow-sm">
+                    <h3 class="font-semibold text-xs text-slate-700 uppercase">Create Storage Bucket</h3>
+                    <div class="flex space-x-2">
+                        <input type="text" id="newBucketNameInput" placeholder="bucket-name (e.g. watches-vault)" class="flex-1 bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-xs text-slate-900">
+                        <button onclick="createBucket()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs font-semibold">Create Bucket</button>
                     </div>
                 </div>
                 <div id="bucketsListContainer" class="space-y-6"></div>
             </div>
 
-            <!-- API KEYS VIEW -->
-            <div id="sp-apikeys" class="hidden space-y-6 bg-white p-8 rounded-2xl border border-slate-200/80 shadow-sm">
-                <h3 class="text-base font-black text-slate-900">Project API Configuration</h3>
-                <div class="space-y-3 text-xs text-slate-700 font-medium">
-                    <p class="p-4 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center"><span>Project ID:</span> <span id="infoProjId" class="text-emerald-600 font-mono font-bold"></span></p>
-                    <p class="p-4 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center"><span>API Key:</span> <span id="infoApiKey" class="text-emerald-600 font-mono font-bold"></span></p>
-                    <p class="p-4 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center"><span>Status:</span> <span class="text-green-600 font-bold">● Active & Live Connection</span></p>
+            <!-- API KEYS VIEW (With Endpoint URLs) -->
+            <div id="sp-apikeys" class="hidden space-y-6 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <h3 class="text-base font-bold text-slate-900">Project API Configuration</h3>
+                <div class="space-y-3 text-xs text-slate-700">
+                    <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex justify-between"><span>Project ID:</span> <span id="infoProjId" class="text-emerald-600 font-mono font-bold"></span></p>
+                    <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex justify-between"><span>API Key:</span> <span id="infoApiKey" class="text-emerald-600 font-mono font-bold"></span></p>
+                    <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex justify-between"><span>Endpoint URL:</span> <span id="infoEndpointUrl" class="text-indigo-600 font-mono font-bold"></span></p>
+                    <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex justify-between"><span>Status:</span> <span class="text-green-600 font-bold">● Active & Live on External Web</span></p>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- ACTION MENU MODAL FOR RENAME / DELETE -->
-    <div id="actionMenuModal" class="fixed inset-0 bg-black/40 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl p-6 max-w-xs w-full shadow-2xl space-y-3 border border-slate-100 animate-in fade-in zoom-in duration-200">
-            <h3 class="font-black text-sm text-slate-900 mb-2">Project Options</h3>
-            <button onclick="openRenamePrompt()" class="w-full text-left p-3 rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-700 transition flex items-center space-x-2"><span>✏️</span><span>Rename Project</span></button>
-            <button onclick="confirmPermanentDelete()" class="w-full text-left p-3 rounded-xl hover:bg-red-50 text-xs font-bold text-red-600 transition flex items-center space-x-2"><span>🗑️</span><span>Delete (Permanent)</span></button>
-            <button onclick="closeActionMenu()" class="w-full text-center p-3 rounded-xl bg-slate-100 text-xs font-bold text-slate-600 transition">Cancel</button>
         </div>
     </div>
 
@@ -253,7 +248,6 @@
         let currentAuthMode = 'login';
         let loggedInEmail = localStorage.getItem('sirdique_email') || null;
         let activeProject = null;
-        let selectedProjectForAction = null;
         let liveSyncInterval = null;
         let tempSignupData = {};
         let countdownInterval = null;
@@ -268,12 +262,12 @@
         function switchAuthMode(mode) {
             currentAuthMode = mode;
             if(mode === 'login') {
-                document.getElementById('btnLoginTab').className = 'flex-1 font-bold text-emerald-600 border-b-2 border-emerald-600 pb-2 text-sm';
-                document.getElementById('btnSignupTab').className = 'flex-1 font-medium text-slate-400 pb-2 text-sm';
+                document.getElementById('btnLoginTab').className = 'flex-1 font-medium text-emerald-600 border-b-2 border-emerald-600 pb-2 text-sm';
+                document.getElementById('btnSignupTab').className = 'flex-1 text-slate-400 pb-2 text-sm';
                 document.getElementById('authSubmitBtn').innerText = 'Sign In';
             } else {
-                document.getElementById('btnSignupTab').className = 'flex-1 font-bold text-emerald-600 border-b-2 border-emerald-600 pb-2 text-sm';
-                document.getElementById('btnLoginTab').className = 'flex-1 font-medium text-slate-400 pb-2 text-sm';
+                document.getElementById('btnSignupTab').className = 'flex-1 font-medium text-emerald-600 border-b-2 border-emerald-600 pb-2 text-sm';
+                document.getElementById('btnLoginTab').className = 'flex-1 text-slate-400 pb-2 text-sm';
                 document.getElementById('authSubmitBtn').innerText = 'Sign Up (Send Code)';
             }
         }
@@ -300,7 +294,7 @@
         }
 
         function startCountdown(timerElementId, resendBtnId) {
-            let timeLeft = 120;
+            let timeLeft = 120; // 2 minutes
             const timerEl = document.getElementById(timerElementId);
             const resendBtn = document.getElementById(resendBtnId);
             
@@ -326,7 +320,7 @@
         async function handleAuthSubmit() {
             const email = document.getElementById('authEmail').value;
             const password = document.getElementById('authPassword').value;
-            if(!email || !password) return alert('Cika duk wuraren!');
+            if(!email || !password) return alert('Please fill in all fields!');
 
             const submitBtn = document.getElementById('authSubmitBtn');
             submitBtn.disabled = true;
@@ -347,7 +341,7 @@
                         passcode: data.code,
                         message: `Your Sirdique Verification Code is: ${data.code}. Expires in 2 minutes.`
                     }).then(() => {
-                        alert('An tura code zuwa email dinka!');
+                        alert('Verification code sent to your email!');
                         document.getElementById('standardAuthForm').classList.add('hidden');
                         document.getElementById('authTabsContainer').classList.add('hidden');
                         document.getElementById('otpVerifyForm').classList.remove('hidden');
@@ -368,11 +362,13 @@
                 if(data.success) {
                     loggedInEmail = email;
                     localStorage.setItem('sirdique_email', email);
+                    
                     emailjs.send('service_49wqltg', 'template_dqofkf8', {
                         to_email: email,
                         passcode: 'LOGIN-SUCCESS',
-                        message: `Welcome back to Sirdique Cloud Storage! Successfully logged in.`
+                        message: `Welcome back to Sirdique Cloud Storage! You have successfully logged in to your professional account.`
                     }).catch(() => {});
+
                     showMainApp();
                 } else {
                     alert(data.error);
@@ -395,7 +391,7 @@
                     passcode: data.code,
                     message: `Your new Sirdique Verification Code is: ${data.code}.`
                 }).then(() => {
-                    alert('An sake tura sabon code!');
+                    alert('New verification code sent!');
                     startCountdown('countdownTimer', 'resendBtn');
                 });
             }
@@ -403,7 +399,7 @@
 
         async function verifyAndCompleteSignup() {
             const code = document.getElementById('otpCodeInput').value;
-            if(!code) return alert('Sanya code!');
+            if(!code) return alert('Please enter code!');
 
             const res = await fetch('/api/hub/verify-and-register', {
                 method: 'POST',
@@ -415,7 +411,7 @@
                 emailjs.send('service_49wqltg', 'template_dqofkf8', {
                     to_email: tempSignupData.email,
                     passcode: 'ACCOUNT-CREATED',
-                    message: `Congratulations! Your Sirdique Cloud Storage account is successfully created.`
+                    message: `Congratulations! Your Sirdique Cloud Storage account has been successfully created and secured.`
                 }).catch(() => {});
 
                 alert('Account created successfully!');
@@ -429,7 +425,7 @@
 
         async function requestForgotCode() {
             const email = document.getElementById('forgotEmail').value;
-            if(!email) return alert('Sanya email!');
+            if(!email) return alert('Please enter email!');
 
             const forgotBtn = document.getElementById('forgotSendBtn');
             forgotBtn.disabled = true;
@@ -448,7 +444,7 @@
                     passcode: data.code,
                     message: `Your Password Reset Code is: ${data.code}. Expires in 2 minutes.`
                 }).then(() => {
-                    alert('An tura reset code zuwa email dinka!');
+                    alert('Password reset code sent to your email!');
                     document.getElementById('forgotPasswordForm').classList.add('hidden');
                     document.getElementById('resetPasswordForm').classList.remove('hidden');
                     startCountdown('resetCountdownTimer', 'resetResendBtn');
@@ -473,7 +469,7 @@
                     passcode: data.code,
                     message: `Your new Reset Code is: ${data.code}.`
                 }).then(() => {
-                    alert('An sake tura sabon reset code!');
+                    alert('New reset code sent!');
                     startCountdown('resetCountdownTimer', 'resetResendBtn');
                 });
             }
@@ -483,7 +479,7 @@
             const email = document.getElementById('forgotEmail').value;
             const code = document.getElementById('resetCodeInput').value;
             const newPassword = document.getElementById('resetNewPassword').value;
-            if(!code || !newPassword) return alert('Cika duk wuraren!');
+            if(!code || !newPassword) return alert('Please fill all fields!');
 
             const res = await fetch('/api/hub/verify-and-reset', {
                 method: 'POST',
@@ -547,18 +543,19 @@
             if(data.success) {
                 document.getElementById('adminTotalUsers').innerText = data.totalUsers;
                 document.getElementById('adminTotalProjects').innerText = data.totalProjects;
+                document.getElementById('adminTotalStorage').innerText = Math.round((data.totalStorage || 0) / 1024) + ' KB';
                 
                 let tbody = document.getElementById('adminUsersTableBody');
                 tbody.innerHTML = '';
                 data.users.forEach(u => {
                     tbody.innerHTML += `
                         <tr class="border-b border-slate-100">
-                            <td class="p-3 font-mono">${u.email}</td>
-                            <td class="p-3"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${u.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${u.status}</span></td>
-                            <td class="p-3">${u.last_login || 'Never'}</td>
-                            <td class="p-3 space-x-2">
-                                <button onclick="adminUserAction('${u.email}', '${u.status === 'Active' ? 'suspend' : 'activate'}')" class="bg-amber-500 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold">${u.status === 'Active' ? 'Suspend' : 'Activate'}</button>
-                                <button onclick="adminUserAction('${u.email}', 'forceout')" class="bg-red-600 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold">Force Out</button>
+                            <td class="p-2 font-mono">${u.email}</td>
+                            <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] ${u.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${u.status}</span></td>
+                            <td class="p-2">${u.last_login || 'Never'}</td>
+                            <td class="p-2 space-x-1">
+                                <button onclick="adminUserAction('${u.email}', '${u.status === 'Active' ? 'suspend' : 'activate'}')" class="bg-amber-500 text-white px-2 py-1 rounded text-[10px]">${u.status === 'Active' ? 'Suspend' : 'Activate'}</button>
+                                <button onclick="adminUserAction('${u.email}', 'forceout')" class="bg-red-600 text-white px-2 py-1 rounded text-[10px]">Force Out</button>
                             </td>
                         </tr>`;
                 });
@@ -572,7 +569,11 @@
                 body: JSON.stringify({ email, action })
             });
             const data = await res.json();
-            if(data.success) loadAdminStats();
+            if(data.success) {
+                loadAdminStats();
+            } else {
+                alert(data.error);
+            }
         }
 
         async function createProject() {
@@ -588,7 +589,7 @@
                 emailjs.send('service_49wqltg', 'template_dqofkf8', {
                     to_email: loggedInEmail,
                     passcode: 'PROJECT-CREATED',
-                    message: `Your new project "${projectName}" has been successfully created in Sirdique Cloud Storage.`
+                    message: `Your new project "${projectName}" has been successfully created in Sirdique Cloud Storage with live API keys.`
                 }).catch(() => {});
 
                 document.getElementById('newProjectName').value = '';
@@ -612,62 +613,64 @@
             if(window.myProjectsData.length > 0) {
                 window.myProjectsData.forEach(p => {
                     grid.innerHTML += `
-                        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 hover:border-emerald-500 cursor-pointer transition shadow-sm space-y-3 relative group">
-                            <div onclick="openProject('${p.project_id}')" class="space-y-2">
-                                <div class="flex justify-between items-center">
-                                    <h3 class="font-black text-sm text-slate-900">${p.name}</h3>
-                                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-700">● LIVE</span>
+                        <div class="relative bg-white p-5 rounded-xl border border-slate-200 hover:border-emerald-600 transition space-y-2 shadow-sm">
+                            <div class="flex justify-between items-center">
+                                <h3 onclick="openProject('${p.project_id}')" class="font-bold text-sm text-slate-900 cursor-pointer flex-1">${p.name}</h3>
+                                <div class="relative">
+                                    <button onclick="toggleProjectMenu(event, '${p.project_id}')" class="text-slate-400 hover:text-slate-600 font-bold px-2 py-1 text-lg">⋮</button>
+                                    <div id="menu-${p.project_id}" class="hidden absolute right-0 mt-1 w-28 bg-white border border-slate-200 rounded-lg shadow-lg z-30 text-xs">
+                                        <button onclick="renameProjectPrompt('${p.project_id}', '${p.name}')" class="w-full text-left px-3 py-2 hover:bg-slate-50 text-slate-700">Rename</button>
+                                        <button onclick="deleteProject('${p.project_id}')" class="w-full text-left px-3 py-2 hover:bg-red-50 text-red-600 font-semibold">Delete</button>
+                                        <button onclick="closeAllMenus()" class="w-full text-left px-3 py-2 hover:bg-slate-50 text-slate-400 border-t">Cancel</button>
+                                    </div>
                                 </div>
-                                <p class="text-xs text-slate-400 font-mono">ID: ${p.project_id}</p>
-                                <p class="text-xs text-slate-500 font-medium">Storage: ${Math.round(p.used_storage / 1024)} KB / 800MB</p>
                             </div>
-                            <div class="absolute bottom-4 right-4">
-                                <button onclick="event.stopPropagation(); openActionMenu('${p.project_id}')" class="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 font-black text-sm transition">•••</button>
-                            </div>
+                            <p onclick="openProject('${p.project_id}')" class="text-xs text-slate-400 font-mono cursor-pointer">ID: ${p.project_id}</p>
+                            <p onclick="openProject('${p.project_id}')" class="text-xs text-slate-500 cursor-pointer">Storage: ${Math.round(p.used_storage / 1024)} KB / 800MB</p>
                         </div>`;
                 });
             } else {
-                grid.innerHTML = '<p class="text-slate-500 text-xs col-span-3 font-medium">No projects found. Click "+ New Project" to start.</p>';
+                grid.innerHTML = '<p class="text-slate-500 text-xs col-span-3">No projects found. Click "+ New Project" to start.</p>';
             }
         }
 
-        // ACTION MENU (RENAME / DELETE / CANCEL)
-        function openActionMenu(projectId) {
-            selectedProjectForAction = projectId;
-            document.getElementById('actionMenuModal').classList.remove('hidden');
+        function toggleProjectMenu(event, projectId) {
+            event.stopPropagation();
+            closeAllMenus();
+            const menu = document.getElementById(`menu-${projectId}`);
+            if(menu) menu.classList.toggle('hidden');
         }
 
-        function closeActionMenu() {
-            document.getElementById('actionMenuModal').classList.add('hidden');
+        function closeAllMenus() {
+            document.querySelectorAll('[id^="menu-"]').forEach(m => m.classList.add('hidden'));
         }
 
-        async function openRenamePrompt() {
-            closeActionMenu();
-            const newName = prompt('Sanya sabon sunan project din:');
-            if(!newName) return;
+        window.onclick = function() { closeAllMenus(); }
+
+        async function renameProjectPrompt(projectId, oldName) {
+            const newName = prompt('Enter new project name:', oldName);
+            if(!newName || newName === oldName) return;
 
             const res = await fetch('/api/projects/rename', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ project_id: selectedProjectForAction, newName })
+                body: JSON.stringify({ projectId, newName })
             });
             const data = await res.json();
             if(data.success) {
-                alert('An sauya sunan project din da nasara!');
                 loadMyProjects();
             } else {
                 alert(data.error);
             }
         }
 
-        async function confirmPermanentDelete() {
-            closeActionMenu();
-            if(!confirm('Tabbas kana son ka goge wannan project din baki daya? Ba zaka iya dawo da shi ba, kuma keys dinsa zasu lalace.')) return;
+        async function deleteProject(projectId) {
+            if(!confirm('Are you sure you want to permanently delete this project? All tables, buckets, and storage files will be wiped out permanently!')) return;
 
             const res = await fetch('/api/projects/delete', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ project_id: selectedProjectForAction })
+                body: JSON.stringify({ projectId })
             });
             const data = await res.json();
             if(data.success) {
@@ -687,28 +690,29 @@
             document.getElementById('activeProjectBreadcrumb').innerText = `/ ${activeProject.name}`;
             document.getElementById('infoProjId').innerText = activeProject.project_id;
             document.getElementById('infoApiKey').innerText = activeProject.api_key;
+            document.getElementById('infoEndpointUrl').innerText = `${window.location.origin}/api/database/rows`;
             switchSpTab('tables');
             startLiveSync(activeProject.project_id);
         }
 
         function switchSpTab(tab) {
             ['sp-tables', 'sp-ai', 'sp-bucket', 'sp-apikeys'].forEach(t => document.getElementById(t).classList.add('hidden'));
-            ['btnSpTables', 'btnSpAi', 'btnSpBucket', 'btnSpKeys'].forEach(b => document.getElementById(b).className = 'px-3.5 py-2 rounded-lg font-semibold text-slate-600 transition');
+            ['btnSpTables', 'btnSpAi', 'btnSpBucket', 'btnSpKeys'].forEach(b => document.getElementById(b).className = 'px-3 py-1.5 rounded-md font-medium text-slate-600');
 
             if(tab === 'tables') {
                 document.getElementById('sp-tables').classList.remove('hidden');
-                document.getElementById('btnSpTables').className = 'px-3.5 py-2 rounded-lg font-bold bg-emerald-600 text-white transition';
+                document.getElementById('btnSpTables').className = 'px-3 py-1.5 rounded-md font-medium bg-emerald-600 text-white';
                 loadTables();
             } else if(tab === 'ai') {
                 document.getElementById('sp-ai').classList.remove('hidden');
-                document.getElementById('btnSpAi').className = 'px-3.5 py-2 rounded-lg font-bold bg-emerald-600 text-white transition';
+                document.getElementById('btnSpAi').className = 'px-3 py-1.5 rounded-md font-medium bg-emerald-600 text-white';
             } else if(tab === 'bucket') {
                 document.getElementById('sp-bucket').classList.remove('hidden');
-                document.getElementById('btnSpBucket').className = 'px-3.5 py-2 rounded-lg font-bold bg-emerald-600 text-white transition';
+                document.getElementById('btnSpBucket').className = 'px-3 py-1.5 rounded-md font-medium bg-emerald-600 text-white';
                 loadBuckets();
             } else if(tab === 'apikeys') {
                 document.getElementById('sp-apikeys').classList.remove('hidden');
-                document.getElementById('btnSpKeys').className = 'px-3.5 py-2 rounded-lg font-bold bg-emerald-600 text-white transition';
+                document.getElementById('btnSpKeys').className = 'px-3 py-1.5 rounded-md font-medium bg-emerald-600 text-white';
             }
         }
 
@@ -725,7 +729,7 @@
             const tableName = document.getElementById('newTableName').value;
             const colsStr = document.getElementById('newTableCols').value;
             const enableRls = document.getElementById('enableRlsCheckbox').checked;
-            if(!tableName || !colsStr) return alert('Cika duk wuraren!');
+            if(!tableName || !colsStr) return alert('Fill table name and columns!');
 
             const columns = colsStr.split(',').map(c => c.trim());
             const res = await fetch('/api/database/tables', {
@@ -743,15 +747,15 @@
             }
         }
 
-        async function runAiTableGenerator() {
+        async function runAiProcessor() {
             const prompt = document.getElementById('aiPromptInput').value;
             const msgEl = document.getElementById('aiResponseMsg');
-            if(!prompt) return alert('Rubuta prompt dinka!');
+            if(!prompt) return alert('Please enter an AI prompt!');
 
-            msgEl.className = 'text-xs font-bold pt-2 text-indigo-600';
-            msgEl.innerText = '🤖 AI tana aiki a kan umarninka...';
+            msgEl.className = 'text-xs font-medium pt-2 text-indigo-600';
+            msgEl.innerText = '🤖 AI is processing your request...';
 
-            const res = await fetch('/api/database/ai-create-table', {
+            const res = await fetch('/api/database/ai-processor', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', 'x-api-key': activeProject.api_key},
                 body: JSON.stringify({ prompt })
@@ -759,12 +763,12 @@
             const data = await res.json();
 
             if(data.success) {
-                msgEl.className = 'text-xs font-bold pt-2 text-green-600';
+                msgEl.className = 'text-xs font-medium pt-2 text-green-600';
                 msgEl.innerText = data.message;
                 document.getElementById('aiPromptInput').value = '';
-                setTimeout(() => switchSpTab('tables'), 1500);
+                setTimeout(() => { switchSpTab('tables'); }, 1500);
             } else {
-                msgEl.className = 'text-xs font-bold pt-2 text-red-600';
+                msgEl.className = 'text-xs font-medium pt-2 text-red-600';
                 msgEl.innerText = data.message;
             }
         }
@@ -783,23 +787,23 @@
                     const rows = rowData.rows || [];
 
                     let html = `
-                        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 space-y-4 shadow-sm">
-                            <h4 class="font-black text-slate-900 text-xs uppercase tracking-wider">Table: <span class="text-emerald-600">${t.table_name}</span> (RLS)</h4>
-                            <div class="overflow-x-auto"><table class="w-full text-left text-xs text-slate-700"><thead><tr class="border-b border-slate-100">${cols.map(c => `<th class="p-2.5 font-bold">${c}</th>`).join('')}</tr></thead><tbody>`;
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 space-y-4 shadow-sm">
+                            <h4 class="font-bold text-slate-900 text-xs uppercase">Table: <span class="text-emerald-600">${t.table_name}</span> (RLS Enabled)</h4>
+                            <div class="overflow-x-auto"><table class="w-full text-left text-xs text-slate-700"><thead><tr class="border-b border-slate-200">${cols.map(c => `<th class="p-2">${c}</th>`).join('')}</tr></thead><tbody>`;
                     rows.forEach(r => {
                         const parsed = JSON.parse(r.row_data);
-                        html += `<tr class="border-b border-slate-50">${cols.map(c => `<td class="p-2.5">${parsed[c] || ''}</td>`).join('')}</tr>`;
+                        html += `<tr class="border-b border-slate-100">${cols.map(c => `<td class="p-2">${parsed[c] || ''}</td>`).join('')}</tr>`;
                     });
                     html += `</tbody></table></div>
-                            <div class="flex space-x-3 pt-2">
-                                <input type="text" id="row-${t.table_name}" placeholder="Value for ${cols[0]}" class="flex-1 bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-xs">
-                                <button onclick="addRow('${t.table_name}', '${cols[0]}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20">Insert Row</button>
+                            <div class="flex space-x-2 pt-2">
+                                <input type="text" id="row-${t.table_name}" placeholder="Value for ${cols[0]}" class="flex-1 bg-slate-50 border border-slate-300 p-2 rounded-lg text-xs">
+                                <button onclick="addRow('${t.table_name}', '${cols[0]}')" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold">Insert Row</button>
                             </div>
                         </div>`;
                     container.innerHTML += html;
                 }
             } else {
-                container.innerHTML = '<p class="text-xs text-slate-500 font-medium">No tables created yet.</p>';
+                container.innerHTML = '<p class="text-xs text-slate-500">No tables created yet. You can also use AI Prompt Studio to create or delete tables.</p>';
             }
         }
 
@@ -824,7 +828,7 @@
 
         async function createBucket() {
             const bucketName = document.getElementById('newBucketNameInput').value;
-            if(!bucketName) return alert('Sanya sunan bucket!');
+            if(!bucketName) return alert('Enter bucket name!');
 
             const res = await fetch('/api/buckets/create', {
                 method: 'POST',
@@ -853,24 +857,24 @@
                     const files = fData.files || [];
 
                     container.innerHTML += `
-                        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 space-y-4 shadow-sm">
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 space-y-4 shadow-sm">
                             <div class="flex justify-between items-center">
-                                <h4 class="font-black text-slate-900 text-xs">Bucket: <span class="text-emerald-600">${b.bucket_name}</span></h4>
-                                <label class="text-xs font-semibold flex items-center space-x-1.5">
-                                    <input type="checkbox" ${b.is_enabled ? 'checked' : ''} onchange="toggleBucket(${b.id}, this.checked)" class="rounded text-emerald-600"> Enable Bucket
+                                <h4 class="font-bold text-slate-900 text-xs">Bucket: <span class="text-emerald-600">${b.bucket_name}</span></h4>
+                                <label class="text-xs flex items-center space-x-1">
+                                    <input type="checkbox" ${b.is_enabled ? 'checked' : ''} onchange="toggleBucket(${b.id}, this.checked)"> Enable Bucket
                                 </label>
                             </div>
-                            <div class="flex space-x-3 items-center">
-                                <input type="file" id="file-${b.bucket_name}" class="text-xs file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100">
-                                <button onclick="uploadBucketFile('${b.bucket_name}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20">Upload (WebP)</button>
+                            <div class="space-y-2">
+                                <input type="file" id="file-${b.bucket_name}" class="text-xs">
+                                <button onclick="uploadBucketFile('${b.bucket_name}')" class="bg-emerald-600 text-white px-3 py-1.5 rounded text-xs">Upload (Auto WebP)</button>
                             </div>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2">
-                                ${files.map(f => `<div class="p-2.5 border border-slate-100 bg-slate-50 rounded-xl text-[10px] space-y-1"><img src="${f.file_url}" class="h-20 w-full object-cover rounded-lg mb-1"><span class="truncate block font-semibold text-slate-700">${f.file_name}</span></div>`).join('')}
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 pt-2">
+                                ${files.map(f => `<div class="p-2 border rounded text-[10px]"><img src="${f.file_url}" class="h-16 w-full object-cover rounded mb-1"><span class="truncate block">${f.file_name}</span></div>`).join('')}
                             </div>
                         </div>`;
                 }
             } else {
-                container.innerHTML = '<p class="text-xs text-slate-500 font-medium">No buckets created yet.</p>';
+                container.innerHTML = '<p class="text-xs text-slate-500">No buckets created yet.</p>';
             }
         }
 
@@ -885,7 +889,7 @@
 
         async function uploadBucketFile(bucketName) {
             const fileInput = document.getElementById(`file-${bucketName}`).files[0];
-            if(!fileInput) return alert('Zabi hoto!');
+            if(!fileInput) return alert('Select an image!');
 
             const formData = new FormData();
             formData.append('file', fileInput);
