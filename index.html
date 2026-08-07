@@ -116,7 +116,7 @@
             <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2"></div>
         </div>
 
-        <!-- ADMIN DASHBOARD PAGE -->
+        <!-- ADMIN DASHBOARD -->
         <div id="page-admin-dashboard" class="full-page hidden flex-1 p-6 md:p-10 max-w-7xl mx-auto w-full space-y-6">
             <div class="flex justify-between items-center border-b border-slate-200 pb-4">
                 <h2 class="text-xl font-bold text-indigo-700">🛡️ Super Admin Control Center</h2>
@@ -205,11 +205,11 @@
                 <div id="tablesContainer" class="space-y-6"></div>
             </div>
 
-            <!-- AI PROMPT STUDIO (Multilingual Hausa & English - Tables, RLS, Drops) -->
+            <!-- AI PROMPT STUDIO (Hausa & English) -->
             <div id="sp-ai" class="hidden space-y-6 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                 <div class="space-y-2">
                     <h3 class="text-base font-bold text-slate-900">🤖 AI Multilingual Prompt Studio (Hausa & English)</h3>
-                    <p class="text-xs text-slate-500">Rubuta umarni a Turanci ko Hausa (misali: "Kirkiro teburin class, students, da code, sannan ka kunna wa class RLS ko ka goge kaza").</p>
+                    <p class="text-xs text-slate-500">Rubuta umarni a Turanci ko Hausa (misali: "Kirkiro teburin class, students, da code, sannan ka kunna wa class RLS").</p>
                 </div>
                 <div class="space-y-3">
                     <textarea id="aiPromptInput" rows="3" placeholder="Type prompt in English or Hausa..." class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-xs text-slate-900"></textarea>
@@ -230,7 +230,7 @@
                 <div id="bucketsListContainer" class="space-y-6"></div>
             </div>
 
-            <!-- UNIVERSAL API KEYS & ENDPOINT VIEW -->
+            <!-- API KEYS & ENDPOINT VIEW -->
             <div id="sp-apikeys" class="hidden space-y-6 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                 <h3 class="text-base font-bold text-slate-900">Universal API Endpoint & Configuration</h3>
                 <div class="space-y-3 text-xs text-slate-700">
@@ -897,7 +897,7 @@
             formData.append('file', fileInput);
             formData.append('bucketName', bucketName);
 
-            const res = await fetch('https://sirdique-storage.onrender.com/api/v1/execute', {
+            const res = await fetch('/api/v1/execute', {
                 method: 'POST',
                 headers: {'x-api-key': activeProject.api_key},
                 body: formData
