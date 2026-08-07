@@ -1,7 +1,7 @@
 {
   "name": "sirdique-storage",
   "version": "8.0.0",
-  "description": "Sirdique Storage Supabase-like Professional Backend with Advanced UX & Notifications",
+  "description": "Sirdique Storage Supabase-like Professional Backend with AI Table Creator",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
