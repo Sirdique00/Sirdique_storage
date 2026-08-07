@@ -38,33 +38,33 @@
             <!-- OTP FORM WITH RESEND & COUNTDOWN -->
             <div id="otpVerifyForm" class="hidden space-y-4">
                 <p class="text-xs text-slate-600 text-center">Enter the confirmation code sent to your email:</p>
-                <input type="text" id="otpCodeInput" placeholder="6-Digit Code" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-center tracking-widest text-lg font-bold text-slate-900">
+                <input type="text" id="otpCodeInput" placeholder="6-digit code" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-center tracking-widest text-lg font-bold text-slate-900">
                 <button onclick="verifyAndCompleteSignup()" class="w-full bg-emerald-600 text-white p-3 rounded-lg text-sm font-semibold">Verify Code</button>
                 
                 <div class="flex justify-between items-center text-xs pt-2">
                     <button onclick="cancelOtpView()" class="bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg">Back</button>
                     <div id="resendContainer">
-                        <span id="countdownTimer" class="text-slate-500 font-mono">1:59</span>
+                        <span id="countdownTimer" class="text-slate-500 font-mono">2:00</span>
                         <button id="resendBtn" onclick="resendOtpCode()" class="hidden text-emerald-600 font-bold hover:underline">Resend Code</button>
                     </div>
                 </div>
             </div>
 
             <div id="forgotPasswordForm" class="hidden space-y-4">
-                <p class="text-xs text-slate-600">Enter your email address to receive a password reset code.</p>
+                <p class="text-xs text-slate-600">Enter your email to receive password reset instructions.</p>
                 <input type="email" id="forgotEmail" placeholder="you@example.com" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-sm text-slate-900">
                 <button id="forgotSendBtn" onclick="requestForgotCode()" class="w-full bg-emerald-600 text-white p-3 rounded-lg text-sm">Send Reset Code</button>
                 <button onclick="cancelForgotPassword()" class="w-full bg-slate-200 text-slate-700 p-2 rounded-lg text-xs">Back</button>
             </div>
 
             <div id="resetPasswordForm" class="hidden space-y-4">
-                <p class="text-xs text-slate-600">Enter verification code and new password:</p>
-                <input type="text" id="resetCodeInput" placeholder="6-Digit Code" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-center tracking-widest font-bold text-slate-900">
+                <p class="text-xs text-slate-600">Enter code and new password:</p>
+                <input type="text" id="resetCodeInput" placeholder="6-digit code" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-center tracking-widest font-bold text-slate-900">
                 <input type="password" id="resetNewPassword" placeholder="New Password" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-sm text-slate-900">
-                <button onclick="verifyAndResetPassword()" class="w-full bg-emerald-600 text-white p-3 rounded-lg text-sm font-semibold">Update Password</button>
+                <button onclick="verifyAndResetPassword()" class="w-full bg-emerald-600 text-white p-3 rounded-lg text-sm font-semibold">Reset Password</button>
                 
                 <div class="flex justify-between items-center text-xs pt-2">
-                    <span id="resetCountdownTimer" class="text-slate-500 font-mono">1:59</span>
+                    <span id="resetCountdownTimer" class="text-slate-500 font-mono">2:00</span>
                     <button id="resetResendBtn" onclick="resendResetCode()" class="hidden text-emerald-600 font-bold hover:underline">Resend Code</button>
                 </div>
             </div>
@@ -111,13 +111,13 @@
         <!-- FULL PAGES -->
         <div id="page-home" class="full-page flex-1 p-6 md:p-10 max-w-6xl mx-auto w-full space-y-6">
             <div class="flex justify-between items-center border-b border-slate-200 pb-4">
-                <h2 class="text-xl font-bold text-slate-900">Your Projects (Cloud Storage)</h2>
+                <h2 class="text-xl font-bold text-slate-900">Your Projects</h2>
                 <button onclick="openFullPage('new-project')" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs">+ New Project</button>
             </div>
             <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2"></div>
         </div>
 
-        <!-- ADMIN DASHBOARD PAGE (Real-time Storage & Metrics) -->
+        <!-- ADMIN DASHBOARD PAGE (Real-Time Metrics & Total Storage) -->
         <div id="page-admin-dashboard" class="full-page hidden flex-1 p-6 md:p-10 max-w-7xl mx-auto w-full space-y-6">
             <div class="flex justify-between items-center border-b border-slate-200 pb-4">
                 <h2 class="text-xl font-bold text-indigo-700">🛡️ Super Admin Control Center</h2>
@@ -138,7 +138,7 @@
                 </div>
             </div>
             <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
-                <h3 class="font-bold text-sm text-slate-900">Registered Users Management (Real-time)</h3>
+                <h3 class="font-bold text-sm text-slate-900">Real-time Registered Users Management</h3>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs text-slate-700">
                         <thead>
@@ -159,7 +159,7 @@
             <div class="bg-white p-8 rounded-xl border border-slate-200 space-y-5 w-full shadow-xl">
                 <h2 class="text-lg font-bold text-slate-900">Create a new project</h2>
                 <input type="text" id="newProjectName" placeholder="production-db" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-sm text-slate-900">
-                <button onclick="createProject()" class="w-full bg-emerald-600 text-white p-3 rounded-lg text-xs font-semibold">Create</button>
+                <button onclick="createProject()" class="w-full bg-emerald-600 text-white p-3 rounded-lg text-xs font-semibold">Create Project</button>
             </div>
         </div>
 
@@ -182,7 +182,7 @@
             <div class="flex justify-between items-center border-b border-slate-200 pb-4">
                 <div class="flex items-center space-x-3">
                     <h2 id="spTitle" class="text-xl font-bold text-slate-900"></h2>
-                    <span id="projectLiveBadge" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-300">● LIVE & CONNECTED</span>
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-300">● LIVE & CONNECTED</span>
                 </div>
                 <div class="space-x-1 bg-white p-1 rounded-lg border border-slate-200 text-xs shadow-sm">
                     <button onclick="switchSpTab('tables')" id="btnSpTables" class="px-3 py-1.5 rounded-md font-medium bg-emerald-600 text-white">Table Editor</button>
@@ -200,21 +200,21 @@
                         <input type="text" id="newTableName" placeholder="table_name" class="flex-1 bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-xs text-slate-900">
                         <input type="text" id="newTableCols" placeholder="Columns (name,price)" class="flex-1 bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-xs text-slate-900">
                         <label class="flex items-center space-x-1 text-xs"><input type="checkbox" id="enableRlsCheckbox" checked> RLS</label>
-                        <button onclick="createTable()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs font-semibold">Save</button>
+                        <button onclick="createTable()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs font-semibold">Save Table</button>
                     </div>
                 </div>
                 <div id="tablesContainer" class="space-y-6"></div>
             </div>
 
-            <!-- AI SQL PROMPT VIEW (Supports Create & Delete Tables) -->
+            <!-- AI SQL PROMPT VIEW (Supports table creation & table drop/delete) -->
             <div id="sp-ai" class="hidden space-y-6 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                 <div class="space-y-2">
                     <h3 class="text-base font-bold text-slate-900">🤖 AI SQL / Prompt Table Generator & Manager</h3>
-                    <p class="text-xs text-slate-500">Type any prompt (e.g., "Create a users table" or "Delete users_table") and AI will manage it instantly.</p>
+                    <p class="text-xs text-slate-500">Type instructions (e.g., "Create a users table" or "Delete users_table") and AI will manage your database instantly.</p>
                 </div>
                 <div class="space-y-3">
-                    <textarea id="aiPromptInput" rows="3" placeholder="Enter prompt here..." class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-xs text-slate-900"></textarea>
-                    <button onclick="runAiTableGenerator()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-semibold">Run AI Command</button>
+                    <textarea id="aiPromptInput" rows="3" placeholder="Type your prompt here..." class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-xs text-slate-900"></textarea>
+                    <button onclick="runAiTableGenerator()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-semibold">Execute AI Prompt</button>
                     <div id="aiResponseMsg" class="text-xs font-medium pt-2"></div>
                 </div>
             </div>
@@ -224,21 +224,21 @@
                 <div class="bg-white p-5 rounded-xl border border-slate-200 space-y-4 shadow-sm">
                     <h3 class="font-semibold text-xs text-slate-700 uppercase">Create Storage Bucket</h3>
                     <div class="flex space-x-2">
-                        <input type="text" id="newBucketNameInput" placeholder="bucket-name (e.g. watches-vault)" class="flex-1 bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-xs text-slate-900">
+                        <input type="text" id="newBucketNameInput" placeholder="bucket-name (e.g. avatar-vault)" class="flex-1 bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-xs text-slate-900">
                         <button onclick="createBucket()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs font-semibold">Create Bucket</button>
                     </div>
                 </div>
                 <div id="bucketsListContainer" class="space-y-6"></div>
             </div>
 
-            <!-- API KEYS VIEW (With Endpoint URLs) -->
+            <!-- API KEYS & ENDPOINTS VIEW -->
             <div id="sp-apikeys" class="hidden space-y-6 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                <h3 class="text-base font-bold text-slate-900">Project API Configuration</h3>
+                <h3 class="text-base font-bold text-slate-900">Project API Configuration & Endpoints</h3>
                 <div class="space-y-3 text-xs text-slate-700">
                     <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex justify-between"><span>Project ID:</span> <span id="infoProjId" class="text-emerald-600 font-mono font-bold"></span></p>
                     <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex justify-between"><span>API Key:</span> <span id="infoApiKey" class="text-emerald-600 font-mono font-bold"></span></p>
-                    <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex justify-between"><span>Database Endpoint URL:</span> <span id="infoDbUrl" class="text-indigo-600 font-mono font-bold"></span></p>
-                    <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex justify-between"><span>Storage Endpoint URL:</span> <span id="infoStorageUrl" class="text-indigo-600 font-mono font-bold"></span></p>
+                    <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex justify-between"><span>Database Endpoint URL:</span> <span id="infoDbEndpoint" class="text-indigo-600 font-mono"></span></p>
+                    <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex justify-between"><span>Storage Endpoint URL:</span> <span id="infoStorageEndpoint" class="text-indigo-600 font-mono"></span></p>
                     <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex justify-between"><span>Status:</span> <span class="text-green-600 font-bold">● Active & Live on External Web</span></p>
                 </div>
             </div>
@@ -250,9 +250,9 @@
         let loggedInEmail = localStorage.getItem('sirdique_email') || null;
         let activeProject = null;
         let liveSyncInterval = null;
+        let adminRefreshInterval = null;
         let tempSignupData = {};
         let countdownInterval = null;
-        let adminRefreshInterval = null;
 
         if (loggedInEmail) showMainApp();
 
@@ -295,7 +295,7 @@
             if (countdownInterval) clearInterval(countdownInterval);
         }
 
-        function startCountdown(timerElementId, resendBtnId, onComplete) {
+        function startCountdown(timerElementId, resendBtnId) {
             let timeLeft = 120;
             const timerEl = document.getElementById(timerElementId);
             const resendBtn = document.getElementById(resendBtnId);
@@ -315,7 +315,6 @@
                     clearInterval(countdownInterval);
                     timerEl.classList.add('hidden');
                     resendBtn.classList.remove('hidden');
-                    if (onComplete) onComplete();
                 }
             }, 1000);
         }
@@ -369,7 +368,7 @@
                     emailjs.send('service_49wqltg', 'template_dqofkf8', {
                         to_email: email,
                         passcode: 'LOGIN-SUCCESS',
-                        message: `Welcome back to Sirdique Cloud Storage! You have successfully logged into your professional account.`
+                        message: `Welcome back to Sirdique Cloud Storage! You have successfully logged in to your professional account.`
                     }).catch(() => {});
 
                     showMainApp();
@@ -394,7 +393,7 @@
                     passcode: data.code,
                     message: `Your new Sirdique Verification Code is: ${data.code}.`
                 }).then(() => {
-                    alert('New verification code resent successfully!');
+                    alert('New verification code sent successfully!');
                     startCountdown('countdownTimer', 'resendBtn');
                 });
             }
@@ -402,7 +401,7 @@
 
         async function verifyAndCompleteSignup() {
             const code = document.getElementById('otpCodeInput').value;
-            if(!code) return alert('Please enter verification code!');
+            if(!code) return alert('Please enter the code!');
 
             const res = await fetch('/api/hub/verify-and-register', {
                 method: 'POST',
@@ -447,7 +446,7 @@
                     passcode: data.code,
                     message: `Your Password Reset Code is: ${data.code}. Expires in 2 minutes.`
                 }).then(() => {
-                    alert('Password reset code sent to your email!');
+                    alert('Reset code sent to your email!');
                     document.getElementById('forgotPasswordForm').classList.add('hidden');
                     document.getElementById('resetPasswordForm').classList.remove('hidden');
                     startCountdown('resetCountdownTimer', 'resetResendBtn');
@@ -470,9 +469,9 @@
                 emailjs.send('service_49wqltg', 'template_dqofkf8', {
                     to_email: email,
                     passcode: data.code,
-                    message: `Your new Password Reset Code is: ${data.code}.`
+                    message: `Your new Reset Code is: ${data.code}.`
                 }).then(() => {
-                    alert('New reset code resent successfully!');
+                    alert('New reset code sent successfully!');
                     startCountdown('resetCountdownTimer', 'resetResendBtn');
                 });
             }
@@ -494,7 +493,7 @@
                 emailjs.send('service_49wqltg', 'template_dqofkf8', {
                     to_email: email,
                     passcode: 'PASSWORD-CHANGED',
-                    message: `Your Sirdique account password has been successfully changed.`
+                    message: `Your Sirdique account password has been successfully updated.`
                 }).catch(() => {});
 
                 alert(data.message);
@@ -540,7 +539,7 @@
                 loadMyProjects();
             } else if(pageName === 'admin-dashboard') {
                 loadAdminStats();
-                adminRefreshInterval = setInterval(loadAdminStats, 4000); // Real-time admin dashboard poll
+                adminRefreshInterval = setInterval(loadAdminStats, 3000); // Real-time admin updates
             }
         }
 
@@ -550,7 +549,7 @@
             if(data.success) {
                 document.getElementById('adminTotalUsers').innerText = data.totalUsers;
                 document.getElementById('adminTotalProjects').innerText = data.totalProjects;
-                document.getElementById('adminTotalStorage').innerText = Math.round(data.totalStorageUsed / 1024) + ' KB';
+                document.getElementById('adminTotalStorage').innerText = `${Math.round(data.totalStorage / 1024)} KB`;
                 
                 let tbody = document.getElementById('adminUsersTableBody');
                 tbody.innerHTML = '';
@@ -620,22 +619,19 @@
             if(window.myProjectsData.length > 0) {
                 window.myProjectsData.forEach(p => {
                     grid.innerHTML += `
-                        <div class="bg-white p-5 rounded-xl border border-slate-200 hover:border-emerald-600 transition space-y-2 shadow-sm relative">
-                            <div class="flex justify-between items-start cursor-pointer" onclick="openProject('${p.project_id}')">
-                                <div>
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 relative space-y-2 shadow-sm">
+                            <div class="flex justify-between items-start">
+                                <div onclick="openProject('${p.project_id}')" class="cursor-pointer flex-1">
                                     <h3 class="font-bold text-sm text-slate-900">${p.name}</h3>
                                     <p class="text-xs text-slate-400 font-mono">ID: ${p.project_id}</p>
+                                    <p class="text-xs text-slate-500">Storage: ${Math.round(p.used_storage / 1024)} KB / 800MB</p>
                                 </div>
-                                <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-100 text-emerald-700">● LIVE</span>
-                            </div>
-                            <div class="flex justify-between items-center pt-2">
-                                <p class="text-xs text-slate-500">Storage: ${Math.round(p.used_storage / 1024)} KB / 800MB</p>
                                 <div class="relative">
-                                    <button onclick="toggleProjectMenu(event, '${p.project_id}')" class="text-slate-400 hover:text-slate-700 font-bold px-2 py-1 text-sm rounded">•••</button>
-                                    <div id="menu-${p.project_id}" class="hidden absolute right-0 mt-1 w-28 bg-white border border-slate-200 rounded-lg shadow-lg z-30 text-xs py-1">
-                                        <button onclick="renameProjectPrompt(event, '${p.project_id}', '${p.name}')" class="w-full text-left px-3 py-1.5 hover:bg-slate-50 text-slate-700">Rename</button>
-                                        <button onclick="deleteProjectPermanent(event, '${p.project_id}')" class="w-full text-left px-3 py-1.5 hover:bg-slate-50 text-red-600 font-semibold">Delete</button>
-                                        <button onclick="closeProjectMenu(event, '${p.project_id}')" class="w-full text-left px-3 py-1.5 hover:bg-slate-50 text-slate-400 border-t border-slate-100">Cancel</button>
+                                    <button onclick="toggleProjectMenu(event, '${p.project_id}')" class="p-1 rounded hover:bg-slate-100 font-bold text-slate-600">⋮</button>
+                                    <div id="menu-${p.project_id}" class="hidden absolute right-0 mt-1 w-28 bg-white border border-slate-200 rounded shadow-lg z-30 text-xs">
+                                        <button onclick="promptRenameProject('${p.project_id}', '${p.name}')" class="w-full text-left px-3 py-1.5 hover:bg-slate-50">Rename</button>
+                                        <button onclick="deleteProject('${p.project_id}')" class="w-full text-left px-3 py-1.5 text-red-600 hover:bg-red-50">Delete</button>
+                                        <button onclick="closeProjectMenu('${p.project_id}')" class="w-full text-left px-3 py-1.5 text-slate-400 hover:bg-slate-50 border-t">Cancel</button>
                                     </div>
                                 </div>
                             </div>
@@ -648,19 +644,22 @@
 
         function toggleProjectMenu(event, projectId) {
             event.stopPropagation();
-            const menu = document.getElementById(`menu-${projectId}`);
-            document.querySelectorAll('[id^="menu-"]').forEach(m => { if(m !== menu) m.classList.add('hidden'); });
-            menu.classList.toggle('hidden');
+            // Close all other menus first
+            document.querySelectorAll('[id^="menu-"]').forEach(el => {
+                if(el.id !== `menu-${projectId}`) el.classList.add('hidden');
+            });
+            document.getElementById(`menu-${projectId}`).classList.toggle('hidden');
         }
 
-        function closeProjectMenu(event, projectId) {
-            event.stopPropagation();
+        function closeProjectMenu(projectId) {
             document.getElementById(`menu-${projectId}`).classList.add('hidden');
         }
 
-        async function renameProjectPrompt(event, projectId, oldName) {
-            event.stopPropagation();
-            document.getElementById(`menu-${projectId}`).classList.add('hidden');
+        window.onclick = function() {
+            document.querySelectorAll('[id^="menu-"]').forEach(el => el.classList.add('hidden'));
+        }
+
+        async function promptRenameProject(projectId, oldName) {
             const newName = prompt('Enter new project name:', oldName);
             if(!newName || newName === oldName) return;
 
@@ -677,10 +676,8 @@
             }
         }
 
-        async function deleteProjectPermanent(event, projectId) {
-            event.stopPropagation();
-            document.getElementById(`menu-${projectId}`).classList.add('hidden');
-            if(!confirm('Are you sure you want to permanently delete this project? All tables, storage files, and API keys will be destroyed.')) return;
+        async function deleteProject(projectId) {
+            if(!confirm('Are you sure you want to permanently delete this project? All tables, files, and API keys will be destroyed!')) return;
 
             const res = await fetch('/api/projects/delete', {
                 method: 'POST',
@@ -689,7 +686,6 @@
             });
             const data = await res.json();
             if(data.success) {
-                alert('Project permanently deleted and storage cleaned.');
                 loadMyProjects();
             } else {
                 alert(data.error);
@@ -705,8 +701,8 @@
             document.getElementById('activeProjectBreadcrumb').innerText = `/ ${activeProject.name}`;
             document.getElementById('infoProjId').innerText = activeProject.project_id;
             document.getElementById('infoApiKey').innerText = activeProject.api_key;
-            document.getElementById('infoDbUrl').innerText = `${window.location.origin}/api/database/rows`;
-            document.getElementById('infoStorageUrl').innerText = `${window.location.origin}/api/bucket/upload`;
+            document.getElementById('infoDbEndpoint').innerText = `${window.location.origin}/api/database/rows/your_table`;
+            document.getElementById('infoStorageEndpoint').innerText = `${window.location.origin}/api/bucket/upload`;
             switchSpTab('tables');
             startLiveSync(activeProject.project_id);
         }
@@ -763,13 +759,14 @@
             }
         }
 
+        // AI SQL Prompt Generator & Table Drop Manager
         async function runAiTableGenerator() {
             const prompt = document.getElementById('aiPromptInput').value;
             const msgEl = document.getElementById('aiResponseMsg');
-            if(!prompt) return alert('Enter prompt!');
+            if(!prompt) return alert('Please enter a prompt!');
 
             msgEl.className = 'text-xs font-medium pt-2 text-indigo-600';
-            msgEl.innerText = '🤖 AI is processing your command...';
+            msgEl.innerText = '🤖 AI is processing your request...';
 
             const res = await fetch('/api/database/ai-create-table', {
                 method: 'POST',
@@ -782,7 +779,9 @@
                 msgEl.className = 'text-xs font-medium pt-2 text-green-600';
                 msgEl.innerText = data.message;
                 document.getElementById('aiPromptInput').value = '';
-                setTimeout(() => { switchSpTab('tables'); }, 1500);
+                setTimeout(() => {
+                    switchSpTab('tables');
+                }, 1500);
             } else {
                 msgEl.className = 'text-xs font-medium pt-2 text-red-600';
                 msgEl.innerText = data.message;
@@ -819,7 +818,7 @@
                     container.innerHTML += html;
                 }
             } else {
-                container.innerHTML = '<p class="text-xs text-slate-500">No tables created yet. You can also use AI SQL Prompt to generate or delete tables instantly.</p>';
+                container.innerHTML = '<p class="text-xs text-slate-500">No tables created yet. Use Table Editor or AI SQL Prompt.</p>';
             }
         }
 
@@ -905,7 +904,7 @@
 
         async function uploadBucketFile(bucketName) {
             const fileInput = document.getElementById(`file-${bucketName}`).files[0];
-            if(!fileInput) return alert('Select an image!');
+            if(!fileInput) return alert('Select an image file!');
 
             const formData = new FormData();
             formData.append('file', fileInput);
