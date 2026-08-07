@@ -175,7 +175,7 @@ app.post('/api/hub/login', (req, res) => {
     });
 });
 
-// PROJECT CRUD
+// PROJECT CRUD & PERMANENT DELETE
 app.post('/api/projects/create', (req, res) => {
     const { email, projectName } = req.body;
     if(!projectName) return res.status(400).json({ error: 'Project name required.' });
@@ -224,17 +224,15 @@ app.post('/api/projects/delete', (req, res) => {
     });
 });
 
-// UNIVERSAL SINGLE ENDPOINT (EXECUTE API: insert row, upload file, etc.)
+// UNIVERSAL SINGLE ENDPOINT
 app.post('/api/v1/execute', verifyApiKey, upload.single('file'), async (req, res) => {
     try {
         const { action, tableName, rowData, bucketName } = req.body;
 
-        // 1. File Upload Action
         if (action === 'upload' || req.file) {
-            const bName = bucketName || 'default';
+            const bName = bucketName || 'passport';
             db.get(`SELECT * FROM buckets WHERE project_id = ? AND bucket_name = ?`, [req.project.project_id, bName], async (err, bucket) => {
                 if (!bucket) {
-                    // Auto create bucket if missing
                     db.run(`INSERT INTO buckets (project_id, bucket_name, is_enabled) VALUES (?, ?, 1)`, [req.project.project_id, bName]);
                 }
                 const fileSize = req.file.buffer.length;
@@ -256,7 +254,6 @@ app.post('/api/v1/execute', verifyApiKey, upload.single('file'), async (req, res
             return;
         }
 
-        // 2. Database Insert Row Action
         if (tableName && rowData) {
             const parsedData = typeof rowData === 'string' ? JSON.parse(rowData) : rowData;
             db.run(`INSERT INTO project_rows (project_id, table_name, row_data) VALUES (?, ?, ?)`,
@@ -273,7 +270,7 @@ app.post('/api/v1/execute', verifyApiKey, upload.single('file'), async (req, res
     }
 });
 
-// BACKWARD COMPATIBLE ENDPOINTS FOR DASHBOARD & SDK
+// BACKWARD COMPATIBLE ENDPOINTS
 app.post('/api/buckets/create', verifyApiKey, (req, res) => {
     const { bucketName } = req.body;
     db.run(`INSERT INTO buckets (project_id, bucket_name, is_enabled) VALUES (?, ?, 1)`, [req.project.project_id, bucketName], (err) => {
@@ -326,14 +323,13 @@ app.get('/api/database/rows/:tableName', verifyApiKey, (req, res) => {
     });
 });
 
-// ADVANCED MULTILINGUAL AI PROMPT GENERATOR (Hausa & English / Multiple tables & RLS control)
+// ADVANCED MULTILINGUAL AI PROMPT (Hausa & English / Multiple tables & RLS control)
 app.post('/api/database/ai-create-table', verifyApiKey, (req, res) => {
     const { prompt } = req.body;
     if (!prompt) return res.status(400).json({ error: 'Prompt required.' });
 
     const lower = prompt.toLowerCase();
 
-    // Handle Drop / Delete table instructions in Hausa & English
     if (lower.includes('delete') || lower.includes('drop') || lower.includes('goge') || lower.includes('cire')) {
         db.all(`SELECT table_name FROM project_tables WHERE project_id = ?`, [req.project.project_id], (err, tables) => {
             let targets = [];
@@ -352,7 +348,6 @@ app.post('/api/database/ai-create-table', verifyApiKey, (req, res) => {
         return;
     }
 
-    // Handle RLS Toggle (kunna/kashe RLS) via prompt
     if (lower.includes('rls') || lower.includes('tsaro')) {
         db.all(`SELECT table_name FROM project_tables WHERE project_id = ?`, [req.project.project_id], (err, tables) => {
             let targetTbl = null;
@@ -368,10 +363,6 @@ app.post('/api/database/ai-create-table', verifyApiKey, (req, res) => {
         });
     }
 
-    // Multi-table creation parsing for student, code, class (Hausa & English)
-    let createdTables = [];
-    
-    // Explicit multi-table check as requested
     if (lower.includes('student') || lower.includes('dalibi') || lower.includes('class') || lower.includes('code')) {
         const tablesToCreate = [
             { name: 'class', cols: ['class_id', 'class_name', 'grade'], rls: 1 },
@@ -380,15 +371,16 @@ app.post('/api/database/ai-create-table', verifyApiKey, (req, res) => {
         ];
 
         let count = 0;
+        let created = [];
         tablesToCreate.forEach(t => {
             db.get(`SELECT * FROM project_tables WHERE project_id = ? AND table_name = ?`, [req.project.project_id, t.name], (err, existing) => {
                 if (!existing) {
                     db.run(`INSERT INTO project_tables (project_id, table_name, columns, rls_enabled) VALUES (?, ?, ?, ?)`,
                         [req.project.project_id, t.name, JSON.stringify(t.cols), t.rls], () => {
-                            createdTables.push(t.name);
+                            created.push(t.name);
                             count++;
                             if (count === tablesToCreate.length) {
-                                res.json({ success: true, message: `AI successfully created tables: ${createdTables.join(', ')} with respective RLS rules!` });
+                                res.json({ success: true, message: `AI successfully created tables: ${created.join(', ')} with respective RLS rules!` });
                             }
                         });
                 } else {
@@ -402,7 +394,6 @@ app.post('/api/database/ai-create-table', verifyApiKey, (req, res) => {
         return;
     }
 
-    // Generic AI Single Table Fallback
     let tableName = 'custom_ai_tbl';
     let columns = ['id', 'name', 'created_at'];
     const words = prompt.replace(/[^a-zA-Z0-9 ]/g, '').split(' ');
