@@ -1,7 +1,7 @@
 {
   "name": "sirdique-storage",
-  "version": "10.0.0",
-  "description": "Sirdique Ultimate Universal API Platform with Multilingual AI & RLS",
+  "version": "11.0.0",
+  "description": "Sirdique Ultimate Universal Cloud Platform",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
