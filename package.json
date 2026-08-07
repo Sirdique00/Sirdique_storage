@@ -1,7 +1,7 @@
 {
   "name": "sirdique-storage",
-  "version": "8.0.0",
-  "description": "Sirdique Storage Ultimate Professional Backend with AI & Advanced Auth",
+  "version": "9.0.0",
+  "description": "Sirdique Storage Ultimate Professional Backend",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
