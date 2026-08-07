@@ -101,13 +101,13 @@ const verifyApiKey = (req, res, next) => {
     });
 };
 
-// 1. AUTH & SECURITY
+// 1. AUTHENTICATION & SECURITY
 app.post('/api/hub/send-code', (req, res) => {
     const { email, type } = req.body;
     if(!email) return res.status(400).json({ error: 'Email is required.' });
 
     db.get(`SELECT * FROM hub_users WHERE email = ?`, [email], (err, user) => {
-        if(type === 'signup' && user) return res.status(400).json({ error: 'Email already registered. Please sign in.' });
+        if(type === 'signup' && user) return res.status(400).json({ error: 'This email is already registered. Please Sign In.' });
         if(type === 'forgot' && !user) return res.status(400).json({ error: 'No account found with this email.' });
         
         const code = Math.floor(100000 + Math.random() * 900000).toString();
@@ -141,14 +141,14 @@ app.post('/api/hub/verify-and-register', (req, res) => {
 app.post('/api/hub/verify-and-reset', (req, res) => {
     const { email, newPassword, code } = req.body;
     db.get(`SELECT * FROM verification_codes WHERE email = ? AND type = 'forgot' ORDER BY id DESC LIMIT 1`, [email], (err, record) => {
-        if (!record) return res.status(400).json({ error: 'No reset code found.' });
-        if (Date.now() > record.expires_at) return res.status(400).json({ error: 'Reset code has expired.' });
-        if (record.code !== code) return res.status(400).json({ error: 'Invalid reset code.' });
+        if (!record) return res.status(400).json({ error: 'No verification code found.' });
+        if (Date.now() > record.expires_at) return res.status(400).json({ error: 'Verification code has expired.' });
+        if (record.code !== code) return res.status(400).json({ error: 'Invalid verification code.' });
 
         db.run(`DELETE FROM verification_codes WHERE id = ?`, [record.id]);
         db.run(`UPDATE hub_users SET password = ?, failed_attempts = 0, ban_until = 0 WHERE email = ?`, [newPassword, email], function(err) {
             if (err) return res.status(500).json({ error: err.message });
-            res.json({ success: true, message: 'Password updated successfully!' });
+            res.json({ success: true, message: 'Password successfully updated!' });
         });
     });
 });
@@ -156,11 +156,11 @@ app.post('/api/hub/verify-and-reset', (req, res) => {
 app.post('/api/hub/login', (req, res) => {
     const { email, password } = req.body;
     db.get(`SELECT * FROM hub_users WHERE email = ?`, [email], (err, user) => {
-        if (!user) return res.status(400).json({ error: 'Email does not exist. Please sign up.' });
+        if (!user) return res.status(400).json({ error: 'Email does not exist. Please Sign Up.' });
         
         if (user.ban_until && Date.now() < user.ban_until) {
             const minsLeft = Math.ceil((user.ban_until - Date.now()) / 60000);
-            return res.status(403).json({ error: `Account temporarily locked due to 3 failed login attempts. Try again in ${minsLeft} minutes.` });
+            return res.status(403).json({ error: `Account temporarily banned due to 3 failed password attempts. Try again in ${minsLeft} minutes.` });
         }
 
         if (user.status === 'Suspended') {
@@ -172,10 +172,10 @@ app.post('/api/hub/login', (req, res) => {
             if (newAttempts >= 3) {
                 const banTime = Date.now() + 30 * 60 * 1000;
                 db.run(`UPDATE hub_users SET failed_attempts = ?, ban_until = ? WHERE email = ?`, [newAttempts, banTime, email]);
-                return res.status(403).json({ error: '3 failed password attempts. Account locked for 30 minutes!' });
+                return res.status(403).json({ error: '3 failed password attempts. Account banned for 30 minutes!' });
             } else {
                 db.run(`UPDATE hub_users SET failed_attempts = ? WHERE email = ?`, [newAttempts, email]);
-                return res.status(400).json({ error: `Incorrect password. ${3 - newAttempts} attempts remaining before temporary ban.` });
+                return res.status(400).json({ error: `Incorrect password. ${3 - newAttempts} attempts left before ban.` });
             }
         }
 
@@ -184,13 +184,13 @@ app.post('/api/hub/login', (req, res) => {
     });
 });
 
-// 2. PROJECT MANAGEMENT (Create, List, Rename, Permanent Delete)
+// 2. PROJECT MANAGEMENT (Create, Rename, Delete with Storage Cleanup)
 app.post('/api/projects/create', (req, res) => {
     const { email, projectName } = req.body;
     if(!projectName) return res.status(400).json({ error: 'Project name is required.' });
 
     db.get(`SELECT * FROM projects WHERE name = ?`, [projectName], (err, existing) => {
-        if (existing) return res.status(400).json({ error: 'Project name already exists.' });
+        if (existing) return res.status(400).json({ error: 'A project with this name already exists.' });
 
         const project_id = 'PRJ-' + Math.random().toString(36).substring(2, 9).toUpperCase();
         const api_key = 'sd-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -213,41 +213,35 @@ app.post('/api/projects/list', (req, res) => {
 
 app.post('/api/projects/rename', (req, res) => {
     const { projectId, newName } = req.body;
-    if(!newName) return res.status(400).json({ error: 'New project name required.' });
+    if(!projectId || !newName) return res.status(400).json({ error: 'Missing parameters.' });
 
-    db.run(`UPDATE projects SET name = ? WHERE project_id = ?`, [newName, projectId], (err) => {
-        if(err) return res.status(500).json({ error: err.message });
+    db.run(`UPDATE projects SET name = ? WHERE project_id = ?`, [newName, projectId], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
         res.json({ success: true });
     });
 });
 
 app.post('/api/projects/delete', (req, res) => {
     const { projectId } = req.body;
-    
-    // Fetch and remove files from disk/storage
-    db.all(`SELECT file_url FROM bucket_files WHERE project_id = ?`, [projectId], (err, files) => {
-        if(files) {
-            files.forEach(f => {
-                const filePath = path.join(__dirname, f.file_url);
-                if(fs.existsSync(filePath)) fs.unlinkSync(filePath);
-            });
-        }
+    if(!projectId) return res.status(400).json({ error: 'Project ID is required.' });
 
-        // Permanent deletion from database tables
+    // Permanent delete all related data & invalidate keys & free storage
+    db.serialize(() => {
         db.run(`DELETE FROM projects WHERE project_id = ?`, [projectId]);
         db.run(`DELETE FROM project_tables WHERE project_id = ?`, [projectId]);
         db.run(`DELETE FROM project_rows WHERE project_id = ?`, [projectId]);
         db.run(`DELETE FROM buckets WHERE project_id = ?`, [projectId]);
-        db.run(`DELETE FROM bucket_files WHERE project_id = ?`, [projectId], () => {
+        db.run(`DELETE FROM bucket_files WHERE project_id = ?`, [projectId], (err) => {
+            if (err) return res.status(500).json({ error: err.message });
             res.json({ success: true, message: 'Project and all associated storage permanently deleted.' });
         });
     });
 });
 
-// 3. BUCKETS & RLS
+// 3. STORAGE BUCKETS & RLS
 app.post('/api/buckets/create', verifyApiKey, (req, res) => {
     const { bucketName } = req.body;
-    if(!bucketName) return res.status(400).json({ error: 'Bucket name required.' });
+    if(!bucketName) return res.status(400).json({ error: 'Bucket name is required.' });
 
     db.run(`INSERT INTO buckets (project_id, bucket_name, is_enabled) VALUES (?, ?, 1)`, [req.project.project_id, bucketName], (err) => {
         if (err) return res.status(500).json({ error: 'Bucket already exists or error occurred.' });
@@ -270,7 +264,7 @@ app.post('/api/buckets/toggle', verifyApiKey, (req, res) => {
     });
 });
 
-// 4. DATABASE TABLES & ADVANCED AI PROMPT (Create & Delete Tables)
+// 4. DATABASE TABLES & AI SQL PROMPT (Create & Delete Tables via AI)
 app.post('/api/database/tables', verifyApiKey, (req, res) => {
     const { tableName, columns, enableRls } = req.body;
     db.run(`INSERT INTO project_tables (project_id, table_name, columns) VALUES (?, ?, ?)`,
@@ -280,34 +274,30 @@ app.post('/api/database/tables', verifyApiKey, (req, res) => {
         });
 });
 
-app.post('/api/database/ai-processor', verifyApiKey, (req, res) => {
+app.post('/api/database/ai-create-table', verifyApiKey, (req, res) => {
     const { prompt } = req.body;
     if (!prompt) return res.status(400).json({ error: 'Prompt is required.' });
 
     const lower = prompt.toLowerCase();
-
-    // Check if AI Prompt requests to DELETE a table
-    if (lower.includes('delete') || lower.includes('goge') || lower.includes('remove')) {
-        // Extract table name if mentioned
-        db.all(`SELECT table_name FROM project_tables WHERE project_id = ?`, [req.project.project_id], (err, tables) => {
-            let targetTable = null;
-            tables.forEach(t => {
-                if (lower.includes(t.table_name.toLowerCase())) targetTable = t.table_name;
-            });
-
-            if (targetTable) {
-                db.run(`DELETE FROM project_tables WHERE project_id = ? AND table_name = ?`, [req.project.project_id, targetTable]);
-                db.run(`DELETE FROM project_rows WHERE project_id = ? AND table_name = ?`, [req.project.project_id, targetTable], () => {
-                    res.json({ success: true, message: `AI successfully deleted table "${targetTable}".` });
-                });
-            } else {
-                res.json({ success: false, message: 'AI could not identify which table to delete. Please specify the exact table name.' });
+    
+    // Check if AI prompt is requesting to DELETE a table
+    if (lower.includes('delete') || lower.includes('goge') || lower.includes('drop')) {
+        let targetTable = '';
+        const words = prompt.replace(/[^a-zA-Z0-9_]/g, ' ').split(/\s+/);
+        for(let w of words) {
+            if(w.includes('_tbl') || w.includes('table') || w.includes('users') || w.includes('products') || w.includes('messages')) {
+                targetTable = w.replace('table', '').trim();
             }
+        }
+        if (!targetTable && words.length > 1) targetTable = words[words.length - 1];
+
+        db.run(`DELETE FROM project_tables WHERE project_id = ? AND table_name = ?`, [req.project.project_id, targetTable], function(err) {
+            db.run(`DELETE FROM project_rows WHERE project_id = ? AND table_name = ?`, [req.project.project_id, targetTable]);
+            res.json({ success: true, message: `AI successfully deleted table "${targetTable || 'requested table'}".` });
         });
         return;
     }
 
-    // Default: AI Create Table
     let tableName = 'ai_custom_table';
     let columns = ['id', 'title', 'created_at'];
 
@@ -320,14 +310,17 @@ app.post('/api/database/ai-processor', verifyApiKey, (req, res) => {
     } else if (lower.includes('message') || lower.includes('sako')) {
         tableName = 'messages_table';
         columns = ['sender', 'message', 'date'];
+    } else {
+        const words = prompt.replace(/[^a-zA-Z0-9 ]/g, '').split(' ');
+        if(words.length > 0 && words[0]) tableName = words[0].toLowerCase() + '_tbl';
     }
 
     db.run(`INSERT INTO project_tables (project_id, table_name, columns) VALUES (?, ?, ?)`,
         [req.project.project_id, tableName, JSON.stringify(columns)], function(err) {
             if (err) {
-                return res.json({ success: false, message: `Table "${tableName}" already exists.` });
+                return res.json({ success: false, message: 'Error: This table already exists or invalid prompt.' });
             }
-            res.json({ success: true, message: `AI successfully created table "${tableName}" with columns: ${columns.join(', ')}.` });
+            res.json({ success: true, tableName, columns, message: `AI successfully created table "${tableName}" with columns: ${columns.join(', ')}.` });
         });
 });
 
@@ -355,15 +348,15 @@ app.get('/api/database/rows/:tableName', verifyApiKey, (req, res) => {
     });
 });
 
-// 5. STORAGE & WEBP
+// 5. BUCKET UPLOAD WITH WEBP COMPRESSION
 app.post('/api/bucket/upload', verifyApiKey, upload.single('file'), async (req, res) => {
     try {
         const { bucketName } = req.body;
-        if (!req.file || !bucketName) return res.status(400).json({ error: 'File and bucket name required.' });
+        if (!req.file || !bucketName) return res.status(400).json({ error: 'Bucket name and file are required.' });
 
         db.get(`SELECT * FROM buckets WHERE project_id = ? AND bucket_name = ?`, [req.project.project_id, bucketName], async (err, bucket) => {
             if (!bucket || bucket.is_enabled === 0) {
-                return res.status(403).json({ error: 'Bucket is disabled or does not exist.' });
+                return res.status(403).json({ error: 'This bucket is disabled or does not exist.' });
             }
 
             const fileSize = req.file.buffer.length;
@@ -400,21 +393,19 @@ app.get('/api/bucket/files/:bucketName', verifyApiKey, (req, res) => {
     });
 });
 
-// 6. REAL-TIME ADMIN STATS & TOTAL STORAGE
+// 6. REAL-TIME ADMIN DASHBOARD (Total Sirdique Storage Calculation)
 app.get('/api/admin/stats', (req, res) => {
     db.get(`SELECT COUNT(*) as totalUsers FROM hub_users`, (err, uRow) => {
-        db.get(`SELECT COUNT(*) as totalProjects FROM projects`, (err, pRow) => {
-            db.get(`SELECT SUM(used_storage) as totalStorage FROM projects`, (err, sRow) => {
-                db.all(`SELECT * FROM hub_users`, (err, users) => {
-                    db.all(`SELECT * FROM projects`, (err, projects) => {
-                        res.json({
-                            success: true,
-                            totalUsers: uRow.totalUsers,
-                            totalProjects: pRow.totalProjects,
-                            totalStorage: sRow.totalStorage || 0,
-                            users,
-                            projects
-                        });
+        db.get(`SELECT COUNT(*) as totalProjects, SUM(used_storage) as totalStorageUsed FROM projects`, (err, pRow) => {
+            db.all(`SELECT * FROM hub_users`, (err, users) => {
+                db.all(`SELECT * FROM projects`, (err, projects) => {
+                    res.json({
+                        success: true,
+                        totalUsers: uRow ? uRow.totalUsers : 0,
+                        totalProjects: pRow ? pRow.totalProjects : 0,
+                        totalStorageUsed: pRow && pRow.totalStorageUsed ? pRow.totalStorageUsed : 0,
+                        users,
+                        projects
                     });
                 });
             });
