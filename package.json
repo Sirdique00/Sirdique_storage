@@ -1,7 +1,7 @@
 {
   "name": "sirdique-storage",
-  "version": "6.0.0",
-  "description": "Sirdique Storage Supabase-like Professional Backend",
+  "version": "7.0.0",
+  "description": "Sirdique Storage Supabase-like Professional Backend with Advanced Security",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
