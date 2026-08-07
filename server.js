@@ -25,6 +25,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
     else console.log('Connected to Sirdique Cloud SQLite database at:', dbPath);
 });
 
+// Database Initialization (Preserving all tables & structure)
 db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS hub_users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -89,10 +90,29 @@ db.serialize(() => {
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-// --- API KEY MIDDLEWARE ---
+// --- ADVANCED SECURITY & RATE LIMITER MIDDLEWARE ---
+const requestCounts = {};
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 Minute
+const MAX_REQUESTS_PER_WINDOW = 60; // 60 requests per minute per API Key
+
 const verifyApiKey = (req, res, next) => {
     const apiKey = req.headers['x-api-key'] || req.body.api_key;
     if (!apiKey) return res.status(401).json({ error: 'API Key is missing.' });
+
+    // Rate Limiting Check
+    const now = Date.now();
+    if (!requestCounts[apiKey]) {
+        requestCounts[apiKey] = { count: 1, startTime: now };
+    } else {
+        if (now - requestCounts[apiKey].startTime < RATE_LIMIT_WINDOW) {
+            requestCounts[apiKey].count++;
+            if (requestCounts[apiKey].count > MAX_REQUESTS_PER_WINDOW) {
+                return res.status(429).json({ error: 'Rate limit exceeded. Please slow down.' });
+            }
+        } else {
+            requestCounts[apiKey] = { count: 1, startTime: now };
+        }
+    }
 
     db.get(`SELECT * FROM projects WHERE api_key = ?`, [apiKey], (err, project) => {
         if (err || !project) return res.status(403).json({ error: 'Invalid API Key.' });
@@ -236,14 +256,26 @@ app.post('/api/buckets/toggle', verifyApiKey, (req, res) => {
     });
 });
 
-// 4. DATABASE TABLES & RLS
+// 4. DATABASE TABLES & DYNAMIC AUTO-HEALING COLUMNS
 app.post('/api/database/tables', verifyApiKey, (req, res) => {
     const { tableName, columns, enableRls } = req.body;
-    db.run(`INSERT INTO project_tables (project_id, table_name, columns) VALUES (?, ?, ?)`,
-        [req.project.project_id, tableName, JSON.stringify(columns)], function(err) {
-            if (err) return res.status(500).json({ error: err.message });
-            res.json({ success: true, rls: enableRls ? 'Enabled' : 'Disabled' });
-        });
+    db.get(`SELECT * FROM project_tables WHERE project_id = ? AND table_name = ?`, [req.project.project_id, tableName], (err, table) => {
+        if (table) {
+            // Auto-heal/Update columns if new ones are added later without breaking old data
+            let existingCols = JSON.parse(table.columns);
+            let mergedCols = Array.from(new Set([...existingCols, ...columns]));
+            db.run(`UPDATE project_tables SET columns = ? WHERE id = ?`, [JSON.stringify(mergedCols), table.id], (err) => {
+                if (err) return res.status(500).json({ error: err.message });
+                res.json({ success: true, message: 'Table columns updated successfully.' });
+            });
+        } else {
+            db.run(`INSERT INTO project_tables (project_id, table_name, columns) VALUES (?, ?, ?)`,
+                [req.project.project_id, tableName, JSON.stringify(columns)], function(err) {
+                    if (err) return res.status(500).json({ error: err.message });
+                    res.json({ success: true, rls: enableRls ? 'Enabled' : 'Disabled' });
+                });
+        }
+    });
 });
 
 app.get('/api/database/tables', verifyApiKey, (req, res) => {
@@ -270,7 +302,7 @@ app.get('/api/database/rows/:tableName', verifyApiKey, (req, res) => {
     });
 });
 
-// 5. BUCKET UPLOAD WITH WEBP COMPRESSION
+// 5. BUCKET UPLOAD WITH WEBP COMPRESSION & QUOTA ENFORCEMENT
 app.post('/api/bucket/upload', verifyApiKey, upload.single('file'), async (req, res) => {
     try {
         const { bucketName } = req.body;
