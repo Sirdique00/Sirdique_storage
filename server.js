@@ -89,27 +89,9 @@ db.serialize(() => {
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-const requestCounts = {};
-const RATE_LIMIT_WINDOW = 60 * 1000;
-const MAX_REQUESTS_PER_WINDOW = 60;
-
 const verifyApiKey = (req, res, next) => {
     const apiKey = req.headers['x-api-key'] || req.body.api_key;
     if (!apiKey) return res.status(401).json({ error: 'API Key is missing.' });
-
-    const now = Date.now();
-    if (!requestCounts[apiKey]) {
-        requestCounts[apiKey] = { count: 1, startTime: now };
-    } else {
-        if (now - requestCounts[apiKey].startTime < RATE_LIMIT_WINDOW) {
-            requestCounts[apiKey].count++;
-            if (requestCounts[apiKey].count > MAX_REQUESTS_PER_WINDOW) {
-                return res.status(429).json({ error: 'Rate limit exceeded. Please slow down.' });
-            }
-        } else {
-            requestCounts[apiKey] = { count: 1, startTime: now };
-        }
-    }
 
     db.get(`SELECT * FROM projects WHERE api_key = ?`, [apiKey], (err, project) => {
         if (err || !project) return res.status(403).json({ error: 'Invalid API Key.' });
@@ -118,24 +100,32 @@ const verifyApiKey = (req, res, next) => {
     });
 };
 
-// 1. AUTHENTICATION & SECURITY
+// 1. AUTHENTICATION & SECURITY (With strict Forgot Password Email Check)
 app.post('/api/hub/send-code', (req, res) => {
     const { email, type } = req.body;
     if(!email) return res.status(400).json({ error: 'Sanya email din ka.' });
 
     db.get(`SELECT * FROM hub_users WHERE email = ?`, [email], (err, user) => {
         if(type === 'signup' && user) return res.status(400).json({ error: 'An riga an yi rijista da wannan email din. Ka yi Sign In.' });
-        if(type === 'forgot' && !user) return res.status(400).json({ error: 'Wannan email din bai da rijista a tsarinmu ba.' });
+        if(type === 'forgot' && !user) return res.status(400).json({ error: 'Babu wani account da aka taba kirkira da wannan email din.' });
         
-        const code = Math.floor(100000 + Math.random() * 900000).toString();
-        const expires_at = Date.now() + 2 * 60 * 1000;
+        // Check if there's an unexpired code already to prevent spamming
+        db.get(`SELECT * FROM verification_codes WHERE email = ? AND type = ? AND expires_at > ?`, [email, type, Date.now()], (err, existingCode) => {
+            if (existingCode) {
+                const timeLeft = Math.ceil((existingCode.expires_at - Date.now()) / 1000);
+                return res.json({ success: true, code: existingCode.code, expires_at: existingCode.expires_at, reused: true });
+            }
 
-        db.run(`DELETE FROM verification_codes WHERE email = ? AND type = ?`, [email, type], () => {
-            db.run(`INSERT INTO verification_codes (email, code, type, expires_at) VALUES (?, ?, ?, ?)`, 
-                [email, code, type, expires_at], (err) => {
-                    if (err) return res.status(500).json({ error: err.message });
-                    res.json({ success: true, code });
-                });
+            const code = Math.floor(100000 + Math.random() * 900000).toString();
+            const expires_at = Date.now() + 2 * 60 * 1000;
+
+            db.run(`DELETE FROM verification_codes WHERE email = ? AND type = ?`, [email, type], () => {
+                db.run(`INSERT INTO verification_codes (email, code, type, expires_at) VALUES (?, ?, ?, ?)`, 
+                    [email, code, type, expires_at], (err) => {
+                        if (err) return res.status(500).json({ error: err.message });
+                        res.json({ success: true, code, expires_at, reused: false });
+                    });
+            });
         });
     });
 });
@@ -228,7 +218,7 @@ app.post('/api/projects/list', (req, res) => {
     });
 });
 
-// 3. STORAGE BUCKETS & RLS
+// 3. STORAGE BUCKETS
 app.post('/api/buckets/create', verifyApiKey, (req, res) => {
     const { bucketName } = req.body;
     if(!bucketName) return res.status(400).json({ error: 'Sanya sunan bucket.' });
@@ -254,9 +244,11 @@ app.post('/api/buckets/toggle', verifyApiKey, (req, res) => {
     });
 });
 
-// 4. DATABASE TABLES & DYNAMIC AUTO-HEALING COLUMNS
+// 4. DATABASE TABLES & AI PROMPT TABLE CREATOR
 app.post('/api/database/tables', verifyApiKey, (req, res) => {
     const { tableName, columns, enableRls } = req.body;
+    if(!tableName || !columns || columns.length === 0) return res.status(400).json({ error: 'Table name and columns are required.' });
+
     db.get(`SELECT * FROM project_tables WHERE project_id = ? AND table_name = ?`, [req.project.project_id, tableName], (err, table) => {
         if (table) {
             let existingCols = JSON.parse(table.columns);
@@ -270,6 +262,47 @@ app.post('/api/database/tables', verifyApiKey, (req, res) => {
                 [req.project.project_id, tableName, JSON.stringify(columns)], function(err) {
                     if (err) return res.status(500).json({ error: err.message });
                     res.json({ success: true, rls: enableRls ? 'Enabled' : 'Disabled' });
+                });
+        }
+    });
+});
+
+// AI Prompt to Table Converter endpoint
+app.post('/api/database/ai-table', verifyApiKey, (req, res) => {
+    const { prompt } = req.body;
+    if (!prompt) return res.status(400).json({ error: 'Prompt is required.' });
+
+    const lower = prompt.toLowerCase();
+    let tableName = 'custom_table_' + Math.floor(Math.random() * 1000);
+    let columns = ['name', 'created_at'];
+
+    if (lower.includes('order') || lower.includes('customer')) {
+        tableName = 'customer_orders';
+        columns = ['customer_name', 'item', 'price', 'phone'];
+    } else if (lower.includes('user') || lower.includes('profile')) {
+        tableName = 'users_profile';
+        columns = ['username', 'email', 'status'];
+    } else if (lower.includes('product') || lower.includes('store') || lower.includes('item')) {
+        tableName = 'store_products';
+        columns = ['product_name', 'price', 'stock', 'category'];
+    } else {
+        // Extract words as columns
+        const words = prompt.replace(/[^a-zA-Z0-9 ]/g, '').split(' ').filter(w => w.length > 2);
+        if (words.length > 0) {
+            tableName = words[0] + '_data';
+            columns = words.slice(1, 5);
+            if (columns.length === 0) columns = ['title', 'description'];
+        }
+    }
+
+    db.get(`SELECT * FROM project_tables WHERE project_id = ? AND table_name = ?`, [req.project.project_id, tableName], (err, table) => {
+        if (table) {
+            res.json({ success: true, tableName, columns: JSON.parse(table.columns), message: `AI successfully matched existing table: ${tableName}` });
+        } else {
+            db.run(`INSERT INTO project_tables (project_id, table_name, columns) VALUES (?, ?, ?)`,
+                [req.project.project_id, tableName, JSON.stringify(columns)], function(err) {
+                    if (err) return res.status(500).json({ error: err.message });
+                    res.json({ success: true, tableName, columns, message: `AI successfully generated table '${tableName}' with columns!` });
                 });
         }
     });
@@ -299,7 +332,7 @@ app.get('/api/database/rows/:tableName', verifyApiKey, (req, res) => {
     });
 });
 
-// 5. BUCKET UPLOAD WITH WEBP COMPRESSION & QUOTA ENFORCEMENT
+// 5. BUCKET UPLOAD WITH WEBP COMPRESSION
 app.post('/api/bucket/upload', verifyApiKey, upload.single('file'), async (req, res) => {
     try {
         const { bucketName } = req.body;
