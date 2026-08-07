@@ -160,7 +160,7 @@
             </div>
         </div>
 
-        <!-- SINGLE PROJECT DASHBOARD (Buckets & Table Editor) -->
+        <!-- SINGLE PROJECT DASHBOARD -->
         <div id="page-single-project" class="full-page hidden flex-1 p-6 md:p-10 max-w-7xl mx-auto w-full space-y-6">
             <div class="flex justify-between items-center border-b border-slate-200 pb-4">
                 <h2 id="spTitle" class="text-xl font-bold text-slate-900"></h2>
@@ -369,7 +369,6 @@
             document.getElementById('app-container').classList.remove('hidden');
             document.getElementById('settingsEmail').innerText = loggedInEmail;
             
-            // Check if Super Admin
             if(loggedInEmail === 'abubakarsadeeq8533@gmail.com') {
                 document.getElementById('adminMenuLink').classList.remove('hidden');
                 openFullPage('admin-dashboard');
@@ -595,7 +594,6 @@
             loadTables();
         }
 
-        // BUCKETS MANAGEMENT UI
         async function createBucket() {
             const bucketName = document.getElementById('newBucketNameInput').value;
             if(!bucketName) return alert('Sanya sunan bucket!');
