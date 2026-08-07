@@ -31,7 +31,6 @@
                 <input type="email" id="authEmail" placeholder="you@example.com" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-sm text-slate-900">
                 <input type="password" id="authPassword" placeholder="••••••••" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-sm text-slate-900">
                 
-                <!-- BOT PROTECTION (Cloudflare Turnstile) -->
                 <div class="flex justify-center py-2">
                     <div class="cf-turnstile" data-sitekey="1x00000000000000000000AA" data-callback="verifyCallback"></div>
                 </div>
@@ -96,20 +95,26 @@
             </div>
         </header>
 
-        <!-- SIDEBAR -->
+        <!-- SIDEBAR (Ingantaccen Tsari) -->
         <div id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-white border-r border-slate-200 shadow-2xl transform -translate-x-full transition-transform duration-300 z-30 flex flex-col">
             <div class="p-5 border-b border-slate-200 flex justify-between items-center">
-                <span class="font-bold text-sm text-slate-900">Menu</span>
-                <button onclick="toggleSidebar()" class="text-slate-400">&times;</button>
+                <span class="font-bold text-sm text-slate-900">Sirdique Menu</span>
+                <button onclick="toggleSidebar()" class="text-slate-400 font-bold text-lg">&times;</button>
             </div>
             <div class="flex-1 p-4 space-y-2 text-xs font-medium">
-                <button onclick="openFullPage('home'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-100 text-slate-700">📂 Projects</button>
-                <button onclick="openFullPage('new-project'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-100 text-slate-700">➕ Create Project</button>
-                <div id="adminMenuLink" class="hidden">
-                    <button onclick="openFullPage('admin-dashboard'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg bg-indigo-50 text-indigo-700 font-bold">🛡️ Admin Dashboard</button>
+                <button onclick="openFullPage('home'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-100 text-slate-700 flex items-center space-x-2"><span>📂</span><span>My Projects</span></button>
+                <button onclick="openFullPage('new-project'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-100 text-slate-700 flex items-center space-x-2"><span>➕</span><span>Create Project</span></button>
+                
+                <div id="adminMenuSection" class="hidden pt-2 border-t border-slate-200 space-y-2">
+                    <p class="text-[10px] font-bold text-indigo-600 uppercase px-2">Admin Control</p>
+                    <button onclick="openFullPage('admin-dashboard'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg bg-indigo-50 text-indigo-700 font-bold flex items-center space-x-2"><span>🛡️</span><span>Admin Dashboard</span></button>
+                    <button onclick="openFullPage('admin-all-projects'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg hover:bg-indigo-50 text-indigo-700 flex items-center space-x-2"><span>🌐</span><span>All Projects (Live)</span></button>
                 </div>
-                <button onclick="openFullPage('rules'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-100 text-slate-700">📖 API Docs & RLS</button>
-                <button onclick="openFullPage('settings'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-100 text-slate-700">⚙️ Account Settings</button>
+
+                <div class="pt-2 border-t border-slate-200 space-y-2">
+                    <button onclick="openFullPage('rules'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-100 text-slate-700 flex items-center space-x-2"><span>📖</span><span>API Docs & RLS</span></button>
+                    <button onclick="openFullPage('settings'); toggleSidebar();" class="w-full text-left p-2.5 rounded-lg hover:bg-slate-100 text-slate-700 flex items-center space-x-2"><span>⚙️</span><span>Account Settings</span></button>
+                </div>
             </div>
         </div>
         <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/30 hidden z-20"></div>
@@ -144,7 +149,7 @@
                 </div>
             </div>
             <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
-                <h3 class="font-bold text-sm text-slate-900">Real-time Registered Users Management</h3>
+                <h3 class="font-bold text-sm text-slate-900">Registered Users (Click email for details)</h3>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs text-slate-700">
                         <thead>
@@ -156,6 +161,57 @@
                             </tr>
                         </thead>
                         <tbody id="adminUsersTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ADMIN ALL PROJECTS LIVE VIEW -->
+        <div id="page-admin-all-projects" class="full-page hidden flex-1 p-6 md:p-10 max-w-7xl mx-auto w-full space-y-6">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-4">
+                <h2 class="text-xl font-bold text-indigo-700">🌐 All Projects (Live Real-Time Monitor)</h2>
+                <button onclick="openFullPage('admin-dashboard')" class="text-xs bg-slate-200 px-3 py-1.5 rounded-lg">&larr; Back to Dashboard</button>
+            </div>
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-700">
+                        <thead>
+                            <tr class="border-b border-slate-200">
+                                <th class="p-2">Project Name</th>
+                                <th class="p-2">Project ID</th>
+                                <th class="p-2">Owner Email</th>
+                                <th class="p-2">Storage Used</th>
+                                <th class="p-2">Created At</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminAllProjectsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ADMIN USER DETAILS VIEW (NO API KEYS) -->
+        <div id="page-admin-user-details" class="full-page hidden flex-1 p-6 md:p-10 max-w-7xl mx-auto w-full space-y-6">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-4">
+                <div>
+                    <h2 class="text-xl font-bold text-indigo-700">👤 User Details: <span id="userDetailTitleEmail" class="text-slate-900"></span></h2>
+                    <p class="text-xs text-slate-500">Viewing user projects and storage details (API keys hidden for security).</p>
+                </div>
+                <button onclick="openFullPage('admin-dashboard')" class="text-xs bg-slate-200 px-3 py-1.5 rounded-lg">&larr; Back to Dashboard</button>
+            </div>
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <h3 class="font-bold text-sm text-slate-900">User Projects</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-700">
+                        <thead>
+                            <tr class="border-b border-slate-200">
+                                <th class="p-2">Project Name</th>
+                                <th class="p-2">Project ID</th>
+                                <th class="p-2">Storage Used</th>
+                                <th class="p-2">Created At</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminUserDetailsTableBody"></tbody>
                     </table>
                 </div>
             </div>
@@ -259,6 +315,7 @@
         let tempSignupData = {};
         let countdownInterval = null;
         let isCaptchaVerified = false;
+        let cachedAdminData = null;
 
         function verifyCallback(token) {
             if (token) {
@@ -377,8 +434,8 @@
                         document.getElementById('authTabsContainer').classList.add('hidden');
                         document.getElementById('otpVerifyForm').classList.remove('hidden');
                         startCountdown('countdownTimer', 'resendBtn');
-                    }).catch(err => {
-                        alert('EmailJS Notice: Code generated. (If offline, code is: ' + data.code + ')');
+                    }).catch(() => {
+                        alert('Verification Code (Offline Mode): ' + data.code);
                         document.getElementById('standardAuthForm').classList.add('hidden');
                         document.getElementById('authTabsContainer').classList.add('hidden');
                         document.getElementById('otpVerifyForm').classList.remove('hidden');
@@ -416,17 +473,8 @@
             });
             const data = await res.json();
             if(data.success) {
-                emailjs.send('service_49wqltg', 'template_dqofkf8', {
-                    to_email: email,
-                    passcode: data.code,
-                    message: `Your new Sirdique Verification Code is: ${data.code}.`
-                }).then(() => {
-                    alert('New verification code sent successfully!');
-                    startCountdown('countdownTimer', 'resendBtn');
-                }).catch(() => {
-                    alert('New code generated: ' + data.code);
-                    startCountdown('countdownTimer', 'resendBtn');
-                });
+                alert('New verification code generated: ' + data.code);
+                startCountdown('countdownTimer', 'resendBtn');
             }
         }
 
@@ -453,34 +501,17 @@
         async function requestForgotCode() {
             const email = document.getElementById('forgotEmail').value;
             if(!email) return alert('Please enter your email!');
-
-            const forgotBtn = document.getElementById('forgotSendBtn');
-            forgotBtn.disabled = true;
-
             const res = await fetch('/api/hub/send-code', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ email, type: 'forgot' })
             });
             const data = await res.json();
-            forgotBtn.disabled = false;
-
             if(data.success) {
-                emailjs.send('service_49wqltg', 'template_dqofkf8', {
-                    to_email: email,
-                    passcode: data.code,
-                    message: `Your Password Reset Code is: ${data.code}. Expires in 2 minutes.`
-                }).then(() => {
-                    alert('Reset code sent to your email!');
-                    document.getElementById('forgotPasswordForm').classList.add('hidden');
-                    document.getElementById('resetPasswordForm').classList.remove('hidden');
-                    startCountdown('resetCountdownTimer', 'resetResendBtn');
-                }).catch(() => {
-                    alert('Reset code generated: ' + data.code);
-                    document.getElementById('forgotPasswordForm').classList.add('hidden');
-                    document.getElementById('resetPasswordForm').classList.remove('hidden');
-                    startCountdown('resetCountdownTimer', 'resetResendBtn');
-                });
+                alert('Reset Code: ' + data.code);
+                document.getElementById('forgotPasswordForm').classList.add('hidden');
+                document.getElementById('resetPasswordForm').classList.remove('hidden');
+                startCountdown('resetCountdownTimer', 'resetResendBtn');
             } else {
                 alert(data.error);
             }
@@ -496,17 +527,8 @@
             });
             const data = await res.json();
             if(data.success) {
-                emailjs.send('service_49wqltg', 'template_dqofkf8', {
-                    to_email: email,
-                    passcode: data.code,
-                    message: `Your new Reset Code is: ${data.code}.`
-                }).then(() => {
-                    alert('New reset code sent successfully!');
-                    startCountdown('resetCountdownTimer', 'resetResendBtn');
-                }).catch(() => {
-                    alert('New reset code: ' + data.code);
-                    startCountdown('resetCountdownTimer', 'resetResendBtn');
-                });
+                alert('New Reset Code: ' + data.code);
+                startCountdown('resetCountdownTimer', 'resetResendBtn');
             }
         }
 
@@ -537,7 +559,7 @@
             document.getElementById('settingsEmail').innerText = loggedInEmail;
             
             if(loggedInEmail === 'abubakarsadeeq8533@gmail.com') {
-                document.getElementById('adminMenuLink').classList.remove('hidden');
+                document.getElementById('adminMenuSection').classList.remove('hidden');
                 openFullPage('admin-dashboard');
             } else {
                 openFullPage('home');
@@ -552,7 +574,7 @@
         }
 
         function openFullPage(pageName) {
-            const pages = ['home', 'new-project', 'settings', 'rules', 'single-project', 'admin-dashboard'];
+            const pages = ['home', 'new-project', 'settings', 'rules', 'single-project', 'admin-dashboard', 'admin-all-projects', 'admin-user-details'];
             pages.forEach(p => {
                 const el = document.getElementById(`page-${p}`);
                 if(el) el.classList.add('hidden');
@@ -567,6 +589,9 @@
             } else if(pageName === 'admin-dashboard') {
                 loadAdminStats();
                 adminRefreshInterval = setInterval(loadAdminStats, 3000);
+            } else if(pageName === 'admin-all-projects') {
+                loadAdminAllProjects();
+                adminRefreshInterval = setInterval(loadAdminAllProjects, 3000);
             }
         }
 
@@ -574,6 +599,7 @@
             const res = await fetch('/api/admin/stats');
             const data = await res.json();
             if(data.success) {
+                cachedAdminData = data;
                 document.getElementById('adminTotalUsers').innerText = data.totalUsers;
                 document.getElementById('adminTotalProjects').innerText = data.totalProjects;
                 document.getElementById('adminTotalStorage').innerText = `${Math.round(data.totalStorage / 1024)} KB`;
@@ -583,7 +609,7 @@
                 data.users.forEach(u => {
                     tbody.innerHTML += `
                         <tr class="border-b border-slate-100">
-                            <td class="p-2 font-mono">${u.email}</td>
+                            <td class="p-2"><button onclick="openAdminUserDetails('${u.email}')" class="font-mono text-indigo-600 hover:underline font-bold">${u.email}</button></td>
                             <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] ${u.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${u.status}</span></td>
                             <td class="p-2">${u.last_login || 'Never'}</td>
                             <td class="p-2 space-x-1">
@@ -593,6 +619,49 @@
                         </tr>`;
                 });
             }
+        }
+
+        async function loadAdminAllProjects() {
+            const res = await fetch('/api/admin/stats');
+            const data = await res.json();
+            if(data.success) {
+                cachedAdminData = data;
+                let tbody = document.getElementById('adminAllProjectsTableBody');
+                tbody.innerHTML = '';
+                data.projects.forEach(p => {
+                    tbody.innerHTML += `
+                        <tr class="border-b border-slate-100">
+                            <td class="p-2 font-bold text-slate-900">${p.name}</td>
+                            <td class="p-2 font-mono text-indigo-600">${p.project_id}</td>
+                            <td class="p-2 font-mono text-slate-600">${p.owner_email}</td>
+                            <td class="p-2">${Math.round(p.used_storage / 1024)} KB</td>
+                            <td class="p-2 text-slate-400">${p.created_at}</td>
+                        </tr>`;
+                });
+            }
+        }
+
+        function openAdminUserDetails(email) {
+            if(!cachedAdminData) return;
+            document.getElementById('userDetailTitleEmail').innerText = email;
+            const userProjects = cachedAdminData.projects.filter(p => p.owner_email === email);
+            let tbody = document.getElementById('adminUserDetailsTableBody');
+            tbody.innerHTML = '';
+
+            if(userProjects.length > 0) {
+                userProjects.forEach(p => {
+                    tbody.innerHTML += `
+                        <tr class="border-b border-slate-100">
+                            <td class="p-2 font-bold text-slate-900">${p.name}</td>
+                            <td class="p-2 font-mono text-indigo-600">${p.project_id}</td>
+                            <td class="p-2">${Math.round(p.used_storage / 1024)} KB</td>
+                            <td class="p-2 text-slate-400">${p.created_at}</td>
+                        </tr>`;
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="4" class="p-3 text-slate-400">No projects found for this user.</td></tr>';
+            }
+            openFullPage('admin-user-details');
         }
 
         async function adminUserAction(email, action) {
