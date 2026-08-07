@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sirdique Studio — Cloud Infrastructure</title>
+    <title>Sirdique Studio — Universal Cloud Infrastructure</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script type="text/javascript">
@@ -18,7 +18,7 @@
             <div class="text-center space-y-2">
                 <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 mb-2 font-bold text-xl border border-emerald-200">S</div>
                 <h1 class="text-2xl font-bold tracking-tight text-slate-900">Sirdique Studio</h1>
-                <p class="text-xs text-slate-500">Secure Backend Infrastructure & Cloud Storage</p>
+                <p class="text-xs text-slate-500">Universal Backend Infrastructure & Cloud Storage</p>
             </div>
             
             <div id="authTabsContainer" class="flex border-b border-slate-200 pb-2 space-x-4">
@@ -35,7 +35,6 @@
                 </div>
             </div>
 
-            <!-- OTP FORM WITH RESEND & COUNTDOWN -->
             <div id="otpVerifyForm" class="hidden space-y-4">
                 <p class="text-xs text-slate-600 text-center">Enter the confirmation code sent to your email:</p>
                 <input type="text" id="otpCodeInput" placeholder="6-digit code" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-center tracking-widest text-lg font-bold text-slate-900">
@@ -117,7 +116,7 @@
             <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2"></div>
         </div>
 
-        <!-- ADMIN DASHBOARD PAGE (Real-Time Metrics & Total Storage) -->
+        <!-- ADMIN DASHBOARD PAGE -->
         <div id="page-admin-dashboard" class="full-page hidden flex-1 p-6 md:p-10 max-w-7xl mx-auto w-full space-y-6">
             <div class="flex justify-between items-center border-b border-slate-200 pb-4">
                 <h2 class="text-xl font-bold text-indigo-700">🛡️ Super Admin Control Center</h2>
@@ -186,7 +185,7 @@
                 </div>
                 <div class="space-x-1 bg-white p-1 rounded-lg border border-slate-200 text-xs shadow-sm">
                     <button onclick="switchSpTab('tables')" id="btnSpTables" class="px-3 py-1.5 rounded-md font-medium bg-emerald-600 text-white">Table Editor</button>
-                    <button onclick="switchSpTab('ai')" id="btnSpAi" class="px-3 py-1.5 rounded-md font-medium text-slate-600">🤖 AI SQL Prompt</button>
+                    <button onclick="switchSpTab('ai')" id="btnSpAi" class="px-3 py-1.5 rounded-md font-medium text-slate-600">🤖 AI Prompt Studio</button>
                     <button onclick="switchSpTab('bucket')" id="btnSpBucket" class="px-3 py-1.5 rounded-md font-medium text-slate-600">Storage Buckets</button>
                     <button onclick="switchSpTab('apikeys')" id="btnSpKeys" class="px-3 py-1.5 rounded-md font-medium text-slate-600">API Settings</button>
                 </div>
@@ -206,14 +205,14 @@
                 <div id="tablesContainer" class="space-y-6"></div>
             </div>
 
-            <!-- AI SQL PROMPT VIEW (Supports table creation & table drop/delete) -->
+            <!-- AI PROMPT STUDIO (Multilingual Hausa & English - Tables, RLS, Drops) -->
             <div id="sp-ai" class="hidden space-y-6 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                 <div class="space-y-2">
-                    <h3 class="text-base font-bold text-slate-900">🤖 AI SQL / Prompt Table Generator & Manager</h3>
-                    <p class="text-xs text-slate-500">Type instructions (e.g., "Create a users table" or "Delete users_table") and AI will manage your database instantly.</p>
+                    <h3 class="text-base font-bold text-slate-900">🤖 AI Multilingual Prompt Studio (Hausa & English)</h3>
+                    <p class="text-xs text-slate-500">Rubuta umarni a Turanci ko Hausa (misali: "Kirkiro teburin class, students, da code, sannan ka kunna wa class RLS ko ka goge kaza").</p>
                 </div>
                 <div class="space-y-3">
-                    <textarea id="aiPromptInput" rows="3" placeholder="Type your prompt here..." class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-xs text-slate-900"></textarea>
+                    <textarea id="aiPromptInput" rows="3" placeholder="Type prompt in English or Hausa..." class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-xs text-slate-900"></textarea>
                     <button onclick="runAiTableGenerator()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-semibold">Execute AI Prompt</button>
                     <div id="aiResponseMsg" class="text-xs font-medium pt-2"></div>
                 </div>
@@ -224,22 +223,21 @@
                 <div class="bg-white p-5 rounded-xl border border-slate-200 space-y-4 shadow-sm">
                     <h3 class="font-semibold text-xs text-slate-700 uppercase">Create Storage Bucket</h3>
                     <div class="flex space-x-2">
-                        <input type="text" id="newBucketNameInput" placeholder="bucket-name (e.g. avatar-vault)" class="flex-1 bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-xs text-slate-900">
+                        <input type="text" id="newBucketNameInput" placeholder="bucket-name (e.g. passport)" class="flex-1 bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-xs text-slate-900">
                         <button onclick="createBucket()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs font-semibold">Create Bucket</button>
                     </div>
                 </div>
                 <div id="bucketsListContainer" class="space-y-6"></div>
             </div>
 
-            <!-- API KEYS & ENDPOINTS VIEW -->
+            <!-- UNIVERSAL API KEYS & ENDPOINT VIEW -->
             <div id="sp-apikeys" class="hidden space-y-6 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                <h3 class="text-base font-bold text-slate-900">Project API Configuration & Endpoints</h3>
+                <h3 class="text-base font-bold text-slate-900">Universal API Endpoint & Configuration</h3>
                 <div class="space-y-3 text-xs text-slate-700">
                     <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex justify-between"><span>Project ID:</span> <span id="infoProjId" class="text-emerald-600 font-mono font-bold"></span></p>
-                    <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex justify-between"><span>API Key:</span> <span id="infoApiKey" class="text-emerald-600 font-mono font-bold"></span></p>
-                    <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex justify-between"><span>Database Endpoint URL:</span> <span id="infoDbEndpoint" class="text-indigo-600 font-mono"></span></p>
-                    <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex justify-between"><span>Storage Endpoint URL:</span> <span id="infoStorageEndpoint" class="text-indigo-600 font-mono"></span></p>
-                    <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex justify-between"><span>Status:</span> <span class="text-green-600 font-bold">● Active & Live on External Web</span></p>
+                    <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex justify-between"><span>API Key (Real & Verified):</span> <span id="infoApiKey" class="text-emerald-600 font-mono font-bold"></span></p>
+                    <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex justify-between"><span>Universal Endpoint URL:</span> <span id="infoUniversalEndpoint" class="text-indigo-600 font-mono"></span></p>
+                    <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex justify-between"><span>Status:</span> <span class="text-green-600 font-bold">● Active & Secure</span></p>
                 </div>
             </div>
         </div>
@@ -539,7 +537,7 @@
                 loadMyProjects();
             } else if(pageName === 'admin-dashboard') {
                 loadAdminStats();
-                adminRefreshInterval = setInterval(loadAdminStats, 3000); // Real-time admin updates
+                adminRefreshInterval = setInterval(loadAdminStats, 3000);
             }
         }
 
@@ -595,7 +593,7 @@
                 emailjs.send('service_49wqltg', 'template_dqofkf8', {
                     to_email: loggedInEmail,
                     passcode: 'PROJECT-CREATED',
-                    message: `Your new project "${projectName}" has been successfully created in Sirdique Cloud Storage with live API keys.`
+                    message: `Your new project "${projectName}" has been successfully created in Sirdique Cloud Storage with verified API keys.`
                 }).catch(() => {});
 
                 document.getElementById('newProjectName').value = '';
@@ -644,7 +642,6 @@
 
         function toggleProjectMenu(event, projectId) {
             event.stopPropagation();
-            // Close all other menus first
             document.querySelectorAll('[id^="menu-"]').forEach(el => {
                 if(el.id !== `menu-${projectId}`) el.classList.add('hidden');
             });
@@ -669,15 +666,12 @@
                 body: JSON.stringify({ projectId, newName })
             });
             const data = await res.json();
-            if(data.success) {
-                loadMyProjects();
-            } else {
-                alert(data.error);
-            }
+            if(data.success) loadMyProjects();
+            else alert(data.error);
         }
 
         async function deleteProject(projectId) {
-            if(!confirm('Are you sure you want to permanently delete this project? All tables, files, and API keys will be destroyed!')) return;
+            if(!confirm('Permanently delete project? All tables, files, and keys will be destroyed!')) return;
 
             const res = await fetch('/api/projects/delete', {
                 method: 'POST',
@@ -685,11 +679,8 @@
                 body: JSON.stringify({ projectId })
             });
             const data = await res.json();
-            if(data.success) {
-                loadMyProjects();
-            } else {
-                alert(data.error);
-            }
+            if(data.success) loadMyProjects();
+            else alert(data.error);
         }
 
         function openProject(projectId) {
@@ -701,8 +692,7 @@
             document.getElementById('activeProjectBreadcrumb').innerText = `/ ${activeProject.name}`;
             document.getElementById('infoProjId').innerText = activeProject.project_id;
             document.getElementById('infoApiKey').innerText = activeProject.api_key;
-            document.getElementById('infoDbEndpoint').innerText = `${window.location.origin}/api/database/rows/your_table`;
-            document.getElementById('infoStorageEndpoint').innerText = `${window.location.origin}/api/bucket/upload`;
+            document.getElementById('infoUniversalEndpoint').innerText = `${window.location.origin}/api/v1/execute`;
             switchSpTab('tables');
             startLiveSync(activeProject.project_id);
         }
@@ -759,14 +749,13 @@
             }
         }
 
-        // AI SQL Prompt Generator & Table Drop Manager
         async function runAiTableGenerator() {
             const prompt = document.getElementById('aiPromptInput').value;
             const msgEl = document.getElementById('aiResponseMsg');
             if(!prompt) return alert('Please enter a prompt!');
 
             msgEl.className = 'text-xs font-medium pt-2 text-indigo-600';
-            msgEl.innerText = '🤖 AI is processing your request...';
+            msgEl.innerText = '🤖 AI is processing your request (Hausa & English)...';
 
             const res = await fetch('/api/database/ai-create-table', {
                 method: 'POST',
@@ -779,9 +768,7 @@
                 msgEl.className = 'text-xs font-medium pt-2 text-green-600';
                 msgEl.innerText = data.message;
                 document.getElementById('aiPromptInput').value = '';
-                setTimeout(() => {
-                    switchSpTab('tables');
-                }, 1500);
+                setTimeout(() => { switchSpTab('tables'); }, 1500);
             } else {
                 msgEl.className = 'text-xs font-medium pt-2 text-red-600';
                 msgEl.innerText = data.message;
@@ -803,7 +790,7 @@
 
                     let html = `
                         <div class="bg-white p-5 rounded-xl border border-slate-200 space-y-4 shadow-sm">
-                            <h4 class="font-bold text-slate-900 text-xs uppercase">Table: <span class="text-emerald-600">${t.table_name}</span> (RLS Enabled)</h4>
+                            <h4 class="font-bold text-slate-900 text-xs uppercase">Table: <span class="text-emerald-600">${t.table_name}</span> (${t.rls_enabled ? 'RLS Enabled' : 'RLS Disabled'})</h4>
                             <div class="overflow-x-auto"><table class="w-full text-left text-xs text-slate-700"><thead><tr class="border-b border-slate-200">${cols.map(c => `<th class="p-2">${c}</th>`).join('')}</tr></thead><tbody>`;
                     rows.forEach(r => {
                         const parsed = JSON.parse(r.row_data);
@@ -818,7 +805,7 @@
                     container.innerHTML += html;
                 }
             } else {
-                container.innerHTML = '<p class="text-xs text-slate-500">No tables created yet. Use Table Editor or AI SQL Prompt.</p>';
+                container.innerHTML = '<p class="text-xs text-slate-500">No tables created yet. Use Table Editor or AI Prompt Studio.</p>';
             }
         }
 
@@ -910,7 +897,7 @@
             formData.append('file', fileInput);
             formData.append('bucketName', bucketName);
 
-            const res = await fetch('/api/bucket/upload', {
+            const res = await fetch('https://sirdique-storage.onrender.com/api/v1/execute', {
                 method: 'POST',
                 headers: {'x-api-key': activeProject.api_key},
                 body: formData
