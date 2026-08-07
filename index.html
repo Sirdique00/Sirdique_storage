@@ -29,31 +29,39 @@
             <div id="standardAuthForm" class="space-y-4">
                 <input type="email" id="authEmail" placeholder="you@example.com" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-sm text-slate-900">
                 <input type="password" id="authPassword" placeholder="••••••••" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-sm text-slate-900">
-                <button onclick="handleAuthSubmit()" id="authSubmitBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium p-3 rounded-lg text-sm">Sign In</button>
+                <button onclick="handleAuthSubmit()" id="authSubmitBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium p-3 rounded-lg text-sm transition">Sign In</button>
                 <div class="text-right">
                     <button onclick="showForgotPasswordView()" class="text-xs text-emerald-600 hover:underline">Forgot password?</button>
                 </div>
             </div>
 
-            <!-- OTP VERIFY FORM WITH TIMER & RESEND -->
+            <!-- OTP VERIFY FORM WITH COUNTER & RESEND -->
             <div id="otpVerifyForm" class="hidden space-y-4">
-                <p class="text-xs text-slate-600 text-center">Sanya confirmation code (Minti 2 zai expire):</p>
+                <p class="text-xs text-slate-600 text-center">An tura confirmation code zuwa email dinka.</p>
                 <input type="text" id="otpCodeInput" placeholder="Lamba 6" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-center tracking-widest text-lg font-bold text-slate-900">
                 <button onclick="verifyAndCompleteSignup()" class="w-full bg-emerald-600 text-white p-3 rounded-lg text-sm font-semibold">Tabbatar da Code</button>
                 
-                <div class="flex justify-between items-center text-xs pt-1">
-                    <button id="resendBtn" onclick="resendOtpCode()" disabled class="bg-slate-300 text-slate-500 px-3 py-1.5 rounded cursor-not-allowed">Resend Code</button>
-                    <span id="timerDisplay" class="font-mono text-emerald-600 font-bold">02:00</span>
+                <div class="flex justify-between items-center pt-2 text-xs">
+                    <button onclick="cancelOtpView()" class="text-slate-500 hover:underline">Komawa</button>
+                    <div class="text-right">
+                        <button id="resendSignupBtn" onclick="resendSignupCode()" disabled class="text-emerald-600 font-semibold disabled:text-slate-400 disabled:cursor-not-allowed">Resend Code</button>
+                        <span id="resendSignupTimer" class="text-slate-400 block text-[10px]"></span>
+                    </div>
                 </div>
-
-                <button onclick="cancelOtpView()" class="w-full bg-slate-200 text-slate-700 p-2 rounded-lg text-xs mt-2">Komawa</button>
             </div>
 
+            <!-- FORGOT PASSWORD FORM WITH COUNTER & RESEND -->
             <div id="forgotPasswordForm" class="hidden space-y-4">
                 <p class="text-xs text-slate-600">Sanya email dinka don tura code na forgot password.</p>
                 <input type="email" id="forgotEmail" placeholder="you@example.com" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-sm text-slate-900">
-                <button onclick="requestForgotCode()" class="w-full bg-emerald-600 text-white p-3 rounded-lg text-sm">Tura Code</button>
-                <button onclick="cancelForgotPassword()" class="w-full bg-slate-200 text-slate-700 p-2 rounded-lg text-xs">Komawa</button>
+                <button id="forgotSendBtn" onclick="requestForgotCode()" class="w-full bg-emerald-600 text-white p-3 rounded-lg text-sm">Tura Code</button>
+                <div class="flex justify-between items-center pt-2 text-xs">
+                    <button onclick="cancelForgotPassword()" class="text-slate-500 hover:underline">Komawa</button>
+                    <div class="text-right">
+                        <button id="resendForgotBtn" onclick="requestForgotCode()" disabled class="text-emerald-600 font-semibold disabled:text-slate-400 disabled:cursor-not-allowed">Resend Code</button>
+                        <span id="resendForgotTimer" class="text-slate-400 block text-[10px]"></span>
+                    </div>
+                </div>
             </div>
 
             <div id="resetPasswordForm" class="hidden space-y-4">
@@ -149,7 +157,7 @@
             <div class="bg-white p-8 rounded-xl border border-slate-200 space-y-5 w-full shadow-xl">
                 <h2 class="text-lg font-bold text-slate-900">Create a new project</h2>
                 <input type="text" id="newProjectName" placeholder="production-db" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-sm text-slate-900">
-                <button onclick="createProject()" class="w-full bg-emerald-600 text-white p-3 rounded-lg text-xs font-semibold">Create</button>
+                <button onclick="createProject()" id="createProjBtn" class="w-full bg-emerald-600 text-white p-3 rounded-lg text-xs font-semibold">Create</button>
             </div>
         </div>
 
@@ -221,7 +229,7 @@
         let activeProject = null;
         let liveSyncInterval = null;
         let tempSignupData = {};
-        let otpTimerInterval = null;
+        let countdownTimer = null;
 
         if (loggedInEmail) showMainApp();
 
@@ -254,44 +262,54 @@
             document.getElementById('resetPasswordForm').classList.add('hidden');
             document.getElementById('authTabsContainer').classList.remove('hidden');
             document.getElementById('standardAuthForm').classList.remove('hidden');
+            if (countdownTimer) clearInterval(countdownTimer);
         }
 
         function cancelOtpView() {
-            if (otpTimerInterval) clearInterval(otpTimerInterval);
             document.getElementById('otpVerifyForm').classList.add('hidden');
             document.getElementById('authTabsContainer').classList.remove('hidden');
             document.getElementById('standardAuthForm').classList.remove('hidden');
+            if (countdownTimer) clearInterval(countdownTimer);
         }
 
-        function startOtpCountdown() {
-            let timeLeft = 120; // Minti 2 (120 seconds)
-            const resendBtn = document.getElementById('resendBtn');
-            const timerDisplay = document.getElementById('timerDisplay');
-            
-            resendBtn.disabled = true;
-            resendBtn.className = "bg-slate-300 text-slate-500 px-3 py-1.5 rounded cursor-not-allowed";
+        // START COUNTDOWN TIMER FOR RESEND BUTTON
+        function startResendTimer(btnId, timerId, storageKey) {
+            const btn = document.getElementById(btnId);
+            const timerSpan = document.getElementById(timerId);
+            btn.disabled = true;
 
-            if (otpTimerInterval) clearInterval(otpTimerInterval);
+            let expiresAt = localStorage.getItem(storageKey);
+            const now = Date.now();
 
-            otpTimerInterval = setInterval(() => {
-                let mins = Math.floor(timeLeft / 60);
-                let secs = timeLeft % 60;
-                timerDisplay.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            if (!expiresAt || expiresAt < now) {
+                expiresAt = now + 120 * 1000; // 2 minutes
+                localStorage.setItem(storageKey, expiresAt);
+            }
+
+            if (countdownTimer) clearInterval(countdownTimer);
+
+            countdownTimer = setInterval(() => {
+                const timeLeft = Math.max(0, Math.floor((localStorage.getItem(storageKey) - Date.now()) / 1000));
+                const mins = Math.floor(timeLeft / 60);
+                const secs = timeLeft % 60;
+                timerSpan.innerText = `Sauran ${mins}:${secs < 10 ? '0' : ''}${secs}`;
 
                 if (timeLeft <= 0) {
-                    clearInterval(otpTimerInterval);
-                    timerDisplay.innerText = "00:00";
-                    resendBtn.disabled = false;
-                    resendBtn.className = "bg-emerald-600 text-white px-3 py-1.5 rounded hover:bg-emerald-700 cursor-pointer";
+                    clearInterval(countdownTimer);
+                    btn.disabled = false;
+                    timerSpan.innerText = '';
+                    localStorage.removeItem(storageKey);
                 }
-                timeLeft--;
             }, 1000);
         }
 
         async function handleAuthSubmit() {
             const email = document.getElementById('authEmail').value;
             const password = document.getElementById('authPassword').value;
-            if(!email || !password) return alert('Cika duk wuraren!');
+            if(!email || !password) return alert('Fill all fields!');
+
+            const submitBtn = document.getElementById('authSubmitBtn');
+            submitBtn.disabled = true;
 
             if(currentAuthMode === 'signup') {
                 const res = await fetch('/api/hub/send-code', {
@@ -311,10 +329,15 @@
                         document.getElementById('standardAuthForm').classList.add('hidden');
                         document.getElementById('authTabsContainer').classList.add('hidden');
                         document.getElementById('otpVerifyForm').classList.remove('hidden');
-                        startOtpCountdown();
-                    }).catch(err => alert('EmailJS Error: ' + JSON.stringify(err)));
+                        startResendTimer('resendSignupBtn', 'resendSignupTimer', 'sirdique_signup_timer');
+                        submitBtn.disabled = false;
+                    }).catch(err => {
+                        alert('EmailJS Error: ' + JSON.stringify(err));
+                        submitBtn.disabled = false;
+                    });
                 } else {
                     alert(data.error);
+                    submitBtn.disabled = false;
                 }
             } else {
                 const res = await fetch('/api/hub/login', {
@@ -326,34 +349,19 @@
                 if(data.success) {
                     loggedInEmail = email;
                     localStorage.setItem('sirdique_email', email);
+                    
+                    // Welcome Email
+                    emailjs.send('service_49wqltg', 'template_dqofkf8', {
+                        to_email: email,
+                        passcode: 'WELCOME',
+                        message: `Sannu da zuwa Sirdique Hub! Mun ji dadin ganinka a karo na biyu (Welcome Back).`
+                    }).catch(() => {});
+
                     showMainApp();
                 } else {
                     alert(data.error);
+                    submitBtn.disabled = false;
                 }
-            }
-        }
-
-        async function resendOtpCode() {
-            const email = tempSignupData.email;
-            if(!email) return;
-
-            const res = await fetch('/api/hub/send-code', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ email, type: 'signup' })
-            });
-            const data = await res.json();
-            if(data.success) {
-                emailjs.send('service_49wqltg', 'template_dqofkf8', {
-                    to_email: email,
-                    passcode: data.code,
-                    message: `Your New Sirdique Verification Code is: ${data.code}. (Old code is now invalid).`
-                }).then(() => {
-                    alert('An sake tura sabon code zuwa email dinka! Tsohon code ya tashi a aiki.');
-                    startOtpCountdown();
-                }).catch(err => alert('EmailJS Error: ' + JSON.stringify(err)));
-            } else {
-                alert(data.error);
             }
         }
 
@@ -369,10 +377,38 @@
             const data = await res.json();
             if(data.success) {
                 alert('Account created successfully!');
-                if (otpTimerInterval) clearInterval(otpTimerInterval);
                 loggedInEmail = tempSignupData.email;
                 localStorage.setItem('sirdique_email', loggedInEmail);
+
+                // Success Signup Email
+                emailjs.send('service_49wqltg', 'template_dqofkf8', {
+                    to_email: loggedInEmail,
+                    passcode: 'SUCCESS',
+                    message: `Muna tayaka murna! An kirkiri asusunka na Sirdique Storage da nasara.`
+                }).catch(() => {});
+
                 showMainApp();
+            } else {
+                alert(data.error);
+            }
+        }
+
+        async function resendSignupCode() {
+            const res = await fetch('/api/hub/send-code', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email: tempSignupData.email, type: 'signup' })
+            });
+            const data = await res.json();
+            if(data.success) {
+                emailjs.send('service_49wqltg', 'template_dqofkf8', {
+                    to_email: tempSignupData.email,
+                    passcode: data.code,
+                    message: `Your new Sirdique Verification Code is: ${data.code}. Expires in 2 minutes.`
+                }).then(() => {
+                    alert('An sake tura sabon code zuwa email dinka!');
+                    startResendTimer('resendSignupBtn', 'resendSignupTimer', 'sirdique_signup_timer');
+                });
             } else {
                 alert(data.error);
             }
@@ -381,6 +417,9 @@
         async function requestForgotCode() {
             const email = document.getElementById('forgotEmail').value;
             if(!email) return alert('Sanya email!');
+
+            const sendBtn = document.getElementById('forgotSendBtn');
+            sendBtn.disabled = true;
 
             const res = await fetch('/api/hub/send-code', {
                 method: 'POST',
@@ -397,9 +436,15 @@
                     alert('An tura reset code zuwa email dinka!');
                     document.getElementById('forgotPasswordForm').classList.add('hidden');
                     document.getElementById('resetPasswordForm').classList.remove('hidden');
-                }).catch(err => alert('Error: ' + JSON.stringify(err)));
+                    startResendTimer('resendForgotBtn', 'resendForgotTimer', 'sirdique_forgot_timer');
+                    sendBtn.disabled = false;
+                }).catch(err => {
+                    alert('Error: ' + JSON.stringify(err));
+                    sendBtn.disabled = false;
+                });
             } else {
-                alert(data.error); // Zai fadi idan email din bai yi rijista ba
+                alert(data.error);
+                sendBtn.disabled = false;
             }
         }
 
@@ -417,6 +462,14 @@
             const data = await res.json();
             if(data.success) {
                 alert(data.message);
+
+                // Success Password Change Email
+                emailjs.send('service_49wqltg', 'template_dqofkf8', {
+                    to_email: email,
+                    passcode: 'RESET',
+                    message: `An sauya kalmar sirrinka (password) ta Sirdique Storage da nasara.`
+                }).catch(() => {});
+
                 cancelForgotPassword();
                 switchAuthMode('login');
             } else {
@@ -439,6 +492,8 @@
 
         function logout() {
             localStorage.removeItem('sirdique_email');
+            localStorage.removeItem('sirdique_signup_timer');
+            localStorage.removeItem('sirdique_forgot_timer');
             if (liveSyncInterval) clearInterval(liveSyncInterval);
             location.reload();
         }
@@ -500,6 +555,10 @@
         async function createProject() {
             const projectName = document.getElementById('newProjectName').value;
             if(!projectName) return alert('Enter project name!');
+            
+            const createBtn = document.getElementById('createProjBtn');
+            createBtn.disabled = true;
+
             const res = await fetch('/api/projects/create', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -508,9 +567,19 @@
             const data = await res.json();
             if(data.success) {
                 document.getElementById('newProjectName').value = '';
+                
+                // Project Creation Email Notification
+                emailjs.send('service_49wqltg', 'template_dqofkf8', {
+                    to_email: loggedInEmail,
+                    passcode: 'PROJECT',
+                    message: `An kirkiri sabon Project mai suna "${projectName}" a cikin Sirdique Storage din ka da nasara!`
+                }).catch(() => {});
+
+                createBtn.disabled = false;
                 openFullPage('home');
             } else {
                 alert(data.error);
+                createBtn.disabled = false;
             }
         }
 
