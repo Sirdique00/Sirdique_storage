@@ -29,46 +29,43 @@
             <div id="standardAuthForm" class="space-y-4">
                 <input type="email" id="authEmail" placeholder="you@example.com" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-sm text-slate-900">
                 <input type="password" id="authPassword" placeholder="••••••••" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-sm text-slate-900">
-                <button onclick="handleAuthSubmit()" id="authSubmitBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium p-3 rounded-lg text-sm transition">Sign In</button>
+                <button onclick="handleAuthSubmit()" id="authSubmitBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium p-3 rounded-lg text-sm">Sign In</button>
                 <div class="text-right">
                     <button onclick="showForgotPasswordView()" class="text-xs text-emerald-600 hover:underline">Forgot password?</button>
                 </div>
             </div>
 
-            <!-- OTP VERIFY FORM WITH COUNTER & RESEND -->
+            <!-- OTP VERIFY FORM (With Resend Countdown Timer) -->
             <div id="otpVerifyForm" class="hidden space-y-4">
-                <p class="text-xs text-slate-600 text-center">An tura confirmation code zuwa email dinka.</p>
+                <p class="text-xs text-slate-600 text-center">Sanya confirmation code da aka tura email dinka:</p>
                 <input type="text" id="otpCodeInput" placeholder="Lamba 6" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-center tracking-widest text-lg font-bold text-slate-900">
                 <button onclick="verifyAndCompleteSignup()" class="w-full bg-emerald-600 text-white p-3 rounded-lg text-sm font-semibold">Tabbatar da Code</button>
                 
-                <div class="flex justify-between items-center pt-2 text-xs">
+                <div class="flex justify-between items-center text-xs pt-1">
                     <button onclick="cancelOtpView()" class="text-slate-500 hover:underline">Komawa</button>
-                    <div class="text-right">
-                        <button id="resendSignupBtn" onclick="resendSignupCode()" disabled class="text-emerald-600 font-semibold disabled:text-slate-400 disabled:cursor-not-allowed">Resend Code</button>
-                        <span id="resendSignupTimer" class="text-slate-400 block text-[10px]"></span>
-                    </div>
+                    <button id="resendOtpBtn" onclick="resendOtpCode()" disabled class="text-slate-400 cursor-not-allowed">Resend Code (<span id="resendTimer">120</span>s)</button>
                 </div>
             </div>
 
-            <!-- FORGOT PASSWORD FORM WITH COUNTER & RESEND -->
+            <!-- FORGOT PASSWORD FORM -->
             <div id="forgotPasswordForm" class="hidden space-y-4">
                 <p class="text-xs text-slate-600">Sanya email dinka don tura code na forgot password.</p>
                 <input type="email" id="forgotEmail" placeholder="you@example.com" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-sm text-slate-900">
-                <button id="forgotSendBtn" onclick="requestForgotCode()" class="w-full bg-emerald-600 text-white p-3 rounded-lg text-sm">Tura Code</button>
-                <div class="flex justify-between items-center pt-2 text-xs">
-                    <button onclick="cancelForgotPassword()" class="text-slate-500 hover:underline">Komawa</button>
-                    <div class="text-right">
-                        <button id="resendForgotBtn" onclick="requestForgotCode()" disabled class="text-emerald-600 font-semibold disabled:text-slate-400 disabled:cursor-not-allowed">Resend Code</button>
-                        <span id="resendForgotTimer" class="text-slate-400 block text-[10px]"></span>
-                    </div>
-                </div>
+                <button onclick="requestForgotCode()" id="forgotSubmitBtn" class="w-full bg-emerald-600 text-white p-3 rounded-lg text-sm">Tura Code</button>
+                <button onclick="cancelForgotPassword()" class="w-full bg-slate-200 text-slate-700 p-2 rounded-lg text-xs">Komawa</button>
             </div>
 
+            <!-- RESET PASSWORD FORM (With Resend Countdown) -->
             <div id="resetPasswordForm" class="hidden space-y-4">
                 <p class="text-xs text-slate-600">Sanya code da sabon password:</p>
                 <input type="text" id="resetCodeInput" placeholder="Code lamba 6" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-center tracking-widest font-bold text-slate-900">
                 <input type="password" id="resetNewPassword" placeholder="Sabon Password" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-sm text-slate-900">
                 <button onclick="verifyAndResetPassword()" class="w-full bg-emerald-600 text-white p-3 rounded-lg text-sm font-semibold">Sabunta Password</button>
+                
+                <div class="flex justify-between items-center text-xs pt-1">
+                    <button onclick="cancelForgotPassword()" class="text-slate-500 hover:underline">Komawa</button>
+                    <button id="resendResetBtn" onclick="resendResetCode()" disabled class="text-slate-400 cursor-not-allowed">Resend Code (<span id="resendResetTimer">120</span>s)</button>
+                </div>
             </div>
         </div>
     </div>
@@ -157,7 +154,7 @@
             <div class="bg-white p-8 rounded-xl border border-slate-200 space-y-5 w-full shadow-xl">
                 <h2 class="text-lg font-bold text-slate-900">Create a new project</h2>
                 <input type="text" id="newProjectName" placeholder="production-db" class="w-full bg-slate-50 border border-slate-300 p-3 rounded-lg text-sm text-slate-900">
-                <button onclick="createProject()" id="createProjBtn" class="w-full bg-emerald-600 text-white p-3 rounded-lg text-xs font-semibold">Create</button>
+                <button onclick="createProject()" class="w-full bg-emerald-600 text-white p-3 rounded-lg text-xs font-semibold">Create</button>
             </div>
         </div>
 
@@ -186,8 +183,21 @@
                 </div>
             </div>
 
-            <!-- TABLES VIEW -->
+            <!-- TABLES VIEW & AI PROMPT CREATOR -->
             <div id="sp-tables" class="space-y-6">
+                <!-- AI PROMPT TABLE CREATOR BOX -->
+                <div class="bg-gradient-to-r from-indigo-900 to-slate-900 text-white p-6 rounded-xl space-y-3 shadow-lg">
+                    <div class="flex items-center space-x-2">
+                        <span class="bg-indigo-500 text-white text-[10px] px-2 py-0.5 rounded font-bold uppercase">AI Generator</span>
+                        <h3 class="font-bold text-sm">🤖 Supabase-style AI Table Prompt</h3>
+                    </div>
+                    <p class="text-xs text-indigo-200">Rubuta abin da kake bukata a matsayin prompt (misali: "Create table for customer orders"), AI zai kirkira maka teburin nan take!</p>
+                    <div class="flex space-x-2">
+                        <input type="text" id="aiPromptInput" placeholder="Misali: Create a table for store products..." class="flex-1 bg-slate-800 border border-slate-700 text-white p-2.5 rounded-lg text-xs">
+                        <button onclick="generateAiTable()" id="aiPromptBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-semibold">Generate with AI</button>
+                    </div>
+                </div>
+
                 <div class="bg-white p-5 rounded-xl border border-slate-200 space-y-4 shadow-sm">
                     <h3 class="font-semibold text-xs text-slate-700 uppercase">Create Table with RLS</h3>
                     <div class="flex space-x-2">
@@ -229,7 +239,7 @@
         let activeProject = null;
         let liveSyncInterval = null;
         let tempSignupData = {};
-        let countdownTimer = null;
+        let resendInterval = null;
 
         if (loggedInEmail) showMainApp();
 
@@ -262,43 +272,34 @@
             document.getElementById('resetPasswordForm').classList.add('hidden');
             document.getElementById('authTabsContainer').classList.remove('hidden');
             document.getElementById('standardAuthForm').classList.remove('hidden');
-            if (countdownTimer) clearInterval(countdownTimer);
+            if(resendInterval) clearInterval(resendInterval);
         }
 
         function cancelOtpView() {
             document.getElementById('otpVerifyForm').classList.add('hidden');
             document.getElementById('authTabsContainer').classList.remove('hidden');
             document.getElementById('standardAuthForm').classList.remove('hidden');
-            if (countdownTimer) clearInterval(countdownTimer);
+            if(resendInterval) clearInterval(resendInterval);
         }
 
-        // START COUNTDOWN TIMER FOR RESEND BUTTON
-        function startResendTimer(btnId, timerId, storageKey) {
-            const btn = document.getElementById(btnId);
-            const timerSpan = document.getElementById(timerId);
-            btn.disabled = true;
+        // Countdown timer for Resend button (120 seconds)
+        function startResendTimer(timerElementId, buttonElementId) {
+            let timeLeft = 120;
+            const timerSpan = document.getElementById(timerElementId);
+            const resendBtn = document.getElementById(buttonElementId);
+            
+            resendBtn.disabled = true;
+            resendBtn.className = 'text-slate-400 cursor-not-allowed';
 
-            let expiresAt = localStorage.getItem(storageKey);
-            const now = Date.now();
-
-            if (!expiresAt || expiresAt < now) {
-                expiresAt = now + 120 * 1000; // 2 minutes
-                localStorage.setItem(storageKey, expiresAt);
-            }
-
-            if (countdownTimer) clearInterval(countdownTimer);
-
-            countdownTimer = setInterval(() => {
-                const timeLeft = Math.max(0, Math.floor((localStorage.getItem(storageKey) - Date.now()) / 1000));
-                const mins = Math.floor(timeLeft / 60);
-                const secs = timeLeft % 60;
-                timerSpan.innerText = `Sauran ${mins}:${secs < 10 ? '0' : ''}${secs}`;
-
-                if (timeLeft <= 0) {
-                    clearInterval(countdownTimer);
-                    btn.disabled = false;
-                    timerSpan.innerText = '';
-                    localStorage.removeItem(storageKey);
+            if(resendInterval) clearInterval(resendInterval);
+            resendInterval = setInterval(() => {
+                timeLeft--;
+                timerSpan.innerText = timeLeft;
+                if(timeLeft <= 0) {
+                    clearInterval(resendInterval);
+                    resendBtn.disabled = false;
+                    resendBtn.className = 'text-emerald-600 font-semibold hover:underline cursor-pointer';
+                    resendBtn.innerText = 'Resend Code';
                 }
             }, 1000);
         }
@@ -309,7 +310,7 @@
             if(!email || !password) return alert('Fill all fields!');
 
             const submitBtn = document.getElementById('authSubmitBtn');
-            submitBtn.disabled = true;
+            submitBtn.disabled = true; // Prevent double click / network spam
 
             if(currentAuthMode === 'signup') {
                 const res = await fetch('/api/hub/send-code', {
@@ -318,26 +319,24 @@
                     body: JSON.stringify({ email, type: 'signup' })
                 });
                 const data = await res.json();
+                submitBtn.disabled = false;
+
                 if(data.success) {
                     tempSignupData = { email, password };
-                    emailjs.send('service_49wqltg', 'template_dqofkf8', {
-                        to_email: email,
-                        passcode: data.code,
-                        message: `Your Sirdique Verification Code is: ${data.code}. Expires in 2 minutes.`
-                    }).then(() => {
-                        alert('An tura code zuwa email dinka!');
-                        document.getElementById('standardAuthForm').classList.add('hidden');
-                        document.getElementById('authTabsContainer').classList.add('hidden');
-                        document.getElementById('otpVerifyForm').classList.remove('hidden');
-                        startResendTimer('resendSignupBtn', 'resendSignupTimer', 'sirdique_signup_timer');
-                        submitBtn.disabled = false;
-                    }).catch(err => {
-                        alert('EmailJS Error: ' + JSON.stringify(err));
-                        submitBtn.disabled = false;
-                    });
+                    if(!data.reused) {
+                        emailjs.send('service_49wqltg', 'template_dqofkf8', {
+                            to_email: email,
+                            passcode: data.code,
+                            message: `Your Sirdique Verification Code is: ${data.code}. Expires in 2 minutes.`
+                        });
+                    }
+                    alert('An tura confirmation code zuwa email dinka!');
+                    document.getElementById('standardAuthForm').classList.add('hidden');
+                    document.getElementById('authTabsContainer').classList.add('hidden');
+                    document.getElementById('otpVerifyForm').classList.remove('hidden');
+                    startResendTimer('resendTimer', 'resendOtpBtn');
                 } else {
                     alert(data.error);
-                    submitBtn.disabled = false;
                 }
             } else {
                 const res = await fetch('/api/hub/login', {
@@ -346,22 +345,44 @@
                     body: JSON.stringify({ email, password })
                 });
                 const data = await res.json();
+                submitBtn.disabled = false;
+
                 if(data.success) {
                     loggedInEmail = email;
                     localStorage.setItem('sirdique_email', email);
                     
-                    // Welcome Email
+                    // Send Welcome Back Email
                     emailjs.send('service_49wqltg', 'template_dqofkf8', {
                         to_email: email,
                         passcode: 'WELCOME',
-                        message: `Sannu da zuwa Sirdique Hub! Mun ji dadin ganinka a karo na biyu (Welcome Back).`
-                    }).catch(() => {});
+                        message: `Sannu da zuwa Sirdique Cloud Storage. Mun yi murna da dawowarka asusunka!`
+                    });
 
                     showMainApp();
                 } else {
                     alert(data.error);
-                    submitBtn.disabled = false;
                 }
+            }
+        }
+
+        async function resendOtpCode() {
+            const email = tempSignupData.email;
+            const res = await fetch('/api/hub/send-code', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email, type: 'signup' })
+            });
+            const data = await res.json();
+            if(data.success) {
+                emailjs.send('service_49wqltg', 'template_dqofkf8', {
+                    to_email: email,
+                    passcode: data.code,
+                    message: `Your NEW Sirdique Verification Code is: ${data.code}. Expires in 2 minutes.`
+                });
+                alert('An sake tura sabon code zuwa email dinka!');
+                startResendTimer('resendTimer', 'resendOtpBtn');
+            } else {
+                alert(data.error);
             }
         }
 
@@ -376,39 +397,18 @@
             });
             const data = await res.json();
             if(data.success) {
-                alert('Account created successfully!');
                 loggedInEmail = tempSignupData.email;
                 localStorage.setItem('sirdique_email', loggedInEmail);
 
-                // Success Signup Email
+                // Send Account Created Successfully Email
                 emailjs.send('service_49wqltg', 'template_dqofkf8', {
                     to_email: loggedInEmail,
                     passcode: 'SUCCESS',
-                    message: `Muna tayaka murna! An kirkiri asusunka na Sirdique Storage da nasara.`
-                }).catch(() => {});
-
-                showMainApp();
-            } else {
-                alert(data.error);
-            }
-        }
-
-        async function resendSignupCode() {
-            const res = await fetch('/api/hub/send-code', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ email: tempSignupData.email, type: 'signup' })
-            });
-            const data = await res.json();
-            if(data.success) {
-                emailjs.send('service_49wqltg', 'template_dqofkf8', {
-                    to_email: tempSignupData.email,
-                    passcode: data.code,
-                    message: `Your new Sirdique Verification Code is: ${data.code}. Expires in 2 minutes.`
-                }).then(() => {
-                    alert('An sake tura sabon code zuwa email dinka!');
-                    startResendTimer('resendSignupBtn', 'resendSignupTimer', 'sirdique_signup_timer');
+                    message: `Barka da zuwa! An kirkiro asusunka na Sirdique Storage cikin nasara.`
                 });
+
+                alert('Account created successfully!');
+                showMainApp();
             } else {
                 alert(data.error);
             }
@@ -418,9 +418,36 @@
             const email = document.getElementById('forgotEmail').value;
             if(!email) return alert('Sanya email!');
 
-            const sendBtn = document.getElementById('forgotSendBtn');
-            sendBtn.disabled = true;
+            const submitBtn = document.getElementById('forgotSubmitBtn');
+            submitBtn.disabled = true;
 
+            const res = await fetch('/api/hub/send-code', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email, type: 'forgot' })
+            });
+            const data = await res.json();
+            submitBtn.disabled = false;
+
+            if(data.success) {
+                if(!data.reused) {
+                    emailjs.send('service_49wqltg', 'template_dqofkf8', {
+                        to_email: email,
+                        passcode: data.code,
+                        message: `Your Reset Code is: ${data.code}. Expires in 2 minutes.`
+                    });
+                }
+                alert('An tura reset code zuwa email dinka!');
+                document.getElementById('forgotPasswordForm').classList.add('hidden');
+                document.getElementById('resetPasswordForm').classList.remove('hidden');
+                startResendTimer('resendResetTimer', 'resendResetBtn');
+            } else {
+                alert(data.error);
+            }
+        }
+
+        async function resendResetCode() {
+            const email = document.getElementById('forgotEmail').value;
             const res = await fetch('/api/hub/send-code', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -431,20 +458,12 @@
                 emailjs.send('service_49wqltg', 'template_dqofkf8', {
                     to_email: email,
                     passcode: data.code,
-                    message: `Your Reset Code is: ${data.code}. Expires in 2 minutes.`
-                }).then(() => {
-                    alert('An tura reset code zuwa email dinka!');
-                    document.getElementById('forgotPasswordForm').classList.add('hidden');
-                    document.getElementById('resetPasswordForm').classList.remove('hidden');
-                    startResendTimer('resendForgotBtn', 'resendForgotTimer', 'sirdique_forgot_timer');
-                    sendBtn.disabled = false;
-                }).catch(err => {
-                    alert('Error: ' + JSON.stringify(err));
-                    sendBtn.disabled = false;
+                    message: `Your NEW Reset Code is: ${data.code}. Expires in 2 minutes.`
                 });
+                alert('An sake tura sabon reset code zuwa email dinka!');
+                startResendTimer('resendResetTimer', 'resendResetBtn');
             } else {
                 alert(data.error);
-                sendBtn.disabled = false;
             }
         }
 
@@ -461,15 +480,14 @@
             });
             const data = await res.json();
             if(data.success) {
-                alert(data.message);
-
-                // Success Password Change Email
+                // Send Password Changed Success Email
                 emailjs.send('service_49wqltg', 'template_dqofkf8', {
                     to_email: email,
-                    passcode: 'RESET',
-                    message: `An sauya kalmar sirrinka (password) ta Sirdique Storage da nasara.`
-                }).catch(() => {});
+                    passcode: 'RESET_SUCCESS',
+                    message: `An sauya kalmar sirrinka (password) ta Sirdique Storage cikin nasara.`
+                });
 
+                alert(data.message);
                 cancelForgotPassword();
                 switchAuthMode('login');
             } else {
@@ -492,8 +510,6 @@
 
         function logout() {
             localStorage.removeItem('sirdique_email');
-            localStorage.removeItem('sirdique_signup_timer');
-            localStorage.removeItem('sirdique_forgot_timer');
             if (liveSyncInterval) clearInterval(liveSyncInterval);
             location.reload();
         }
@@ -555,10 +571,6 @@
         async function createProject() {
             const projectName = document.getElementById('newProjectName').value;
             if(!projectName) return alert('Enter project name!');
-            
-            const createBtn = document.getElementById('createProjBtn');
-            createBtn.disabled = true;
-
             const res = await fetch('/api/projects/create', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -568,18 +580,16 @@
             if(data.success) {
                 document.getElementById('newProjectName').value = '';
                 
-                // Project Creation Email Notification
+                // Send Project Creation Email Notification
                 emailjs.send('service_49wqltg', 'template_dqofkf8', {
                     to_email: loggedInEmail,
-                    passcode: 'PROJECT',
-                    message: `An kirkiri sabon Project mai suna "${projectName}" a cikin Sirdique Storage din ka da nasara!`
-                }).catch(() => {});
+                    passcode: data.project_id,
+                    message: `An kirkiro sabon project mai suna "${projectName}" tare da Project ID: ${data.project_id} da API Key a Sirdique Storage.`
+                });
 
-                createBtn.disabled = false;
                 openFullPage('home');
             } else {
                 alert(data.error);
-                createBtn.disabled = false;
             }
         }
 
@@ -664,6 +674,33 @@
             if(data.success) {
                 document.getElementById('newTableName').value = '';
                 document.getElementById('newTableCols').value = '';
+                loadTables();
+            } else {
+                alert(data.error);
+            }
+        }
+
+        // AI Table Generator Function
+        async function generateAiTable() {
+            const prompt = document.getElementById('aiPromptInput').value;
+            if(!prompt) return alert('Sanya prompt din ka kafin ka danna AI!');
+
+            const aiBtn = document.getElementById('aiPromptBtn');
+            aiBtn.disabled = true;
+            aiBtn.innerText = 'AI is generating...';
+
+            const res = await fetch('/api/database/ai-table', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'x-api-key': activeProject.api_key},
+                body: JSON.stringify({ prompt })
+            });
+            const data = await res.json();
+            aiBtn.disabled = false;
+            aiBtn.innerText = 'Generate with AI';
+
+            if(data.success) {
+                alert(data.message);
+                document.getElementById('aiPromptInput').value = '';
                 loadTables();
             } else {
                 alert(data.error);
