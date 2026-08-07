@@ -50,6 +50,7 @@ db.serialize(() => {
         name TEXT UNIQUE,
         project_id TEXT UNIQUE,
         api_key TEXT UNIQUE,
+        status_mode TEXT DEFAULT 'live',
         used_storage INTEGER DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
@@ -100,32 +101,24 @@ const verifyApiKey = (req, res, next) => {
     });
 };
 
-// 1. AUTHENTICATION & SECURITY (With strict Forgot Password Email Check)
+// 1. AUTHENTICATION & SECURITY (With Forgot Password Email Check)
 app.post('/api/hub/send-code', (req, res) => {
     const { email, type } = req.body;
     if(!email) return res.status(400).json({ error: 'Sanya email din ka.' });
 
     db.get(`SELECT * FROM hub_users WHERE email = ?`, [email], (err, user) => {
         if(type === 'signup' && user) return res.status(400).json({ error: 'An riga an yi rijista da wannan email din. Ka yi Sign In.' });
-        if(type === 'forgot' && !user) return res.status(400).json({ error: 'Babu wani account da aka taba kirkira da wannan email din.' });
+        if(type === 'forgot' && !user) return res.status(400).json({ error: 'Babu account da ke da wannan email din a rubuce.' });
         
-        // Check if there's an unexpired code already to prevent spamming
-        db.get(`SELECT * FROM verification_codes WHERE email = ? AND type = ? AND expires_at > ?`, [email, type, Date.now()], (err, existingCode) => {
-            if (existingCode) {
-                const timeLeft = Math.ceil((existingCode.expires_at - Date.now()) / 1000);
-                return res.json({ success: true, code: existingCode.code, expires_at: existingCode.expires_at, reused: true });
-            }
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const expires_at = Date.now() + 2 * 60 * 1000; // Minti 2
 
-            const code = Math.floor(100000 + Math.random() * 900000).toString();
-            const expires_at = Date.now() + 2 * 60 * 1000;
-
-            db.run(`DELETE FROM verification_codes WHERE email = ? AND type = ?`, [email, type], () => {
-                db.run(`INSERT INTO verification_codes (email, code, type, expires_at) VALUES (?, ?, ?, ?)`, 
-                    [email, code, type, expires_at], (err) => {
-                        if (err) return res.status(500).json({ error: err.message });
-                        res.json({ success: true, code, expires_at, reused: false });
-                    });
-            });
+        db.run(`DELETE FROM verification_codes WHERE email = ? AND type = ?`, [email, type], () => {
+            db.run(`INSERT INTO verification_codes (email, code, type, expires_at) VALUES (?, ?, ?, ?)`, 
+                [email, code, type, expires_at], (err) => {
+                    if (err) return res.status(500).json({ error: err.message });
+                    res.json({ success: true, code });
+                });
         });
     });
 });
@@ -202,7 +195,7 @@ app.post('/api/projects/create', (req, res) => {
         const project_id = 'PRJ-' + Math.random().toString(36).substring(2, 9).toUpperCase();
         const api_key = 'sd-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
-        db.run(`INSERT INTO projects (owner_email, name, project_id, api_key) VALUES (?, ?, ?, ?)`,
+        db.run(`INSERT INTO projects (owner_email, name, project_id, api_key, status_mode) VALUES (?, ?, ?, ?, 'live')`,
             [email, projectName, project_id, api_key], function(err) {
                 if (err) return res.status(500).json({ error: err.message });
                 res.json({ success: true, name: projectName, project_id, api_key });
@@ -218,7 +211,7 @@ app.post('/api/projects/list', (req, res) => {
     });
 });
 
-// 3. STORAGE BUCKETS
+// 3. STORAGE BUCKETS & RLS
 app.post('/api/buckets/create', verifyApiKey, (req, res) => {
     const { bucketName } = req.body;
     if(!bucketName) return res.status(400).json({ error: 'Sanya sunan bucket.' });
@@ -244,68 +237,46 @@ app.post('/api/buckets/toggle', verifyApiKey, (req, res) => {
     });
 });
 
-// 4. DATABASE TABLES & AI PROMPT TABLE CREATOR
+// 4. DATABASE TABLES & AI PROMPT TABLE GENERATOR
 app.post('/api/database/tables', verifyApiKey, (req, res) => {
     const { tableName, columns, enableRls } = req.body;
-    if(!tableName || !columns || columns.length === 0) return res.status(400).json({ error: 'Table name and columns are required.' });
-
-    db.get(`SELECT * FROM project_tables WHERE project_id = ? AND table_name = ?`, [req.project.project_id, tableName], (err, table) => {
-        if (table) {
-            let existingCols = JSON.parse(table.columns);
-            let mergedCols = Array.from(new Set([...existingCols, ...columns]));
-            db.run(`UPDATE project_tables SET columns = ? WHERE id = ?`, [JSON.stringify(mergedCols), table.id], (err) => {
-                if (err) return res.status(500).json({ error: err.message });
-                res.json({ success: true, message: 'Table columns updated successfully.' });
-            });
-        } else {
-            db.run(`INSERT INTO project_tables (project_id, table_name, columns) VALUES (?, ?, ?)`,
-                [req.project.project_id, tableName, JSON.stringify(columns)], function(err) {
-                    if (err) return res.status(500).json({ error: err.message });
-                    res.json({ success: true, rls: enableRls ? 'Enabled' : 'Disabled' });
-                });
-        }
-    });
+    db.run(`INSERT INTO project_tables (project_id, table_name, columns) VALUES (?, ?, ?)`,
+        [req.project.project_id, tableName, JSON.stringify(columns)], function(err) {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ success: true, rls: enableRls ? 'Enabled' : 'Disabled' });
+        });
 });
 
-// AI Prompt to Table Converter endpoint
-app.post('/api/database/ai-table', verifyApiKey, (req, res) => {
+// AI SQL / Prompt Table Creator endpoint
+app.post('/api/database/ai-create-table', verifyApiKey, (req, res) => {
     const { prompt } = req.body;
-    if (!prompt) return res.status(400).json({ error: 'Prompt is required.' });
+    if (!prompt) return res.status(400).json({ error: 'Ka sanya umarni (prompt).' });
+
+    let tableName = 'ai_custom_table';
+    let columns = ['id', 'title', 'created_at'];
 
     const lower = prompt.toLowerCase();
-    let tableName = 'custom_table_' + Math.floor(Math.random() * 1000);
-    let columns = ['name', 'created_at'];
-
-    if (lower.includes('order') || lower.includes('customer')) {
-        tableName = 'customer_orders';
-        columns = ['customer_name', 'item', 'price', 'phone'];
-    } else if (lower.includes('user') || lower.includes('profile')) {
-        tableName = 'users_profile';
-        columns = ['username', 'email', 'status'];
-    } else if (lower.includes('product') || lower.includes('store') || lower.includes('item')) {
-        tableName = 'store_products';
-        columns = ['product_name', 'price', 'stock', 'category'];
+    if (lower.includes('user') || lower.includes('mutum')) {
+        tableName = 'users_table';
+        columns = ['name', 'email', 'phone'];
+    } else if (lower.includes('product') || lower.includes('kaya')) {
+        tableName = 'products_table';
+        columns = ['product_name', 'price', 'category'];
+    } else if (lower.includes('message') || lower.includes('sako')) {
+        tableName = 'messages_table';
+        columns = ['sender', 'message', 'date'];
     } else {
-        // Extract words as columns
-        const words = prompt.replace(/[^a-zA-Z0-9 ]/g, '').split(' ').filter(w => w.length > 2);
-        if (words.length > 0) {
-            tableName = words[0] + '_data';
-            columns = words.slice(1, 5);
-            if (columns.length === 0) columns = ['title', 'description'];
-        }
+        const words = prompt.replace(/[^a-zA-Z0-9 ]/g, '').split(' ');
+        if(words.length > 0 && words[0]) tableName = words[0].toLowerCase() + '_tbl';
     }
 
-    db.get(`SELECT * FROM project_tables WHERE project_id = ? AND table_name = ?`, [req.project.project_id, tableName], (err, table) => {
-        if (table) {
-            res.json({ success: true, tableName, columns: JSON.parse(table.columns), message: `AI successfully matched existing table: ${tableName}` });
-        } else {
-            db.run(`INSERT INTO project_tables (project_id, table_name, columns) VALUES (?, ?, ?)`,
-                [req.project.project_id, tableName, JSON.stringify(columns)], function(err) {
-                    if (err) return res.status(500).json({ error: err.message });
-                    res.json({ success: true, tableName, columns, message: `AI successfully generated table '${tableName}' with columns!` });
-                });
-        }
-    });
+    db.run(`INSERT INTO project_tables (project_id, table_name, columns) VALUES (?, ?, ?)`,
+        [req.project.project_id, tableName, JSON.stringify(columns)], function(err) {
+            if (err) {
+                return res.json({ success: false, message: 'Kuskure: Wannan teburin ko makamancinsa yana da shi a baya.' });
+            }
+            res.json({ success: true, tableName, columns, message: `An nasara! AI ta kirkiro maki tebur mai suna "${tableName}" da columns: ${columns.join(', ')}.` });
+        });
 });
 
 app.get('/api/database/tables', verifyApiKey, (req, res) => {
