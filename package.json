@@ -1,6 +1,6 @@
 {
   "name": "sirdique-storage",
-  "version": "11.0.0",
+  "version": "12.0.0",
   "description": "Sirdique Ultimate Universal Cloud Platform",
   "main": "server.js",
   "scripts": {
