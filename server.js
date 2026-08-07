@@ -330,96 +330,13 @@ app.get('/api/bucket/files/:bucketName', verifyApiKey, (req, res) => {
     });
 });
 
-// ADVANCED MULTILINGUAL AI PROMPT
-app.post('/api/database/ai-create-table', verifyApiKey, (req, res) => {
-    const { prompt } = req.body;
-    if (!prompt) return res.status(400).json({ error: 'Prompt required.' });
-
-    const lower = prompt.toLowerCase();
-
-    if (lower.includes('delete') || lower.includes('drop') || lower.includes('goge') || lower.includes('cire')) {
-        db.all(`SELECT table_name FROM project_tables WHERE project_id = ?`, [req.project.project_id], (err, tables) => {
-            let targets = [];
-            tables.forEach(t => {
-                if (lower.includes(t.table_name.toLowerCase())) targets.push(t.table_name);
-            });
-            if (targets.length > 0) {
-                targets.forEach(tbl => {
-                    db.run(`DELETE FROM project_rows WHERE project_id = ? AND table_name = ?`, [req.project.project_id, tbl]);
-                    db.run(`DELETE FROM project_tables WHERE project_id = ? AND table_name = ?`, [req.project.project_id, tbl]);
-                });
-                return res.json({ success: true, message: `AI successfully deleted table(s): ${targets.join(', ')}.` });
-            }
-            return res.json({ success: false, message: 'AI could not find matching table to delete.' });
-        });
-        return;
-    }
-
-    if (lower.includes('rls') || lower.includes('tsaro')) {
-        db.all(`SELECT table_name FROM project_tables WHERE project_id = ?`, [req.project.project_id], (err, tables) => {
-            let targetTbl = null;
-            tables.forEach(t => { if (lower.includes(t.table_name.toLowerCase())) targetTbl = t.table_name; });
-
-            if (targetTbl) {
-                let enable = (lower.includes('kunna') || lower.includes('enable') || lower.includes('on')) ? 1 : 0;
-                db.run(`UPDATE project_tables SET rls_enabled = ? WHERE project_id = ? AND table_name = ?`, [enable, req.project.project_id, targetTbl], () => {
-                    return res.json({ success: true, message: `AI successfully updated RLS for "${targetTbl}" to ${enable ? 'Enabled' : 'Disabled'}.` });
-                });
-                return;
-            }
-        });
-    }
-
-    if (lower.includes('student') || lower.includes('dalibi') || lower.includes('class') || lower.includes('code')) {
-        const tablesToCreate = [
-            { name: 'class', cols: ['class_id', 'class_name', 'grade'], rls: 1 },
-            { name: 'students', cols: ['student_id', 'full_name', 'age', 'class_assigned'], rls: 1 },
-            { name: 'code', cols: ['code_id', 'snippet', 'status'], rls: 0 }
-        ];
-
-        let count = 0;
-        let created = [];
-        tablesToCreate.forEach(t => {
-            db.get(`SELECT * FROM project_tables WHERE project_id = ? AND table_name = ?`, [req.project.project_id, t.name], (err, existing) => {
-                if (!existing) {
-                    db.run(`INSERT INTO project_tables (project_id, table_name, columns, rls_enabled) VALUES (?, ?, ?, ?)`,
-                        [req.project.project_id, t.name, JSON.stringify(t.cols), t.rls], () => {
-                            created.push(t.name);
-                            count++;
-                            if (count === tablesToCreate.length) {
-                                res.json({ success: true, message: `AI successfully created tables: ${created.join(', ')} with respective RLS rules!` });
-                            }
-                        });
-                } else {
-                    count++;
-                    if (count === tablesToCreate.length) {
-                        res.json({ success: true, message: `AI processed tables successfully.` });
-                    }
-                }
-            });
-        });
-        return;
-    }
-
-    let tableName = 'custom_ai_tbl';
-    let columns = ['id', 'name', 'created_at'];
-    const words = prompt.replace(/[^a-zA-Z0-9 ]/g, '').split(' ');
-    if(words.length > 0 && words[0]) tableName = words[0].toLowerCase() + '_table';
-
-    db.run(`INSERT INTO project_tables (project_id, table_name, columns, rls_enabled) VALUES (?, ?, ?, 1)`,
-        [req.project.project_id, tableName, JSON.stringify(columns)], function(err) {
-            if (err) return res.json({ success: false, message: 'Table already exists or invalid prompt.' });
-            res.json({ success: true, message: `AI successfully created table "${tableName}".` });
-        });
-});
-
-// ADMIN STATS
+// ADMIN STATS & USER DETAILS (NO API KEYS RETURNED)
 app.get('/api/admin/stats', (req, res) => {
     db.get(`SELECT COUNT(*) as totalUsers FROM hub_users`, (err, uRow) => {
         db.get(`SELECT COUNT(*) as totalProjects FROM projects`, (err, pRow) => {
             db.get(`SELECT SUM(used_storage) as totalStorage FROM projects`, (err, sRow) => {
-                db.all(`SELECT * FROM hub_users`, (err, users) => {
-                    db.all(`SELECT * FROM projects`, (err, projects) => {
+                db.all(`SELECT id, email, status, last_login FROM hub_users`, (err, users) => {
+                    db.all(`SELECT id, owner_email, name, project_id, used_storage, created_at FROM projects`, (err, projects) => {
                         res.json({
                             success: true,
                             totalUsers: uRow.totalUsers,
