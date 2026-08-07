@@ -118,14 +118,14 @@ const verifyApiKey = (req, res, next) => {
     });
 };
 
-// 1. AUTHENTICATION & ADVANCED SECURITY
+// 1. AUTHENTICATION & SECURITY
 app.post('/api/hub/send-code', (req, res) => {
     const { email, type } = req.body;
     if(!email) return res.status(400).json({ error: 'Sanya email din ka.' });
 
     db.get(`SELECT * FROM hub_users WHERE email = ?`, [email], (err, user) => {
         if(type === 'signup' && user) return res.status(400).json({ error: 'An riga an yi rijista da wannan email din. Ka yi Sign In.' });
-        if(type === 'forgot' && !user) return res.status(400).json({ error: 'Wannan email din bai da rijista a tsarinmu.' });
+        if(type === 'forgot' && !user) return res.status(400).json({ error: 'Wannan email din bai da rijista a tsarinmu ba.' });
         
         const code = Math.floor(100000 + Math.random() * 900000).toString();
         const expires_at = Date.now() + 2 * 60 * 1000;
@@ -254,7 +254,7 @@ app.post('/api/buckets/toggle', verifyApiKey, (req, res) => {
     });
 });
 
-// 4. DATABASE TABLES & AUTO-HEALING
+// 4. DATABASE TABLES & DYNAMIC AUTO-HEALING COLUMNS
 app.post('/api/database/tables', verifyApiKey, (req, res) => {
     const { tableName, columns, enableRls } = req.body;
     db.get(`SELECT * FROM project_tables WHERE project_id = ? AND table_name = ?`, [req.project.project_id, tableName], (err, table) => {
@@ -299,7 +299,7 @@ app.get('/api/database/rows/:tableName', verifyApiKey, (req, res) => {
     });
 });
 
-// 5. BUCKET UPLOAD WITH WEBP
+// 5. BUCKET UPLOAD WITH WEBP COMPRESSION & QUOTA ENFORCEMENT
 app.post('/api/bucket/upload', verifyApiKey, upload.single('file'), async (req, res) => {
     try {
         const { bucketName } = req.body;
@@ -344,7 +344,7 @@ app.get('/api/bucket/files/:bucketName', verifyApiKey, (req, res) => {
     });
 });
 
-// 6. ADMIN API
+// 6. ADMIN API ENDPOINTS
 app.get('/api/admin/stats', (req, res) => {
     db.get(`SELECT COUNT(*) as totalUsers FROM hub_users`, (err, uRow) => {
         db.get(`SELECT COUNT(*) as totalProjects FROM projects`, (err, pRow) => {
