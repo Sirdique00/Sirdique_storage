@@ -175,7 +175,7 @@ app.post('/api/hub/login', (req, res) => {
     });
 });
 
-// PROJECT CRUD & PERMANENT DELETE
+// PROJECT CRUD
 app.post('/api/projects/create', (req, res) => {
     const { email, projectName } = req.body;
     if(!projectName) return res.status(400).json({ error: 'Project name required.' });
@@ -323,7 +323,14 @@ app.get('/api/database/rows/:tableName', verifyApiKey, (req, res) => {
     });
 });
 
-// ADVANCED MULTILINGUAL AI PROMPT (Hausa & English / Multiple tables & RLS control)
+app.get('/api/bucket/files/:bucketName', verifyApiKey, (req, res) => {
+    const { bucketName } = req.params;
+    db.all(`SELECT * FROM bucket_files WHERE project_id = ? AND bucket_name = ?`, [req.project.project_id, bucketName], (err, files) => {
+        res.json({ success: true, files: files || [] });
+    });
+});
+
+// ADVANCED MULTILINGUAL AI PROMPT
 app.post('/api/database/ai-create-table', verifyApiKey, (req, res) => {
     const { prompt } = req.body;
     if (!prompt) return res.status(400).json({ error: 'Prompt required.' });
