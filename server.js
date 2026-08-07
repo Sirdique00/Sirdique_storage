@@ -4,8 +4,10 @@ const multer = require('multer');
 const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs');
+const cors = require('cors');
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -87,16 +89,28 @@ db.serialize(() => {
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-// 1. AUTHENTICATION & SECURITY (OTP, 3-Attempts Ban, 2-Min Expiry)
+// --- API KEY MIDDLEWARE ---
+const verifyApiKey = (req, res, next) => {
+    const apiKey = req.headers['x-api-key'] || req.body.api_key;
+    if (!apiKey) return res.status(401).json({ error: 'API Key is missing.' });
+
+    db.get(`SELECT * FROM projects WHERE api_key = ?`, [apiKey], (err, project) => {
+        if (err || !project) return res.status(403).json({ error: 'Invalid API Key.' });
+        req.project = project;
+        next();
+    });
+};
+
+// 1. AUTHENTICATION & SECURITY
 app.post('/api/hub/send-code', (req, res) => {
     const { email, type } = req.body;
     if(!email) return res.status(400).json({ error: 'Sanya email din ka.' });
 
     db.get(`SELECT * FROM hub_users WHERE email = ?`, [email], (err, user) => {
-        if(type === 'signup' && user) return res.status(400).json({ error: 'An riga an yi amfani da wannan email din.' });
+        if(type === 'signup' && user) return res.status(400).json({ error: 'An riga an yi rijista da wannan email din. Ka yi Sign In.' });
         
         const code = Math.floor(100000 + Math.random() * 900000).toString();
-        const expires_at = Date.now() + 2 * 60 * 1000; // Minti biyu
+        const expires_at = Date.now() + 2 * 60 * 1000;
 
         db.run(`DELETE FROM verification_codes WHERE email = ? AND type = ?`, [email, type], () => {
             db.run(`INSERT INTO verification_codes (email, code, type, expires_at) VALUES (?, ?, ?, ?)`, 
@@ -141,9 +155,8 @@ app.post('/api/hub/verify-and-reset', (req, res) => {
 app.post('/api/hub/login', (req, res) => {
     const { email, password } = req.body;
     db.get(`SELECT * FROM hub_users WHERE email = ?`, [email], (err, user) => {
-        if (!user) return res.status(400).json({ error: 'Email din nan bai wanzu ba.' });
+        if (!user) return res.status(400).json({ error: 'Email din nan bai wanzu ba. Yi Sign Up.' });
         
-        // Binciken Ban (Minti 30)
         if (user.ban_until && Date.now() < user.ban_until) {
             const minsLeft = Math.ceil((user.ban_until - Date.now()) / 60000);
             return res.status(403).json({ error: `An yi ban na wucin gadi saboda kuskuren password sau 3. Sake gwadawa bayan minti ${minsLeft}.` });
@@ -156,7 +169,7 @@ app.post('/api/hub/login', (req, res) => {
         if (user.password !== password) {
             const newAttempts = (user.failed_attempts || 0) + 1;
             if (newAttempts >= 3) {
-                const banTime = Date.now() + 30 * 60 * 1000; // Ban na minti 30
+                const banTime = Date.now() + 30 * 60 * 1000;
                 db.run(`UPDATE hub_users SET failed_attempts = ?, ban_until = ? WHERE email = ?`, [newAttempts, banTime, email]);
                 return res.status(403).json({ error: 'Kayi kuskuren password sau 3. An yi ban na tsawon minti 30!' });
             } else {
@@ -165,7 +178,6 @@ app.post('/api/hub/login', (req, res) => {
             }
         }
 
-        // Idan komai yayi daidai, reset failed attempts da kuma sabunta last login
         db.run(`UPDATE hub_users SET failed_attempts = 0, ban_until = 0, last_login = CURRENT_TIMESTAMP WHERE email = ?`, [email]);
         res.json({ success: true, email: user.email, isAdmin: email === 'abubakarsadeeq8533@gmail.com' });
     });
@@ -177,7 +189,7 @@ app.post('/api/projects/create', (req, res) => {
     if(!projectName) return res.status(400).json({ error: 'Sanya sunan project.' });
 
     db.get(`SELECT * FROM projects WHERE name = ?`, [projectName], (err, existing) => {
-        if (existing) return res.status(400).json({ error: 'An riga an yi amfani da wannan sunan.' });
+        if (existing) return res.status(400).json({ error: 'An riga an yi amfani da wannan sunan project din.' });
 
         const project_id = 'PRJ-' + Math.random().toString(36).substring(2, 9).toUpperCase();
         const api_key = 'sd-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -259,23 +271,11 @@ app.get('/api/database/rows/:tableName', verifyApiKey, (req, res) => {
 });
 
 // 5. BUCKET UPLOAD WITH WEBP COMPRESSION
-const verifyApiKey = (req, res, next) => {
-    const apiKey = req.headers['x-api-key'] || req.body.api_key;
-    if (!apiKey) return res.status(401).json({ error: 'API Key is missing.' });
-
-    db.get(`SELECT * FROM projects WHERE api_key = ?`, [apiKey], (err, project) => {
-        if (err || !project) return res.status(403).json({ error: 'Invalid API Key.' });
-        req.project = project;
-        next();
-    });
-};
-
 app.post('/api/bucket/upload', verifyApiKey, upload.single('file'), async (req, res) => {
     try {
         const { bucketName } = req.body;
         if (!req.file || !bucketName) return res.status(400).json({ error: 'Sanya bucket name da fayil.' });
 
-        // Binciki ko bucket din yana aiki (Enabled)
         db.get(`SELECT * FROM buckets WHERE project_id = ? AND bucket_name = ?`, [req.project.project_id, bucketName], async (err, bucket) => {
             if (!bucket || bucket.is_enabled === 0) {
                 return res.status(403).json({ error: 'Wannan bucket din a kashe yake (Disabled) ko bai wanzu ba.' });
@@ -315,7 +315,7 @@ app.get('/api/bucket/files/:bucketName', verifyApiKey, (req, res) => {
     });
 });
 
-// 6. ADMIN API ENDPOINTS (For `abubakarsadeeq8533@gmail.com`)
+// 6. ADMIN API ENDPOINTS
 app.get('/api/admin/stats', (req, res) => {
     db.get(`SELECT COUNT(*) as totalUsers FROM hub_users`, (err, uRow) => {
         db.get(`SELECT COUNT(*) as totalProjects FROM projects`, (err, pRow) => {
@@ -335,7 +335,7 @@ app.get('/api/admin/stats', (req, res) => {
 });
 
 app.post('/api/admin/user-action', (req, res) => {
-    const { email, action } = req.body; // action: 'suspend' ko 'forceout' ko 'activate'
+    const { email, action } = req.body;
     let newStatus = action === 'suspend' ? 'Suspended' : 'Active';
     if(action === 'forceout') {
         db.run(`UPDATE hub_users SET failed_attempts = 3 WHERE email = ?`, [email], () => {
